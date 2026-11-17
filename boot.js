@@ -126,7 +126,8 @@ function accountUI(user, isAdmin){
     <h3>สร้างบัญชีใหม่</h3>
     <div class="row"><div><label>ชื่อผู้ใช้</label><input id="adU" autocapitalize="none"></div><div><label>รหัสผ่านเริ่มต้น</label><input id="adP" type="text"></div></div>
     <div class="grid3" style="margin-top:8px"><div><label>เบนช์ 1RM</label><input id="adRb" type="number" step="2.5"></div><div><label>สควอท 1RM</label><input id="adRs" type="number" step="2.5"></div><div><label>เดดลิฟต์ 1RM</label><input id="adRd" type="number" step="2.5"></div></div>
-    <label style="margin-top:8px">โปรแกรม (JSON — ค่าเริ่มต้นคือโปรแกรมของคุณ)</label><textarea id="adProg" rows="6" style="width:100%;font-family:monospace;font-size:12px">${esc(defProg)}</textarea>
+    <label style="margin-top:8px">โปรแกรม</label><select id="adTpl"><option value="">โปรแกรมของฉัน (ค่าเริ่มต้น)</option></select>
+    <label style="margin-top:8px">โปรแกรม (JSON)</label><textarea id="adProg" rows="6" style="width:100%;font-family:monospace;font-size:12px">${esc(defProg)}</textarea>
     <div class="row" style="margin-top:8px;align-items:center"><button class="primary" id="adGo" style="flex:0 0 auto">สร้างบัญชี</button><span id="adMsg" class="tiny" style="flex:1"></span></div>`;
   card.after(ad);
   const loadList = async () => {
@@ -135,6 +136,15 @@ function accountUI(user, isAdmin){
     } catch(e){ $('#adList').textContent = 'โหลดรายชื่อไม่ได้: ' + errTxt(e); }
   };
   loadList();
+  const tpls = {};
+  fs.collection(`users/${acc.uid}/templates`).get().then(q => {
+    q.docs.forEach(d => { tpls[d.id] = d.data(); const o = document.createElement('option'); o.value = d.id; o.textContent = d.data().name || d.id; $('#adTpl').appendChild(o); });
+  }).catch(() => {});
+  $('#adTpl').onchange = () => {
+    const t = tpls[$('#adTpl').value];
+    $('#adProg').value = t ? JSON.stringify({days: t.days, extra: t.extra || undefined}, null, 1) : defProg;
+    if (t?.username && !$('#adU').value) $('#adU').value = t.username;
+  };
   $('#adGo').onclick = async () => {
     const u = $('#adU').value.trim().toLowerCase(), p = $('#adP').value;
     if (!validUser(u)){ $('#adMsg').textContent = 'ชื่อผู้ใช้ใช้ได้เฉพาะ a–z 0–9 . _ - ยาว 3–30 ตัว'; return; }

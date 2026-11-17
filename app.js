@@ -353,7 +353,7 @@ function renderSwapList(){
 }
 const DAY_ORDER = ['CH','LAT','LEG','SH','THK','rest'];
 const WEEKDAY_DAY = {1:'CH',2:'LAT',3:'LEG',4:'SH',5:'THK',6:'rest',0:'rest'};
-const MUSCLES = {chest:'อก', back:'หลัง (ปีก + หนา)', side:'ไหล่ข้าง', rear:'ไหล่หลัง', tri:'ไตรเซ็ป', bi:'ไบเซ็ป', quad:'ต้นขาหน้า', ham:'ต้นขาหลัง', calf:'น่อง', abs:'หน้าท้อง', fore:'ปลายแขน'};
+const MUSCLES = {chest:'อก', back:'หลัง (ปีก + หนา)', side:'ไหล่ข้าง', rear:'ไหล่หลัง', tri:'ไตรเซ็ป', bi:'ไบเซ็ป', quad:'ต้นขาหน้า', ham:'ต้นขาหลัง', calf:'น่อง', abs:'หน้าท้อง', fore:'ปลายแขน', glute:'ก้น'};
 const EFF = {'0':['หมดแรง','hard'], '0p':['หมดแรง + ครึ่งล่าง','hard'], '1':['เหลือ 1','']};
 const MAIN_FSL = 3;
 const AMRAP_MIN = {1:5, 2:3, 3:1};
@@ -801,7 +801,7 @@ function renderProgram(){
   // volume
   const vols = [0,1,2,3].map(weeklyVolume);
   let v = '<table><tr><th>กล้าม</th>' + WAVES.map((w,i)=>`<th class="num"${i===cur?' style="color:var(--accent)"':''}>ส.${i+1}${i===3?' (Deload)':''}</th>`).join('') + '</tr>';
-  for (const m of Object.keys(MUSCLES)) v += `<tr><td>${MUSCLES[m]}</td>${vols.map((x,i)=>`<td class="num"${i===cur?' style="font-weight:700"':''}>${x[m]}</td>`).join('')}</tr>`;
+  for (const m of Object.keys(MUSCLES)) if (vols.some(x => x[m])) v += `<tr><td>${MUSCLES[m]}</td>${vols.map((x,i)=>`<td class="num"${i===cur?' style="font-weight:700"':''}>${x[m]}</td>`).join('')}</tr>`;
   $('#volumeTable').innerHTML = v + '</table>';
   // 5/3/1
   if (!settings){ $('#cycleTable').innerHTML = '<p class="muted">ยังไม่ได้ตั้งค่า</p>'; }
@@ -1082,6 +1082,7 @@ function armButton(btn, label, onGo){
 }
 function renderCycle(){
   const el = $('#cycleBox'); if (!el) return;
+  if (!['CH','LAT','LEG','SH','THK'].some(k => DAYS[k]?.main)){ el.innerHTML = '<div class="card"><h2>แผนน้ำหนัก</h2><p class="muted" style="margin:0">โปรแกรมนี้ไม่มีท่าหลักแบบ 5/3/1 — ความก้าวหน้าดูได้ที่แท็บ "ก้าวหน้า" (เพิ่มน้ำหนักเมื่อทำได้ครบทุกเซต)</p></div>'; return; }
   if (!settings?.cycleStart){ el.innerHTML = '<div class="card"><p class="muted">กำลังโหลด…</p></div>'; return; }
   const cyc0 = settings.cycle || 1, start0 = dayNum(settings.cycleStart), today = dayNum(isoLocal(new Date()));
   const fmtD = n => { const d = fromNum(n), [y,m,dd] = d.split('-').map(Number); return new Date(y,m-1,dd).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
