@@ -7,7 +7,10 @@ const toEmail = u => u.trim().toLowerCase() + DOMAIN;
 const validUser = u => /^[a-z0-9._-]{3,30}$/.test(u.trim().toLowerCase());
 firebase.initializeApp(window.FB_CONFIG);
 const auth = firebase.auth(), fs = firebase.firestore();
-try { fs.enablePersistence({synchronizeTabs:true}).catch(()=>{}); } catch(e){}
+// มือถือบางเครือข่าย/บางเบราว์เซอร์ต่อ Firestore แบบปกติไม่ได้ → ให้สลับไปโหมด long-polling เองอัตโนมัติ
+try { fs.settings({experimentalAutoDetectLongPolling: true, merge: true}); } catch(e){}
+try { auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); } catch(e){}
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej({code:'timeout', message: what}), ms))]);
 const gate = $('#authGate');
 const msgHTML = (t, err) => `<div class="tiny" style="margin-top:8px;${err?'color:var(--danger,#c62828)':''}">${esc(t)}</div>`;
 const errTxt = e => ({ 'auth/invalid-credential':'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'auth/wrong-password':'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'auth/user-not-found':'ไม่พบชื่อผู้ใช้นี้',
@@ -29,7 +32,7 @@ async function loginView(){
     const u = $('#gU').value, p = $('#gP').value;
     if (!validUser(u) || !p){ $('#gMsg').innerHTML = msgHTML('กรอกชื่อผู้ใช้และรหัสผ่าน', true); return; }
     $('#gGo').disabled = true; $('#gMsg').innerHTML = msgHTML('กำลังเข้าสู่ระบบ…');
-    try { await auth.signInWithEmailAndPassword(toEmail(u), p); }
+    try { await withTimeout(auth.signInWithEmailAndPassword(toEmail(u), p), 20000, 'เชื่อมต่อระบบล็อกอินไม่ได้ (หมดเวลา) — ตรวจอินเทอร์เน็ตแล้วลองใหม่'); $('#gMsg').innerHTML = msgHTML('เข้าสู่ระบบแล้ว กำลังโหลดข้อมูล…'); }
     catch(e){ $('#gMsg').innerHTML = msgHTML(errTxt(e), true); $('#gGo').disabled = false; }
   };
   $('#gGo').onclick = go; $('#gP').onkeydown = e => { if (e.key==='Enter') go(); };
@@ -64,17 +67,27 @@ auth.onAuthStateChanged(user => {
 });
 async function startFor(user){
   if (started) return;
+  try { await startInner(user); }
+  catch(e){
+    showGate(`<p style="margin:0 0 8px">เข้าสู่ระบบแล้ว แต่โหลดข้อมูลไม่สำเร็จ</p><div class="tiny" style="margin-bottom:10px">${esc(e?.message || e?.code || 'error')}</div>
+      <button class="primary bigbtn" id="gRetry" style="width:100%">ลองใหม่</button><button id="gOut2" style="width:100%;margin-top:8px">ออกจากระบบ</button>`);
+    $('#gRetry').onclick = () => location.reload(); $('#gOut2').onclick = () => auth.signOut();
+  }
+}
+const step = t => { const m = $('#gMsg'); if (m) m.innerHTML = msgHTML(t); else showGate(`<p class="tiny">${esc(t)}</p>`); };
+async function startInner(user){
   const uid = user.uid;
   let member = null, isAdmin = false, program = null;
-  try {
-    const adm = await fs.doc('meta/admin').get(); isAdmin = adm.exists && adm.data().uid === uid;
-    const m = await fs.doc('members/'+uid).get(); member = m.exists ? m.data() : null;
-  } catch(e){}
+  step('กำลังตรวจสิทธิ์บัญชี…');
+  const adm = await withTimeout(fs.doc('meta/admin').get(), 15000, 'เชื่อมต่อฐานข้อมูลไม่ได้ (หมดเวลา) — ตรวจอินเทอร์เน็ตแล้วกดลองใหม่');
+  isAdmin = adm.exists && adm.data().uid === uid;
+  const m = await withTimeout(fs.doc('members/'+uid).get(), 15000, 'โหลดข้อมูลสมาชิกไม่ได้ (หมดเวลา)'); member = m.exists ? m.data() : null;
   if (!member && !isAdmin){
     showGate(`<p>บัญชีนี้ยังไม่ได้รับสิทธิ์ใช้งาน — ติดต่อผู้ดูแล</p><button id="gOut">ออกจากระบบ</button>`);
     $('#gOut').onclick = () => auth.signOut(); return;
   }
-  try { const p = await fs.doc(`users/${uid}/program/days`).get(); if (p.exists) program = p.data(); } catch(e){}
+  step('กำลังโหลดโปรแกรม…');
+  try { const p = await withTimeout(fs.doc(`users/${uid}/program/days`).get(), 15000, 'program'); if (p.exists) program = p.data(); } catch(e){ if (e?.code==='timeout') throw {message:'โหลดโปรแกรมไม่ได้ (หมดเวลา) — กดลองใหม่'}; }
   try { const sref = fs.doc(`users/${uid}/settings/main`);
     if (!(await sref.get()).exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
       const iso = `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
