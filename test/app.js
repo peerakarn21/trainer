@@ -407,11 +407,19 @@ function route(){
   const valid = guest ? ['today','program','cycle'] : ['today','program','progress','cycle','food','coach','settings'];
   const cur = valid.includes(v) ? v : 'today';
   document.querySelectorAll('.view').forEach(e => e.classList.toggle('on', e.id==='v-'+cur));
-  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v===cur));
+  document.querySelectorAll('#nav a, #tabbar a').forEach(a => a.classList.toggle('on', a.dataset.v===cur));
+  document.getElementById('moreBtn')?.classList.toggle('on', ['cycle','coach','settings'].includes(cur));
+  const ms = document.getElementById('moreSheet'); if (ms) ms.hidden = true;
+  if (window.innerWidth <= 720) window.scrollTo(0, 0);
   if (cur==='progress') renderProgress();
   if (cur==='cycle') renderCycle();
 }
 window.addEventListener('hashchange', route);
+(() => {
+  const mb = document.getElementById('moreBtn'), ms = document.getElementById('moreSheet');
+  if (mb && ms){ mb.onclick = () => { ms.hidden = !ms.hidden; }; ms.onclick = e => { if (e.target === ms) ms.hidden = true; };
+    ms.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ms.hidden = true; })); }
+})();
 
 // ---------- header ----------
 function renderPill(){
@@ -524,7 +532,8 @@ function paintClock(){
   const sec = Math.max(0, Math.floor((Date.now() - Date.parse(sess.start))/1000));
   const t = `${Math.floor(sec/3600)}:${pad(Math.floor(sec/60)%60)}:${pad(sec%60)}`;
   el.className = 'sessclock run';
-  el.innerHTML = `⏱ เล่นไปแล้ว <b>${t}</b> · เริ่ม ${hm(sess.start)} <span class="tiny">· กด "บันทึก" เมื่อเล่นจบเพื่อหยุดเวลา</span>`;
+  el.innerHTML = `<button class="fin" type="button">จบการฝึก</button>⏱ เล่นไปแล้ว <b>${t}</b> · เริ่ม ${hm(sess.start)}`;
+  el.querySelector('.fin').onclick = () => save(false);
 }
 setInterval(paintClock, 1000);
 
@@ -555,6 +564,7 @@ function onRest(btn, day, list){
   const secs = k==='m' ? (row.querySelector('.sl').textContent.startsWith('FSL') ? 120 : 180) : restSecOf(list[+i]);
   const sameEx = nextBtn.dataset.k===k && nextBtn.dataset.i===i;
   startTimer(secs, (sameEx ? 'ต่อไป: ' : 'ท่าต่อไป: ') + setLabel(nextBtn, day, list));
+  setTimeout(() => { try { nextBtn.closest('.srow').scrollIntoView({block:'center', behavior:'smooth'}); } catch(e){} }, 250);
 }
 function audioInit(){ try { timer.ctx ||= new (window.AudioContext||window.webkitAudioContext)(); timer.ctx.resume?.(); } catch(e){} }
 function beep(n=3){
@@ -568,7 +578,7 @@ function startTimer(secs, next){
   audioInit();
   try { navigator.wakeLock?.request('screen').then(w => timer.wake = w).catch(()=>{}); } catch(e){}
   timer.end = Date.now() + secs*1000; timer.total = secs; timer.next = next;
-  const bar = $('#timerBar'); bar.className = 'timerbar run'; bar.hidden = false;
+  const bar = $('#timerBar'); bar.className = 'timerbar run'; bar.hidden = false; document.body.classList.add('timer-on');
   clearInterval(timer.iv); timer.iv = setInterval(tick, 250); tick();
 }
 function tick(){
@@ -588,12 +598,12 @@ function bindTimerBtns(){
   });
 }
 function showTimerDone(msg){
-  const bar = $('#timerBar'); bar.hidden = false; bar.className = 'timerbar done';
+  const bar = $('#timerBar'); bar.hidden = false; bar.className = 'timerbar done'; document.body.classList.add('timer-on');
   bar.innerHTML = `<div class="tb-main"><div class="tb-time">GO</div><div class="tb-next">${esc(msg)}</div></div><div class="tb-btns"><button data-t="skip">ปิด</button></div>`;
   bindTimerBtns();
   try { timer.wake?.release(); timer.wake = null; } catch(e){}
 }
-function stopTimer(){ clearInterval(timer.iv); $('#timerBar').hidden = true; try { timer.wake?.release(); timer.wake = null; } catch(e){} }
+function stopTimer(){ clearInterval(timer.iv); $('#timerBar').hidden = true; document.body.classList.remove('timer-on'); try { timer.wake?.release(); timer.wake = null; } catch(e){} }
 
 // ---------- daily form ----------
 const cycleEndN = () => settings?.cycleStart ? dayNum(settings.cycleStart) + 27 : Infinity;
