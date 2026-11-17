@@ -439,7 +439,13 @@ function renderWorkout(){
   const wi = weekInfo(curDate), wave = WAVES[wi.idx], deload = wi.idx===3;
   const prevFor = renderedFor;
   const list = accOf(key); renderedFor = curDate+'|'+key; renderedKey = key; renderedAcc = list;
-  if (prevFor !== renderedFor) sess = {start:log.startedAt||null, end:log.endedAt||null, last:log.lastSetAt||null};
+  if (prevFor !== renderedFor || !keep){
+    const loc = sessLocal(curDate);
+    sess = {start:log.startedAt||loc?.start||null, end:log.endedAt||null, last:log.lastSetAt||loc?.last||null};
+    if (loc?.start && log.startedAt && loc.start < log.startedAt) sess.start = loc.start;
+    if (loc?.last && (!sess.last || loc.last > sess.last)) sess.last = loc.last;
+    if (loc && 'end' in loc && !log.endedAt) sess.end = loc.end;
+  }
   let h = '';
   if (!settings){ $('#workoutCard').innerHTML = h + '<p class="muted">กำลังรอการตั้งค่าโปรแกรม…</p>'; return; }
   if (key==='rest'){
@@ -516,6 +522,9 @@ function renderOverPanel(){
 }
 // ---------- session clock (เวลาเล่นทั้งวัน) ----------
 let sess = {start:null, end:null, last:null};
+const SESS_LS = 'trainer_sess_v1';
+function sessLocal(date){ try { const v = JSON.parse(localStorage.getItem(SESS_LS)||'null'); return v && v.date===date ? v : null; } catch(e){ return null; } }
+function sessKeep(){ try { localStorage.setItem(SESS_LS, JSON.stringify({date:curDate, start:sess.start, last:sess.last, end:sess.end})); } catch(e){} }
 function sessMin(){ if (!sess.start) return null; const e = sess.end || sess.last || sess.start; return Math.max(0, Math.round((Date.parse(e) - Date.parse(sess.start))/60000)); }
 const hm = iso => new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 const durTxt = m => m>=60 ? `${Math.floor(m/60)} ชม. ${m%60} นาที` : `${m} นาที`;
@@ -550,7 +559,7 @@ function onRest(btn, day, list){
   const row = btn.closest('.srow');
   if (btn.classList.contains('on')){ btn.classList.remove('on'); btn.textContent = '✓ พัก'; row.classList.remove('done'); autoSave(); return; }
   btn.classList.add('on'); btn.textContent = '✓ เสร็จ'; row.classList.add('done');
-  if (curDate===isoLocal(new Date())){ const now = new Date().toISOString(); if (!sess.start) sess.start = now; sess.last = now; sess.end = null; paintClock(); }
+  if (curDate===isoLocal(new Date())){ const now = new Date().toISOString(); if (!sess.start) sess.start = now; sess.last = now; sess.end = null; sessKeep(); paintClock(); }
   const wIn = row.querySelector('input[data-f="w"]');
   if (wIn && !wIn.value){
     const prevRow = row.previousElementSibling?.classList.contains('srow') ? row.previousElementSibling : null;
@@ -574,36 +583,100 @@ function beep(n=3){
   } catch(e){}
   try { navigator.vibrate?.([300,150,300,150,300]); } catch(e){}
 }
+// --- เสียงเตือนแบบไฟล์เสียง: เงียบจนหมดเวลาพัก แล้วดังวนจนกว่าจะกดปิด (เล่นต่อได้แม้ปิดจอ) ---
+const REST_LS = 'trainer_rest_v1', BG_LS = 'trainer_bgAlarm';
+const bgOn = () => { try { return localStorage.getItem(BG_LS) !== '0'; } catch(e){ return true; } };
+const ALARM_SEC = 300, SR = 8000;
+function alarmWav(silentSec){
+  const n = Math.round((silentSec + ALARM_SEC) * SR), buf = new ArrayBuffer(44 + n), v = new DataView(buf), u8 = new Uint8Array(buf);
+  const str = (o,s) => { for (let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  str(0,'RIFF'); v.setUint32(4,36+n,true); str(8,'WAVE'); str(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,SR,true); v.setUint32(28,SR,true); v.setUint16(32,1,true); v.setUint16(34,8,true); str(36,'data'); v.setUint32(40,n,true);
+  u8.fill(128, 44);
+  const s0 = Math.round(silentSec*SR), cyc = Math.round(1.6*SR), on = Math.round(0.22*SR), gap = Math.round(0.32*SR);
+  for (let i=s0; i<n; i++){
+    const p = (i-s0) % cyc, k = Math.floor(p/gap), q = p - k*gap;
+    if (k < 3 && q < on){ const tt = q/SR, env = Math.min(1, q/80, (on-q)/80);
+      u8[44+i] = 128 + Math.round(110*env*(0.6*Math.sin(2*Math.PI*880*tt) + 0.4*Math.sin(2*Math.PI*1320*tt))); }
+  }
+  return new Blob([buf], {type:'audio/wav'});
+}
+function alarmStop(){
+  try { if (timer.au){ timer.au.pause(); URL.revokeObjectURL(timer.au.src); timer.au.removeAttribute('src'); timer.au.load(); } } catch(e){}
+  timer.au = null; clearInterval(timer.ring); timer.ring = null;
+  try { if (navigator.mediaSession){ navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } } catch(e){}
+}
+function alarmArm(){
+  alarmStop(); if (!bgOn()) return;
+  const left = Math.max(0, (timer.end - Date.now())/1000);
+  try {
+    const au = new Audio(URL.createObjectURL(alarmWav(left))); au.preload = 'auto'; au.setAttribute('playsinline','');
+    timer.au = au; au.play().catch(()=>{ if (timer.au===au) timer.au = null; });
+    if (navigator.mediaSession && window.MediaMetadata){
+      navigator.mediaSession.metadata = new MediaMetadata({title:'พักระหว่างเซ็ต', artist:timer.next || 'Trainer', album:'Trainer'});
+      for (const a of ['pause','stop']) try { navigator.mediaSession.setActionHandler(a, () => { stopTimer(); }); } catch(e){}
+    }
+  } catch(e){ timer.au = null; }
+}
+function restKeep(){ try { localStorage.setItem(REST_LS, JSON.stringify({end:timer.end, total:timer.total, next:timer.next})); } catch(e){} }
+function restClear(){ try { localStorage.removeItem(REST_LS); } catch(e){} }
 function startTimer(secs, next){
   audioInit();
   try { navigator.wakeLock?.request('screen').then(w => timer.wake = w).catch(()=>{}); } catch(e){}
-  timer.end = Date.now() + secs*1000; timer.total = secs; timer.next = next;
+  timer.end = Date.now() + secs*1000; timer.total = secs; timer.next = next; timer.rang = false;
+  restKeep(); alarmArm(); runTimer();
+}
+function runTimer(){
   const bar = $('#timerBar'); bar.className = 'timerbar run'; bar.hidden = false; document.body.classList.add('timer-on');
   clearInterval(timer.iv); timer.iv = setInterval(tick, 250); tick();
+}
+function timerResync(){
+  if (!timer.end || !timer.au) return;
+  const want = timer.total - (timer.end - Date.now())/1000;   // ตำแหน่งที่ไฟล์เสียงควรอยู่
+  try { if (Math.abs(timer.au.currentTime - want) > 1.5 && want >= 0) timer.au.currentTime = want; } catch(e){}
 }
 function tick(){
   const left = Math.max(0, Math.round((timer.end - Date.now())/1000));
   const mm = Math.floor(left/60), ss = String(left%60).padStart(2,'0');
   $('#timerBar').innerHTML = `<div class="tb-main"><div class="tb-time">${mm}:${ss}</div><div class="tb-next">พัก · ${esc(timer.next)}</div></div>
-    <div class="tb-btns"><button data-t="-30">−30</button><button data-t="30">+30</button><button data-t="skip">ข้าม</button></div>
+    <div class="tb-btns"><button data-t="bell" title="เสียงเตือนแม้ปิดจอ">${bgOn()?'🔔':'🔕'}</button><button data-t="-30">−30</button><button data-t="30">+30</button><button data-t="skip">ข้าม</button></div>
     <div class="tb-prog"><i style="width:${timer.total ? (1-left/timer.total)*100 : 0}%"></i></div>`;
   bindTimerBtns();
-  if (left <= 0){ clearInterval(timer.iv); showTimerDone(`หมดเวลาพัก! ${timer.next.replace(/^(ท่าต่อไป|ต่อไป): /,'')} ได้เลย`); beep(); }
+  if (left <= 0){ clearInterval(timer.iv); showTimerDone(`หมดเวลาพัก! ${timer.next.replace(/^(ท่าต่อไป|ต่อไป): /,'')} ได้เลย`, true); }
 }
 function bindTimerBtns(){
   $('#timerBar').querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
     const v = b.dataset.t;
     if (v==='skip'){ stopTimer(); return; }
-    timer.end += (+v)*1000; timer.total = Math.max(1, timer.total + (+v)); tick();
+    if (v==='bell'){ try { localStorage.setItem(BG_LS, bgOn() ? '0' : '1'); } catch(e){} audioInit(); alarmArm(); tick(); return; }
+    timer.end += (+v)*1000; timer.total = Math.max(1, timer.total + (+v)); restKeep(); alarmArm(); tick();
   });
 }
-function showTimerDone(msg){
+function showTimerDone(msg, ring){
   const bar = $('#timerBar'); bar.hidden = false; bar.className = 'timerbar done'; document.body.classList.add('timer-on');
-  bar.innerHTML = `<div class="tb-main"><div class="tb-time">GO</div><div class="tb-next">${esc(msg)}</div></div><div class="tb-btns"><button data-t="skip">ปิด</button></div>`;
+  bar.innerHTML = `<div class="tb-main"><div class="tb-time">GO</div><div class="tb-next">${esc(msg)}</div></div><div class="tb-btns"><button data-t="skip">${ring?'🔕 ปิดเสียง':'ปิด'}</button></div>`;
   bindTimerBtns();
   try { timer.wake?.release(); timer.wake = null; } catch(e){}
+  if (ring && !timer.rang){
+    timer.rang = true;
+    const fileRinging = timer.au && !timer.au.paused;
+    if (!fileRinging){ beep(); clearInterval(timer.ring); const t0 = Date.now(); timer.ring = setInterval(() => { if (Date.now()-t0 > ALARM_SEC*1000) { clearInterval(timer.ring); return; } beep(); }, 1600); }
+    else try { navigator.vibrate?.([300,150,300,150,300]); } catch(e){}
+  }
 }
-function stopTimer(){ clearInterval(timer.iv); $('#timerBar').hidden = true; document.body.classList.remove('timer-on'); try { timer.wake?.release(); timer.wake = null; } catch(e){} }
+function stopTimer(){ clearInterval(timer.iv); alarmStop(); restClear(); timer.end = 0; $('#timerBar').hidden = true; document.body.classList.remove('timer-on'); try { timer.wake?.release(); timer.wake = null; } catch(e){} }
+// เปิดแอปใหม่ระหว่างพัก → นับต่อจากเดิม
+function restoreTimer(){
+  let r = null; try { r = JSON.parse(localStorage.getItem(REST_LS)||'null'); } catch(e){}
+  if (!r || !r.end) return;
+  if (Date.now() - r.end > 15*60*1000){ restClear(); return; }
+  Object.assign(timer, {end:r.end, total:r.total, next:r.next||'', rang:false});
+  runTimer();
+  // เบราว์เซอร์ไม่ให้เล่นเสียงเองโดยไม่แตะจอ → แตะครั้งแรกค่อยตั้งเสียงเตือน
+  const arm = () => { document.removeEventListener('pointerdown', arm, true); audioInit(); if (timer.end > Date.now() && !timer.au) alarmArm(); };
+  document.addEventListener('pointerdown', arm, true);
+}
+setTimeout(restoreTimer, 0);
 
 // ---------- daily form ----------
 const cycleEndN = () => settings?.cycleStart ? dayNum(settings.cycleStart) + 27 : Infinity;
@@ -670,13 +743,16 @@ function collectWorkout(){
   return w;
 }
 let saving = false, saveAgain = false, autoT = null, lastSavedAt = null;
-function autoSave(){ clearTimeout(autoT); autoT = setTimeout(() => save(true), 1200); }
+function autoSave(){ clearTimeout(autoT); autoT = setTimeout(() => { autoT = null; save(true); }, 1200); }
+function flushSave(){ if (autoT){ clearTimeout(autoT); autoT = null; save(true); } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState==='hidden') flushSave(); else { timerResync(); } });
+window.addEventListener('pagehide', flushSave);
 async function save(quiet){
   if (guest) return;
   if (!db){ $('#saveMsg').innerHTML = '<span class="err">บันทึกไม่ได้: ยังไม่ได้เข้าสู่ระบบ</span>'; return; }
   if (saving){ saveAgain = true; return; }
   clearTimeout(autoT); saving = true;
-  if (!quiet && sess.start && !sess.end && curDate===isoLocal(new Date())) { sess.end = new Date().toISOString(); paintClock(); }
+  if (!quiet && sess.start && !sess.end && curDate===isoLocal(new Date())) { sess.end = new Date().toISOString(); sessKeep(); paintClock(); }
   const date = curDate, prev = logs.get(date) || {};
   const doc = {...prev, date, dayType:$('#fDay').value, updatedAt:new Date().toISOString()};
   doc.workout = collectWorkout();
