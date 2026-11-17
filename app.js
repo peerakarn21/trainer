@@ -930,6 +930,7 @@ function renderSettings(){
   $('#sCycle').value = settings.cycle || 1;
   const t = settings.targets || {};
   [['T','train'],['R','rest']].forEach(([p,k]) => { ['k','p','c','f'].forEach(m => { $(`#t${p}${m}`).value = t[k]?.[m==='k'?'kcal':m] ?? ''; }); });
+  bindTargetKcal();
 }
 async function saveSettings(next, msg){
   if (!db) { $('#sMsg').innerHTML='<span class="err">ยังไม่ได้เข้าสู่ระบบ</span>'; return; }
@@ -944,7 +945,8 @@ function settingsFromForm(){
   LIFT_ORDER.forEach(l => { n.oneRM[l] = num($(`[data-rm="${l}"]`).value); n.tm[l] = num($(`[data-tm="${l}"]`).value); });
   n.cycleStart = $('#sCycleStart').value || n.cycleStart; n.cycle = num($('#sCycle').value) || 1;
   const g = id => num($(id).value);
-  n.targets = {train:{kcal:g('#tTk'),p:g('#tTp'),c:g('#tTc'),f:g('#tTf')}, rest:{kcal:g('#tRk'),p:g('#tRp'),c:g('#tRc'),f:g('#tRf')}};
+  const tg = pf => { const p = g(`#t${pf}p`), c = g(`#t${pf}c`), f = g(`#t${pf}f`); return {kcal: macroKcal(p,c,f), p, c, f}; };
+  n.targets = {train: tg('T'), rest: tg('R')};
   n.updatedAt = new Date().toISOString();
   return n;
 }
@@ -1007,6 +1009,18 @@ function renderCycle(){
     <div class="sec-title">น้ำหนักทุกเซ็ตแต่ละรอบ</div>${det}`;
 }
 
+// ---------- กรัม → kcal (โปรตีน 4 · คาร์บ 4 · ไขมัน 9) ----------
+const macroKcal = (p, c, f) => Math.round((+p||0)*4 + (+c||0)*4 + (+f||0)*9);
+function bindTargetKcal(){
+  ['T','R'].forEach(pf => {
+    const k = $(`#t${pf}k`); if (!k) return;
+    k.readOnly = true; k.tabIndex = -1; k.classList.add('autokcal');
+    const upd = () => { k.value = macroKcal($(`#t${pf}p`).value, $(`#t${pf}c`).value, $(`#t${pf}f`).value); };
+    ['p','c','f'].forEach(m => $(`#t${pf}${m}`).addEventListener('input', upd));
+    upd();
+  });
+}
+
 // ---------- food (AI nutrition) ----------
 let sampleFn = null, foodDay = isoLocal(new Date()), pendingFood = null;
 const sumMeals = meals => meals.reduce((t,m) => ({kcal:t.kcal+(m.totals?.kcal||0), p:t.p+(m.totals?.p||0), c:t.c+(m.totals?.c||0), f:t.f+(m.totals?.f||0)}), {kcal:0,p:0,c:0,f:0});
@@ -1020,7 +1034,7 @@ function renderFood(){
   const tile = (k, v, goal, u) => `<div class="m"><div class="k">${k}</div><div class="v">${fmt(v,0)}<small> / ${fmt(goal,0)}${u}</small></div><div class="bar"><i style="width:${goal?Math.min(100,v/goal*100):0}%"></i></div></div>`;
   $('#foodTotals').innerHTML = tile('kcal', t.kcal, tg.kcal, '') + tile('โปรตีน', t.p, tg.p, ' ก.') + tile('คาร์บ', t.c, tg.c, ' ก.') + tile('ไขมัน', t.f, tg.f, ' ก.');
   $('#mealList').innerHTML = meals.length ? meals.map((m,mi) => `<div class="meal"><div class="meal-h"><b>${esc(m.name)}</b><span class="tiny">${fmt(m.totals?.kcal,0)} kcal · P ${fmt(m.totals?.p,0)} · C ${fmt(m.totals?.c,0)} · F ${fmt(m.totals?.f,0)}</span><button class="linkbtn" data-delmeal="${mi}">ลบ</button></div>
-      <div class="tiny" style="margin-top:4px">${m.items.map(i => `${esc(i.name)} ${fmt(i.grams,0)} ก.`).join(' · ')}</div></div>`).join('') : '<p class="muted" style="margin:0">ยังไม่มีอาหารวันนี้</p>';
+      <div class="tiny" style="margin-top:4px">${m.items.map(i => i.grams ? `${esc(i.name)} ${fmt(i.grams,0)} ก.` : esc(i.name)).join(' · ')}</div></div>`).join('') : '<p class="muted" style="margin:0">ยังไม่มีอาหารวันนี้</p>';
   $('#mealList').querySelectorAll('[data-delmeal]').forEach(b => b.onclick = () => { const m = [...meals]; m.splice(+b.dataset.delmeal, 1); writeMeals(foodDay, m); });
   renderFoodResult();
 }
@@ -1079,6 +1093,18 @@ ${text}`;
   } finally { btn.disabled = false; }
 }
 $('#calcFood').addEventListener('click', calcFood);
+(() => {
+  const ids = ['mfP','mfC','mfF'], upd = () => { $('#mfK').textContent = macroKcal(...ids.map(i => $('#'+i).value)); };
+  ids.forEach(i => $('#'+i).addEventListener('input', upd)); upd();
+  $('#mfAdd').addEventListener('click', () => {
+    const [p,c,f] = ids.map(i => +$('#'+i).value || 0);
+    if (!p && !c && !f){ $('#foodMsg').textContent = 'กรอกโปรตีน/คาร์บ/ไขมันเป็นกรัมก่อน'; return; }
+    const name = $('#mfName').value.trim() || 'กรอกเอง', kcal = macroKcal(p,c,f);
+    const item = {name, grams:0, kcal, protein:p, carbs:c, fat:f, note:'กรอกเอง'};
+    const meals = [...(logs.get(foodDay)?.meals || []), {name: $('#mealName').value, items:[item], totals:{kcal, p, c, f}, text:name, at:new Date().toISOString()}];
+    ['mfName',...ids].forEach(i => $('#'+i).value = ''); upd(); writeMeals(foodDay, meals);
+  });
+})();
 $('#foodDate').addEventListener('change', e => { foodDay = e.target.value || isoLocal(new Date()); pendingFood = null; renderFood(); });
 
 

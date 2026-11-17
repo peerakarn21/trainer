@@ -204,6 +204,7 @@ details.evold>summary::-webkit-details-marker{display:none}
 .sessclock{font-size:14px;padding:8px 10px;border-radius:10px;background:var(--surface-2,#8881);margin:0 0 8px}
 .sessclock.run{background:#2e7d3222}
 .sessclock.end{background:#1565c022}
+.autokcal{background:var(--surface-2,#8881)!important;font-weight:600}
 .demo img.sq{aspect-ratio:1/1;max-width:300px;object-fit:contain;background:#fff}
 .demo .setup{margin:4px 0 0;padding-left:20px;color:var(--text-muted,#999);font-size:14px;line-height:1.5}
 .demo .setup li{margin:2px 0}
@@ -322,6 +323,15 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
         <span id="foodMsg" class="tiny" style="flex:1"></span>
       </div>
       <div id="foodResult"></div>
+      <h3 style="margin-top:14px">หรือกรอกสารอาหารเอง (กรัม)</h3>
+      <div class="row"><div style="flex:2"><label>ชื่ออาหาร</label><input id="mfName" placeholder="เช่น อกไก่ + ข้าว"></div></div>
+      <div class="macro-in" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;align-items:end">
+        <div><label>โปรตีน (ก.)</label><input id="mfP" type="number" inputmode="decimal" min="0"></div>
+        <div><label>คาร์บ (ก.)</label><input id="mfC" type="number" inputmode="decimal" min="0"></div>
+        <div><label>ไขมัน (ก.)</label><input id="mfF" type="number" inputmode="decimal" min="0"></div>
+        <div><label>= kcal</label><div class="autokcal" id="mfK" style="padding:9px 10px;border-radius:8px">0</div></div>
+      </div>
+      <button class="primary" id="mfAdd" style="margin-top:8px">เพิ่มลงมื้อที่เลือก</button>
     </div>
     <div class="card"><h2>มื้ออาหารวันนี้</h2><div id="mealList"></div></div>
     <details class="fold"><summary>เป้าหมายและวิธีจัดอาหาร</summary><div class="inner">
@@ -389,6 +399,7 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
         <div><label>รอบที่</label><input type="number" id="sCycle" min="1"></div>
       </div>
       <h3>เป้าหมายอาหาร</h3>
+      <p class="tiny" style="margin:-4px 0 6px">กรอกกรัมของโปรตีน คาร์บ ไขมัน แล้ว kcal คำนวณให้เอง (โปรตีน×4 + คาร์บ×4 + ไขมัน×9)</p>
       <div class="tablewrap"><table>
         <tr><th></th><th class="num">kcal</th><th class="num">P</th><th class="num">C</th><th class="num">F</th></tr>
         <tr><td>วันฝึก</td><td><input id="tTk" type="number"></td><td><input id="tTp" type="number"></td><td><input id="tTc" type="number"></td><td><input id="tTf" type="number"></td></tr>
@@ -406,6 +417,6 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794886598";</script><script src="config.js"></script><script src="boot.js?v=1794886598"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794889192";</script><script src="config.js"></script><script src="boot.js?v=1794889192"></script>
 </body>
 </html>
