@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>Trainer — ลดไขมัน + 5/3/1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f4f3f0; --surface-1:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7974;
+  --accent:#2a78d6; --accent-ink:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --dot:#b9b8b2;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#121211; --surface-1:#1a1a19; --surface-2:#232321; --line:#33332f;
+    --text-primary:#f0efec; --text-secondary:#c3c2b7; --text-muted:#8d8c85;
+    --accent:#3987e5; --accent-ink:#ffffff;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --dot:#55554f;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans Thai",system-ui,sans-serif;background:var(--bg);color:var(--text-primary);font-size:15px;line-height:1.55}
+header{background:var(--surface-1);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 6px}
+.brand{font-weight:700;font-size:18px}
+.brand small{display:block;font-weight:400;font-size:12.5px;color:var(--text-secondary)}
+.pill{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--text-secondary);white-space:nowrap}
+nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+nav a{padding:7px 13px;border-radius:8px;color:var(--text-secondary);text-decoration:none;white-space:nowrap;font-weight:500}
+nav a.on{background:var(--accent);color:var(--accent-ink)}
+main{padding:18px 0 60px}
+.view{display:none}.view.on{display:block}
+.card{background:var(--surface-1);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:17px}
+.card h3{margin:14px 0 6px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr}}
+label{display:block;font-size:13px;color:var(--text-secondary);margin-bottom:3px}
+input,select,textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-1);color:var(--text-primary)}
+input[type=checkbox]{width:18px;height:18px;padding:0;accent-color:var(--accent);vertical-align:middle}
+textarea{min-height:64px;resize:vertical}
+button{font:inherit;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--text-primary);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.55;cursor:default}
+.row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.row>*{flex:1;min-width:120px}
+.muted{color:var(--text-secondary);font-size:13.5px}
+.tiny{color:var(--text-muted);font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:600;color:var(--text-secondary);font-size:13px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.set{display:flex;justify-content:space-between;padding:6px 10px;border-radius:8px;background:var(--surface-2);margin-bottom:5px;font-variant-numeric:tabular-nums}
+.set.top{outline:2px solid var(--accent)}
+.set .w{font-weight:700}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--text-secondary)}
+.banner{padding:10px 14px;border-radius:10px;margin-bottom:14px;background:var(--surface-2);border-left:4px solid var(--accent)}
+.banner.warn{border-left-color:var(--warning)}
+.stat{background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .k{font-size:12.5px;color:var(--text-secondary)}
+.bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:4px}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.coach{border-left:4px solid var(--accent)}
+.coach.good{border-left-color:var(--good)}.coach.warn{border-left-color:var(--warning)}.coach.alert{border-left-color:var(--critical)}
+.coach ul{margin:6px 0 0;padding-left:20px}
+.status-ic{font-weight:700}
+.chartbox{position:relative;height:260px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary);margin-bottom:6px}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.saved{color:var(--good);font-weight:600;font-size:13.5px}
+.err{color:var(--critical);font-weight:600;font-size:13.5px}
+ul.clean{margin:4px 0;padding-left:20px}
+details summary{cursor:pointer;font-weight:600}
+.acc td input{min-width:64px}
+
+#authGate{position:fixed;inset:0;z-index:9999;background:var(--bg,#f6f6f4);display:flex;align-items:flex-start;justify-content:center;padding:60px 16px;overflow:auto}
+#authGate .gatecard{width:100%;max-width:380px;background:var(--surface-1,#fff);border:1px solid var(--line,#ddd);border-radius:14px;padding:20px}
+#authGate input{width:100%}
+#authGate[hidden]{display:none}
+.exname{font-weight:600}
+.why{color:var(--text-muted);font-size:12.5px;line-height:1.4;margin-top:2px}
+.eff{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--text-secondary);white-space:nowrap}
+.eff.hard{border-color:var(--accent);color:var(--accent)}
+td.sets{white-space:nowrap;font-variant-numeric:tabular-nums}
+.focus{font-weight:600;color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface-1);color:var(--text-secondary);font-weight:500;font-size:14px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip small{opacity:.8;font-weight:400}
+details.ex{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--surface-1)}
+details.ex>summary{list-style:none;padding:12px 14px;display:flex;gap:10px;align-items:center;cursor:pointer}
+details.ex>summary::-webkit-details-marker{display:none}
+details.ex>summary .no{flex:0 0 26px;height:26px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+details.ex>summary .mid{flex:1;min-width:0}
+details.ex>summary .rt{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+details.ex>summary .rt b{display:block;font-size:15px}
+details.ex>summary .chev{color:var(--text-muted);transition:transform .15s}
+details.ex[open]>summary .chev{transform:rotate(90deg)}
+details.ex .body{padding:0 14px 14px;border-top:1px solid var(--line)}
+details.ex .body h4{margin:12px 0 4px;font-size:13.5px;color:var(--text-secondary)}
+.settbl td,.settbl th{padding:6px 8px;white-space:nowrap}
+.settbl td:last-child{white-space:normal}
+.settbl tr.warm td{color:var(--text-muted)}
+.settbl tr.topset td{font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--text-secondary)}
+.kv dd{margin:0}
+details.howto summary{font-weight:500;font-size:13px;color:var(--accent);cursor:pointer;margin-top:3px}
+
+.restbtn{padding:7px 10px;font-size:13px;white-space:nowrap;background:var(--surface-2)}
+.restbtn.on{background:var(--good);border-color:var(--good);color:#fff}
+.timerbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface-1);border-top:2px solid var(--accent);box-shadow:0 -6px 20px rgba(0,0,0,.15);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.timerbar[hidden]{display:none}
+.timerbar .tb-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
+.timerbar .tb-time{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.timerbar .tb-next{font-size:13.5px;color:var(--text-secondary)}
+.timerbar .tb-btns{display:flex;gap:6px}
+.timerbar .tb-btns button{padding:8px 12px}
+.timerbar .tb-prog{flex-basis:100%;height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.timerbar .tb-prog i{display:block;height:100%;background:var(--accent)}
+.timerbar.done{background:var(--good);border-top-color:var(--good);animation:flash 1s ease-in-out 3}
+.timerbar.done .tb-time,.timerbar.done .tb-next{color:#fff}
+@keyframes flash{50%{filter:brightness(1.25)}}
+main{padding-bottom:130px}
+html{scroll-padding-bottom:130px}
+.sumtext{white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,Consolas,"Noto Sans Thai",monospace;font-size:12.5px;line-height:1.5;background:var(--surface-2);border-radius:8px;padding:12px;max-height:520px;overflow:auto;margin:8px 0 0}
+.st-ready{color:var(--good);font-weight:600}
+.st-hold{color:var(--text-secondary)}
+.st-drop{color:var(--critical);font-weight:600}
+.exlog{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.exh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card.compact{padding:10px 12px}
+.dsum{font-weight:600;cursor:pointer}
+.exlog.main{border-color:var(--accent)}
+.srow{display:grid;grid-template-columns:62px 1fr 12px 1fr auto;gap:6px;align-items:center;margin-top:6px}
+.srow input{padding:7px 8px}
+.srow.head{font-size:12px;color:var(--text-muted);margin-top:8px}
+.srow.done input{background:var(--surface-2)}
+.srow.top .sl{font-weight:700;color:var(--accent)}
+.srow .sl{font-size:13px}
+.srow .fixw{font-weight:700;font-variant-numeric:tabular-nums;padding:7px 8px;background:var(--surface-2);border-radius:8px;text-align:center}
+.srow .x{color:var(--text-muted);text-align:center}
+details.howto div{font-size:13px;color:var(--text-secondary);margin-top:3px}
+
+/* ---- clean layout v3 ---- */
+.card h2{font-size:16px}
+.sec-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:none;margin:18px 2px 8px}
+details.fold{border:1px solid var(--line);border-radius:12px;background:var(--surface-1);margin-bottom:14px}
+details.fold>summary{padding:14px 16px;font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+details.fold>summary::after{content:'›';color:var(--text-muted);transition:transform .15s}
+details.fold[open]>summary::after{transform:rotate(90deg)}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>.inner{padding:0 16px 16px}
+/* coach blocks */
+.ev{border:1px solid var(--line);border-radius:12px;background:var(--surface-1);margin-bottom:12px;overflow:hidden}
+.ev-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.ev-dot{width:10px;height:10px;border-radius:50%;flex:0 0 10px;background:var(--accent)}
+.ev.good .ev-dot{background:var(--good)} .ev.warn .ev-dot{background:var(--warning)} .ev.alert .ev-dot{background:var(--critical)}
+.ev-title{font-weight:700;flex:1}
+.ev-date{font-size:12.5px;color:var(--text-muted)}
+.ev-sum{padding:12px 14px;white-space:pre-line;font-size:14.5px}
+.ev-blocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;padding:0 14px 14px}
+.blk{border-radius:10px;padding:10px 12px;background:var(--surface-2)}
+.blk h4{margin:0 0 6px;font-size:13px}
+.blk ul{margin:0;padding-left:18px;font-size:14px}
+.blk.win{border-left:4px solid var(--good)} .blk.act{border-left:4px solid var(--accent)} .blk.chg{border-left:4px solid var(--warning)}
+details.evold{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--surface-1)}
+details.evold>summary{padding:10px 14px;cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
+details.evold>summary::-webkit-details-marker{display:none}
+.chipst{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);white-space:nowrap}
+.chipst.ready{color:var(--good)} .chipst.drop{color:var(--critical)} .chipst.hold{color:var(--text-secondary)}
+/* food */
+.mealin textarea{min-height:96px}
+.fooditems td,.fooditems th{padding:6px 6px}
+.meal{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px}
+.meal-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.meal-h b{font-size:14px}
+.linkbtn{background:none;border:none;color:var(--text-muted);padding:4px 6px;font-weight:500;font-size:13px}
+.macro4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:560px){.macro4{grid-template-columns:1fr 1fr}}
+.macro4 .m{background:var(--surface-2);border-radius:10px;padding:10px}
+.macro4 .m .k{font-size:12px;color:var(--text-secondary)}
+.macro4 .m .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.macro4 .m .v small{font-size:12px;font-weight:400;color:var(--text-muted)}
+/* swap */
+.swapbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12.5px;font-weight:500;color:var(--text-secondary)}
+.swapbox[hidden]{display:none}
+.demo{margin:10px 0 4px}
+.demo img{display:block;width:100%;max-width:420px;aspect-ratio:3/2;object-fit:cover;border-radius:10px;background:var(--surface-2,#1113);margin:0 auto 6px}
+.sessclock{font-size:14px;padding:8px 10px;border-radius:10px;background:var(--surface-2,#8881);margin:0 0 8px}
+.sessclock.run{background:#2e7d3222}
+.sessclock.end{background:#1565c022}
+.demo img.sq{aspect-ratio:1/1;max-width:300px;object-fit:contain;background:#fff}
+.demo .setup{margin:4px 0 0;padding-left:20px;color:var(--text-muted,#999);font-size:14px;line-height:1.5}
+.demo .setup li{margin:2px 0}
+.corabtn{display:block;text-align:center;margin:4px auto 2px;max-width:420px;padding:9px;border-radius:10px;border:1px solid var(--accent,#2f7cf6);color:var(--accent,#2f7cf6);text-decoration:none;font-weight:600;font-size:14px}
+.swapbox{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding:8px;border-radius:8px;background:var(--surface-2)}
+.swapbox select{flex:1;min-width:180px}
+.swapbox input{flex:1;min-width:160px}
+.swapped{font-size:11.5px;color:var(--text-muted)}
+.wk-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wk-head .wk-lab{text-align:center;flex:1}
+.wk-head .wk-lab b{display:block;font-size:15px}
+.wk-head .wk-lab span{font-size:12.5px;color:var(--text-secondary)}
+.navbtn:disabled{opacity:.3}
+.navbtn{width:40px;height:40px;padding:0;border-radius:50%;font-size:18px;line-height:1}
+.daystrip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.dbtn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border-radius:10px;border:1px solid var(--line);background:var(--surface-1);position:relative;font-weight:500}
+.dbtn .dw{font-size:12px;color:var(--text-secondary)}
+.dbtn .dn{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.dbtn .df{font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.dbtn.rest{opacity:.6}
+.dbtn.today{border-color:var(--accent)}
+.dbtn.on{background:var(--accent);border-color:var(--accent)}
+.dbtn.on .dw,.dbtn.on .dn,.dbtn.on .df{color:var(--accent-ink)}
+.dbtn .dot{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--good)}
+.dayover{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--text-secondary)}
+.dayover select{flex:1;padding:6px 8px;font-size:13.5px}
+.exh-row{display:flex;justify-content:space-between;gap:8px;align-items:center;flex:1;min-width:0}
+.cyc-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.cyc-steps div{border-radius:8px;padding:8px 4px;text-align:center;background:var(--surface-2);font-size:12.5px}
+.cyc-steps div.cur{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.cyc-steps div.done{color:var(--good);font-weight:600}
+.bigbtn{width:100%;padding:14px;font-size:16px}
+body.guest nav a[data-v="food"],body.guest nav a[data-v="progress"],body.guest nav a[data-v="coach"],body.guest nav a[data-v="settings"]{display:none}
+body.guest #v-today>.card:last-child{display:none}
+body.guest .card.compact .row>div:last-child select{pointer-events:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">Trainer</div>
+      <span class="pill" id="cyclePill">กำลังโหลด…</span>
+    </div>
+    <nav id="nav">
+      <a href="#today" data-v="today">วันนี้</a>
+      <a href="#program" data-v="program">โปรแกรม</a>
+      <a href="#progress" data-v="progress">ความก้าวหน้า</a>
+      <a href="#cycle" data-v="cycle">แผน 6 เดือน</a>
+      <a href="#food" data-v="food">อาหาร</a>
+      <a href="#coach" data-v="coach">โค้ช</a>
+      <a href="#settings" data-v="settings">ตั้งค่า</a>
+    </nav>
+  </div>
+</header>
+
+<div class="timerbar" id="timerBar" hidden></div>
+<main class="wrap">
+  <div id="globalMsg"></div>
+  <div class="card" id="guestBox" hidden></div>
+
+  <!-- TODAY -->
+  <section class="view" id="v-today">
+    <div class="card" id="overPanel" hidden style="border-color:var(--accent)"></div>
+    <div class="card compact">
+      <div id="weekNav"></div>
+      <div class="dayover"><span>เล่นโปรแกรม</span><select id="fDay" aria-label="โปรแกรมที่เล่น"></select></div>
+    </div>
+    <div class="card" id="workoutCard"></div>
+    <div class="card compact" id="saveCard">
+      <div class="row" style="align-items:center">
+        <button class="primary" id="saveBtn" style="flex:0 0 auto">บันทึก</button>
+        <span id="saveMsg" class="tiny" style="flex:1">บันทึกอัตโนมัติทุกครั้งที่กด ✓ พัก</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRAM -->
+  <section class="view" id="v-program">
+    <div class="card compact">
+      <div class="chips" id="wkChips"></div>
+      <div class="chips" id="dayChips" style="margin-top:8px"></div>
+    </div>
+    <div id="dayPlan"></div>
+    <details class="fold"><summary>ภาพรวมสัปดาห์ · เซ็ตต่อกล้าม</summary><div class="inner">
+      <div class="tablewrap" id="overviewTable"></div>
+      <h3>เซ็ตต่อสัปดาห์</h3>
+      <div class="tablewrap" id="volumeTable"></div>
+    </div></details>
+    <details class="fold"><summary>ตารางท่าใหญ่ 5/3/1</summary><div class="inner"><div class="tablewrap" id="cycleTable"></div></div></details>
+    <details class="fold"><summary>หลักการของโปรแกรม</summary><div class="inner">
+      <ul class="clean">
+        <li><b>ความถี่</b>: ทุกกล้ามโดนอย่างน้อย 2 ครั้ง/สัปดาห์ · ไหล่ข้าง 4 · น่อง/หน้าท้อง 3</li>
+        <li><b>ต่อวัน</b>: ไม่เกิน ~10–11 เซ็ตต่อกล้าม</li>
+        <li><b>ความหนัก</b>: ท่าเฉพาะส่วนจนหมดแรง · ท่ารวมเหลือ 1 · ท่าใหญ่เหลือ 1–2</li>
+        <li><b>ช่วงยืด</b>: เลือกท่าที่กล้ามยืดสุด + ครึ่งล่างหลังหมดแรง (ไหล่ข้าง/น่อง/ไบ)</li>
+        <li><b>ขึ้นน้ำหนัก</b>: ทุกเซ็ตถึงช่วงบน → เพิ่ม · ท่าใหญ่ขึ้น TM ทุก 4 สัปดาห์</li>
+      </ul>
+    </div></details>
+  </section>
+
+  <!-- FOOD -->
+  <section class="view" id="v-food">
+    <div class="card">
+      <div class="row" style="align-items:center"><h2 style="margin:0;flex:1">วันนี้กินไปแล้ว</h2><input type="date" id="foodDate" style="flex:0 0 auto;width:auto"></div>
+      <div class="macro4" id="foodTotals" style="margin-top:10px"></div>
+    </div>
+    <div class="card mealin">
+      <h2>เพิ่มอาหาร</h2>
+      <div class="row" style="margin-bottom:8px">
+        <div><select id="mealName"><option>มื้อเช้า</option><option>มื้อกลางวัน</option><option>ก่อนฝึก</option><option>หลังฝึก</option><option>มื้อเย็น</option><option>ของว่าง</option></select></div>
+      </div>
+      <textarea id="foodInput" placeholder="พิมพ์อาหาร + กรัม บรรทัดละรายการ เช่น&#10;อกไก่ 200 ก.&#10;ข้าวสวย 250 ก.&#10;ไข่ต้ม 2 ฟอง"></textarea>
+      <div class="row" style="margin-top:8px;align-items:center">
+        <button class="primary" id="calcFood" style="flex:0 0 auto">คำนวณด้วย AI</button>
+        <span id="foodMsg" class="tiny" style="flex:1"></span>
+      </div>
+      <div id="foodResult"></div>
+    </div>
+    <div class="card"><h2>มื้ออาหารวันนี้</h2><div id="mealList"></div></div>
+    <details class="fold"><summary>เป้าหมายและวิธีจัดอาหาร</summary><div class="inner">
+      <div id="targetsBox"></div>
+      <ul class="clean" style="margin-top:10px">
+        <li>โปรตีนแบ่ง 4 มื้อ มื้อละ ~35–45 ก. · คาร์บเน้นก่อน/หลังฝึก</li>
+        <li>ผัก 2 จานใหญ่/วัน · น้ำ ~3 ลิตร · ชั่งเนื้อ "ดิบ" ข้าว "สุก"</li>
+        <li>ดูน้ำหนักเฉลี่ย 7 วัน: เป้าลด 0.35–0.5 กก./สัปดาห์</li>
+      </ul>
+    </div></details>
+    <details class="fold"><summary>ตารางสัดส่วนวัตถุดิบ</summary><div class="inner"><div class="tablewrap"><table>
+        <tr><th>วัตถุดิบ</th><th class="num">ปริมาณ</th><th class="num">P</th><th class="num">C</th><th class="num">F</th><th class="num">kcal</th></tr>
+        <tr><td>อกไก่ (ดิบ)</td><td class="num">100 ก.</td><td class="num">23</td><td class="num">0</td><td class="num">1.5</td><td class="num">110</td></tr>
+        <tr><td>สันในหมู (ดิบ)</td><td class="num">100 ก.</td><td class="num">21</td><td class="num">0</td><td class="num">3.5</td><td class="num">120</td></tr>
+        <tr><td>ปลาเนื้อขาว (ดิบ)</td><td class="num">100 ก.</td><td class="num">19</td><td class="num">0</td><td class="num">2</td><td class="num">100</td></tr>
+        <tr><td>ไข่ไก่</td><td class="num">1 ฟอง</td><td class="num">6</td><td class="num">0.5</td><td class="num">5</td><td class="num">70</td></tr>
+        <tr><td>เวย์โปรตีน</td><td class="num">30 ก.</td><td class="num">24</td><td class="num">3</td><td class="num">1.5</td><td class="num">120</td></tr>
+        <tr><td>ข้าวสวย (สุก)</td><td class="num">100 ก.</td><td class="num">2.5</td><td class="num">28</td><td class="num">0.3</td><td class="num">130</td></tr>
+        <tr><td>ข้าวโอ๊ต (แห้ง)</td><td class="num">40 ก.</td><td class="num">5</td><td class="num">27</td><td class="num">3</td><td class="num">150</td></tr>
+        <tr><td>กล้วยหอม</td><td class="num">1 ลูก</td><td class="num">1</td><td class="num">27</td><td class="num">0</td><td class="num">105</td></tr>
+        <tr><td>น้ำมัน</td><td class="num">1 ช้อนโต๊ะ</td><td class="num">0</td><td class="num">0</td><td class="num">14</td><td class="num">125</td></tr>
+        <tr><td>ผักรวม</td><td class="num">200 ก.</td><td class="num">3</td><td class="num">8</td><td class="num">0</td><td class="num">50</td></tr>
+    </table></div></div></details>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="view" id="v-progress">
+    <div class="grid4" id="statTiles" style="margin-bottom:14px"></div>
+    <div class="card">
+      <h2>1RM ประมาณ · ท่าใหญ่</h2>
+      <div class="legend" id="eLegend"></div>
+      <div class="chartbox"><canvas id="eChart" aria-label="กราฟ 1RM โดยประมาณ"></canvas></div>
+    </div>
+    <div class="sec-title">น้ำหนักแต่ละท่า (กดเพื่อดูทุกครั้งที่เล่น)</div>
+    <div id="exHist"></div>
+    <div class="sec-title">ข้อมูลสำหรับโค้ช</div>
+    <div class="card">
+      <div class="row" style="align-items:center"><span id="sumMeta" class="tiny" style="flex:1"></span><button id="copySummary" style="flex:0 0 auto">คัดลอกข้อมูล</button></div>
+      <details style="margin-top:8px"><summary class="tiny" style="cursor:pointer">ดูข้อความสรุปทั้งหมด</summary><pre class="sumtext" id="sumText"></pre></details>
+    </div>
+  </section>
+
+  <!-- CYCLE -->
+  <section class="view" id="v-cycle">
+    <div id="cycleBox"></div>
+  </section>
+
+  <!-- COACH -->
+  <section class="view" id="v-coach">
+    <div class="sec-title">ผลประเมินล่าสุด</div>
+    <div id="coachList"></div>
+    <details class="fold"><summary>ข้อความตั้งต้นสำหรับแชทโค้ช</summary><div class="inner">
+      <div class="row"><button id="copyPrompt" style="flex:0 0 auto">คัดลอกข้อความตั้งต้น</button><span id="copyMsg" class="tiny" style="flex:1"></span></div>
+      <pre class="sumtext" id="promptText"></pre>
+    </div></details>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="v-settings">
+    <div class="card">
+      <h2>1RM และ Training Max</h2>
+      <div class="grid3" id="rmInputs"></div>
+      <div class="row" style="margin-top:10px">
+        <div><label>วันเริ่มรอบ (จันทร์)</label><input type="date" id="sCycleStart"></div>
+        <div><label>รอบที่</label><input type="number" id="sCycle" min="1"></div>
+      </div>
+      <h3>เป้าหมายอาหาร</h3>
+      <div class="tablewrap"><table>
+        <tr><th></th><th class="num">kcal</th><th class="num">P</th><th class="num">C</th><th class="num">F</th></tr>
+        <tr><td>วันฝึก</td><td><input id="tTk" type="number"></td><td><input id="tTp" type="number"></td><td><input id="tTc" type="number"></td><td><input id="tTf" type="number"></td></tr>
+        <tr><td>วันพัก</td><td><input id="tRk" type="number"></td><td><input id="tRp" type="number"></td><td><input id="tRc" type="number"></td><td><input id="tRf" type="number"></td></tr>
+      </table></div>
+      <div class="row" style="margin-top:12px;align-items:center">
+        <button class="primary" id="sSave" style="flex:0 0 auto">บันทึก</button>
+        <span id="sMsg" style="flex:1"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>ท่าที่เปลี่ยนไว้</h2>
+      <div id="swapList"></div>
+    </div>
+  </section>
+</main>
+<div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794886598";</script><script src="config.js"></script><script src="boot.js?v=1794886598"></script>
+</body>
+</html>
