@@ -17,6 +17,14 @@ const errTxt = e => ({ 'auth/invalid-credential':'ชื่อผู้ใช้
   'auth/email-already-in-use':'ชื่อผู้ใช้นี้มีคนใช้แล้ว', 'auth/weak-password':'รหัสผ่านต้องยาวอย่างน้อย 6 ตัว', 'auth/too-many-requests':'ลองผิดหลายครั้ง รอสักครู่แล้วลองใหม่',
   'auth/network-request-failed':'เชื่อมต่ออินเทอร์เน็ตไม่ได้', 'permission-denied':'ไม่มีสิทธิ์' }[e?.code] || (e?.message || 'เกิดข้อผิดพลาด'));
 
+const THEMES = {'':'ม่วงเข้ม (เดิม)', lavender:'ขาว-ม่วงอมเทา', blush:'ชมพู-ขาว'};
+const THEME_META = {'':'#100c15', lavender:'#f3f1f7', blush:'#fdf5f7'};
+function applyTheme(t){
+  t = THEMES[t] ? t : '';
+  if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = THEME_META[t];
+  try { t ? localStorage.setItem('trainerTheme', t) : localStorage.removeItem('trainerTheme'); } catch(e){}
+}
 function showGate(html){ gate.hidden = false; gate.innerHTML = `<div class="gatecard"><div class="brand" style="font-size:22px;margin-bottom:12px">Trainer</div>${html}</div>`; }
 
 async function loginView(){
@@ -89,7 +97,8 @@ async function startInner(user){
   step('กำลังโหลดโปรแกรม…');
   try { const p = await withTimeout(fs.doc(`users/${uid}/program/days`).get(), 15000, 'program'); if (p.exists) program = p.data(); } catch(e){ if (e?.code==='timeout') throw {message:'โหลดโปรแกรมไม่ได้ (หมดเวลา) — กดลองใหม่'}; }
   try { const sref = fs.doc(`users/${uid}/settings/main`);
-    if (!(await sref.get()).exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
+    const sdoc = await sref.get(); applyTheme(sdoc.exists ? sdoc.data().theme : '');
+    if (!sdoc.exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
       const iso = `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
       await sref.set({oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:iso, rampExtra:[0,1,2,0], targets:null}); } } catch(e){}
   started = true; gate.hidden = true; gate.innerHTML = '';
@@ -113,6 +122,15 @@ function accountUI(user, isAdmin){
     <label>เปลี่ยนรหัสผ่าน (รหัสใหม่ อย่างน้อย 6 ตัว)</label><input id="aNewP" type="password" autocomplete="new-password">
     <div class="row" style="margin-top:8px;align-items:center"><button id="aChP" style="flex:0 0 auto">เปลี่ยนรหัสผ่าน</button><button id="aOut" style="flex:0 0 auto">ออกจากระบบ</button><span id="aMsg" class="tiny" style="flex:1"></span></div>`;
   view.prepend(card);
+  const th = document.createElement('div'); th.style.marginTop = '10px';
+  th.innerHTML = `<label>ธีมสี</label><select id="aTheme">${Object.entries(THEMES).map(([k,v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>`;
+  card.querySelector('.row').before(th);
+  $('#aTheme').value = document.documentElement.dataset.theme || '';
+  $('#aTheme').onchange = async () => {
+    const t = $('#aTheme').value; applyTheme(t);
+    try { await fs.doc(`users/${acc.uid}/settings/main`).set({theme: t}, {merge: true}); } catch(e){}
+    setTimeout(() => location.reload(), 150);
+  };
   $('#aOut').onclick = () => auth.signOut();
   $('#aChP').onclick = async () => {
     const p = $('#aNewP').value; if (p.length < 6){ $('#aMsg').textContent = 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัว'; return; }

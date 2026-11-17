@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
+<script>try{var t=localStorage.getItem('trainerTheme');if(t){document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name=theme-color]');var M={"lavender": "#f3f1f7", "blush": "#fdf5f7"};if(m&&M[t])m.content=M[t];}}catch(e){}</script><style>
 :root{
   color-scheme: light;
   --bg:#f4f3f0; --surface-1:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
@@ -346,6 +346,106 @@ a{color:#b69cff}
 body.guest nav a[data-v="food"],body.guest nav a[data-v="progress"],body.guest nav a[data-v="coach"],body.guest nav a[data-v="settings"]{display:none}
 body.guest #v-today>.card:last-child{display:none}
 body.guest .card.compact .row>div:last-child select{pointer-events:auto}
+
+/* ===== ธีมสว่างแยกตามบัญชี ===== */
+html[data-theme=lavender]{color-scheme:light;
+  --bg:#f3f1f7; --surface-1:#ffffff; --surface-2:#ece8f3; --line:#ddd6e8;
+  --text-primary:#2a2433; --text-secondary:#5d5470; --text-muted:#8a8199;
+  --accent:#7c5cc4; --accent-ink:#ffffff; --s1:#7c5cc4; --s2:#c46b8f; --s3:#2f9a72; --s4:#c8902f;
+  --good:#2f9a72; --warning:#c48a1f; --serious:#d0703f; --critical:#d24b63; --dot:#d9d2e6}
+html[data-theme=lavender] body::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23ddd5ec' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat -8% -12%/min(62vmax,900px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23e6e1ef' d='M300 140c70-40 170-30 230 20 64 53 52 140 104 200 46 53 128 76 130 146 2 77-84 128-160 148-80 21-142-28-222-26-86 2-170 66-238 20-62-42-40-128-58-200-17-68-80-130-58-196 22-66 96-56 152-74 44-14 76-16 120-38z'/%3E%3C/svg%3E") no-repeat 112% 108%/min(70vmax,1000px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23ddd5ec' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat 118% -6%/min(34vmax,520px);opacity:.9}
+html[data-theme=lavender] body::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%237c5cc4' stroke-linecap='round'%3E%3Cpath stroke-opacity='.10' stroke-width='3' d='M-20 180 C 180 120, 260 320, 470 260 S 760 80, 980 200 S 1180 360, 1240 300'/%3E%3Cpath stroke-opacity='.07' stroke-width='6' d='M-40 640 C 160 560, 320 760, 560 690 S 900 520, 1240 640'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/cover}
+html[data-theme=lavender] header{background:#ffffff!important;border-image:linear-gradient(90deg,transparent,#c9b9ea 25%,#7c5cc4 50%,#c9b9ea 75%,transparent) 1!important}
+html[data-theme=lavender] .brand{color:#3a2f4f}
+html[data-theme=lavender] .brand::before{background:radial-gradient(circle at 32% 30%,#efe7ff 0 12%,#8b6dd6 38%,#5b438f 78%);box-shadow:0 0 0 1px #0000000a inset,0 4px 12px #7c5cc444}
+html[data-theme=lavender] nav a:hover{background:#f1edf7}
+html[data-theme=lavender] nav a.on{background:#ece5f8!important;color:#4f3a86!important;box-shadow:inset 0 0 0 1px #c9b9ea}
+html[data-theme=lavender] .pill{background:#f4f1f9!important;color:#4f3a86!important;border:1px solid #ddd6e8!important}
+html[data-theme=lavender] .card,html[data-theme=lavender] details.fold,html[data-theme=lavender] details.ex,html[data-theme=lavender] .stat,html[data-theme=lavender] .meal,html[data-theme=lavender] .fs-right,html[data-theme=lavender] .exlog{background:var(--surface-1)!important;border:1px solid var(--line)!important;box-shadow:0 1px 2px #0000000a,0 10px 26px -18px #2a243340}
+html[data-theme=lavender] .exlog{background:#fbfaff!important}
+html[data-theme=lavender] details.ex>summary .no{background:#ece5f8;color:#4f3a86}
+html[data-theme=lavender] input,html[data-theme=lavender] select,html[data-theme=lavender] textarea{background:#fbfaff!important;color:var(--text-primary)!important;border:1px solid #d9d1e6!important}
+html[data-theme=lavender] input:focus,html[data-theme=lavender] select:focus,html[data-theme=lavender] textarea:focus{border-color:#7c5cc4!important;box-shadow:0 0 0 3px #7c5cc426}
+html[data-theme=lavender] input::placeholder,html[data-theme=lavender] textarea::placeholder{color:#8a8199}
+html[data-theme=lavender] button{background:#f1edf7;color:var(--text-primary);border:1px solid #d9d1e6}
+html[data-theme=lavender] button:hover{background:#e9e3f3}
+html[data-theme=lavender] button.primary,html[data-theme=lavender] .primary{background:linear-gradient(180deg,#8b6dd6,#6f51bd)!important;border:1px solid #7c5cc4!important;color:#fff!important;box-shadow:0 6px 16px -8px #7c5cc499}
+html[data-theme=lavender] .chip{background:#f4f1f9;border-color:#ddd6e8;color:var(--text-secondary)}
+html[data-theme=lavender] .chip.on{background:#ece5f8!important;border-color:#c9b9ea!important;color:#4f3a86!important}
+html[data-theme=lavender] .eff{border-color:#d9d1e6;color:var(--text-secondary)}
+html[data-theme=lavender] .eff.hard{border-color:#7c5cc4;color:#6a4fb5}
+html[data-theme=lavender] .focus{color:#6a4fb5}
+html[data-theme=lavender] a{color:#6a4fb5}
+html[data-theme=lavender] .restbtn.on{background:#e3f4ec!important;border-color:#57b48c!important;color:#22704f!important}
+html[data-theme=lavender] .srow.done .sl{color:#2f9a72}
+html[data-theme=lavender] .timerbar{background:rgba(255,255,255,.94)!important;border-top:1px solid #ddd6e8!important}
+html[data-theme=lavender] .sessclock{background:#f1edf7!important;border:1px solid #ddd6e8}
+html[data-theme=lavender] .sessclock.run{background:#e7f5ee!important;border-color:#9fd6bd}
+html[data-theme=lavender] .sessclock.end{background:#ece5f8!important;border-color:#c9b9ea}
+html[data-theme=lavender] .sessclock .fin{background:#ece5f8!important;border:1px solid #c9b9ea!important;color:#4f3a86!important}
+html[data-theme=lavender] .autokcal{background:#ece5f8!important;color:#4f3a86}
+html[data-theme=lavender] .fsr:hover,html[data-theme=lavender] .fsr.on{background:#ece5f8!important}
+html[data-theme=lavender] .bar{background:#ebe6f2} html[data-theme=lavender] .bar i{background:linear-gradient(90deg,#8b6dd6,#b39cf0)}
+html[data-theme=lavender] ::selection{background:#7c5cc433}
+html[data-theme=lavender] #authGate{background:#f3f1f7e6}
+@media (max-width:720px){
+  html[data-theme=lavender] #tabbar{background:rgba(255,255,255,.95);border-top:1px solid #ddd6e8}
+  html[data-theme=lavender] #tabbar a.on,html[data-theme=lavender] #tabbar button.on{color:#6a4fb5}
+  html[data-theme=lavender] #tabbar a.on svg,html[data-theme=lavender] #tabbar button.on svg{filter:none}
+  html[data-theme=lavender] #tabbar a.on::before,html[data-theme=lavender] #tabbar button.on::before{background:#7c5cc4}
+  html[data-theme=lavender] #moreSheet:not([hidden]){background:#2a243340}
+  html[data-theme=lavender] #moreSheet .ms-card{background:#ffffff;border:1px solid #ddd6e8;box-shadow:0 20px 40px #2a243333}
+  html[data-theme=lavender] #moreSheet a:active,html[data-theme=lavender] #moreSheet a:hover{background:#f1edf7}
+}
+html[data-theme=blush]{color-scheme:light;
+  --bg:#fdf5f7; --surface-1:#ffffff; --surface-2:#fbe9ee; --line:#f3d6df;
+  --text-primary:#3a2730; --text-secondary:#765a66; --text-muted:#a48a96;
+  --accent:#e0628c; --accent-ink:#ffffff; --s1:#e0628c; --s2:#b27ad6; --s3:#34a37a; --s4:#e2a13a;
+  --good:#2f9a72; --warning:#c48a1f; --serious:#d0703f; --critical:#d24b63; --dot:#f1d3dc}
+html[data-theme=blush] body::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23ffd9e4' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat -8% -12%/min(62vmax,900px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23ffe8ef' d='M300 140c70-40 170-30 230 20 64 53 52 140 104 200 46 53 128 76 130 146 2 77-84 128-160 148-80 21-142-28-222-26-86 2-170 66-238 20-62-42-40-128-58-200-17-68-80-130-58-196 22-66 96-56 152-74 44-14 76-16 120-38z'/%3E%3C/svg%3E") no-repeat 112% 108%/min(70vmax,1000px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23ffd9e4' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat 118% -6%/min(34vmax,520px);opacity:.9}
+html[data-theme=blush] body::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23f07aa0' stroke-linecap='round'%3E%3Cpath stroke-opacity='.10' stroke-width='3' d='M-20 180 C 180 120, 260 320, 470 260 S 760 80, 980 200 S 1180 360, 1240 300'/%3E%3Cpath stroke-opacity='.07' stroke-width='6' d='M-40 640 C 160 560, 320 760, 560 690 S 900 520, 1240 640'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/cover}
+html[data-theme=blush] header{background:#ffffff!important;border-image:linear-gradient(90deg,transparent,#f2bcd0 25%,#e0628c 50%,#f2bcd0 75%,transparent) 1!important}
+html[data-theme=blush] .brand{color:#4a2d3a}
+html[data-theme=blush] .brand::before{background:radial-gradient(circle at 32% 30%,#ffe1ea 0 12%,#ec7aa0 38%,#b53a66 78%);box-shadow:0 0 0 1px #0000000a inset,0 4px 12px #e0628c44}
+html[data-theme=blush] nav a:hover{background:#fdf0f4}
+html[data-theme=blush] nav a.on{background:#fde4ec!important;color:#a3355f!important;box-shadow:inset 0 0 0 1px #f2bcd0}
+html[data-theme=blush] .pill{background:#fef5f8!important;color:#a3355f!important;border:1px solid #f3d6df!important}
+html[data-theme=blush] .card,html[data-theme=blush] details.fold,html[data-theme=blush] details.ex,html[data-theme=blush] .stat,html[data-theme=blush] .meal,html[data-theme=blush] .fs-right,html[data-theme=blush] .exlog{background:var(--surface-1)!important;border:1px solid var(--line)!important;box-shadow:0 1px 2px #0000000a,0 10px 26px -18px #3a273040}
+html[data-theme=blush] .exlog{background:#fffafc!important}
+html[data-theme=blush] details.ex>summary .no{background:#fde4ec;color:#a3355f}
+html[data-theme=blush] input,html[data-theme=blush] select,html[data-theme=blush] textarea{background:#fffafc!important;color:var(--text-primary)!important;border:1px solid #f0d3dc!important}
+html[data-theme=blush] input:focus,html[data-theme=blush] select:focus,html[data-theme=blush] textarea:focus{border-color:#e0628c!important;box-shadow:0 0 0 3px #e0628c26}
+html[data-theme=blush] input::placeholder,html[data-theme=blush] textarea::placeholder{color:#a48a96}
+html[data-theme=blush] button{background:#fdf0f4;color:var(--text-primary);border:1px solid #f0d3dc}
+html[data-theme=blush] button:hover{background:#fbe5ec}
+html[data-theme=blush] button.primary,html[data-theme=blush] .primary{background:linear-gradient(180deg,#ec7aa0,#d9507f)!important;border:1px solid #e0628c!important;color:#fff!important;box-shadow:0 6px 16px -8px #e0628c99}
+html[data-theme=blush] .chip{background:#fef5f8;border-color:#f3d6df;color:var(--text-secondary)}
+html[data-theme=blush] .chip.on{background:#fde4ec!important;border-color:#f2bcd0!important;color:#a3355f!important}
+html[data-theme=blush] .eff{border-color:#f0d3dc;color:var(--text-secondary)}
+html[data-theme=blush] .eff.hard{border-color:#e0628c;color:#c2416f}
+html[data-theme=blush] .focus{color:#c2416f}
+html[data-theme=blush] a{color:#c2416f}
+html[data-theme=blush] .restbtn.on{background:#e3f4ec!important;border-color:#57b48c!important;color:#22704f!important}
+html[data-theme=blush] .srow.done .sl{color:#2f9a72}
+html[data-theme=blush] .timerbar{background:rgba(255,255,255,.94)!important;border-top:1px solid #f3d6df!important}
+html[data-theme=blush] .sessclock{background:#fdf0f4!important;border:1px solid #f3d6df}
+html[data-theme=blush] .sessclock.run{background:#e7f5ee!important;border-color:#9fd6bd}
+html[data-theme=blush] .sessclock.end{background:#fde4ec!important;border-color:#f2bcd0}
+html[data-theme=blush] .sessclock .fin{background:#fde4ec!important;border:1px solid #f2bcd0!important;color:#a3355f!important}
+html[data-theme=blush] .autokcal{background:#fde4ec!important;color:#a3355f}
+html[data-theme=blush] .fsr:hover,html[data-theme=blush] .fsr.on{background:#fde4ec!important}
+html[data-theme=blush] .bar{background:#f8e4ea} html[data-theme=blush] .bar i{background:linear-gradient(90deg,#ec7aa0,#f6a8c2)}
+html[data-theme=blush] ::selection{background:#e0628c33}
+html[data-theme=blush] #authGate{background:#fdf5f7e6}
+@media (max-width:720px){
+  html[data-theme=blush] #tabbar{background:rgba(255,255,255,.95);border-top:1px solid #f3d6df}
+  html[data-theme=blush] #tabbar a.on,html[data-theme=blush] #tabbar button.on{color:#c2416f}
+  html[data-theme=blush] #tabbar a.on svg,html[data-theme=blush] #tabbar button.on svg{filter:none}
+  html[data-theme=blush] #tabbar a.on::before,html[data-theme=blush] #tabbar button.on::before{background:#e0628c}
+  html[data-theme=blush] #moreSheet:not([hidden]){background:#3a273040}
+  html[data-theme=blush] #moreSheet .ms-card{background:#ffffff;border:1px solid #f3d6df;box-shadow:0 20px 40px #3a273033}
+  html[data-theme=blush] #moreSheet a:active,html[data-theme=blush] #moreSheet a:hover{background:#fdf0f4}
+}
 </style>
 </head>
 <body>
@@ -543,6 +643,6 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794900566";</script><script src="config.js"></script><script src="boot.js?v=1794900566"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794903359";</script><script src="config.js"></script><script src="boot.js?v=1794903359"></script>
 </body>
 </html>
