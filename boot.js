@@ -17,8 +17,8 @@ const errTxt = e => ({ 'auth/invalid-credential':'ชื่อผู้ใช้
   'auth/email-already-in-use':'ชื่อผู้ใช้นี้มีคนใช้แล้ว', 'auth/weak-password':'รหัสผ่านต้องยาวอย่างน้อย 6 ตัว', 'auth/too-many-requests':'ลองผิดหลายครั้ง รอสักครู่แล้วลองใหม่',
   'auth/network-request-failed':'เชื่อมต่ออินเทอร์เน็ตไม่ได้', 'permission-denied':'ไม่มีสิทธิ์' }[e?.code] || (e?.message || 'เกิดข้อผิดพลาด'));
 
-const THEMES = {'':'ม่วงเข้ม (เดิม)', lavender:'ขาว-ม่วงอมเทา', blush:'ชมพู-ขาว'};
-const THEME_META = {'':'#100c15', lavender:'#f3f1f7', blush:'#fdf5f7'};
+const THEMES = {'':'ม่วงเข้ม (เดิม)', stone:'หินเทา-ม่วงพลัม', lavender:'ขาว-ม่วงอมเทา', blush:'ชมพู-ขาว', sky:'ฟ้า-ขาว'};
+const THEME_META = {'':'#100c15', stone:'#ebe9e4', lavender:'#f3f1f7', blush:'#fdf5f7', sky:'#eef5fb'};
 function applyTheme(t){
   t = THEMES[t] ? t : '';
   if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;

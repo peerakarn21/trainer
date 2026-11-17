@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script>try{var t=localStorage.getItem('trainerTheme');if(t){document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name=theme-color]');var M={"lavender": "#f3f1f7", "blush": "#fdf5f7"};if(m&&M[t])m.content=M[t];}}catch(e){}</script><style>
+<script>try{var t=localStorage.getItem('trainerTheme');if(t){document.documentElement.dataset.theme=t;var m=document.querySelector('meta[name=theme-color]');var M={"lavender": "#f3f1f7", "blush": "#fdf5f7", "stone": "#ebe9e4", "sky": "#eef5fb"};if(m&&M[t])m.content=M[t];}}catch(e){}</script><style>
 :root{
   color-scheme: light;
   --bg:#f4f3f0; --surface-1:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
@@ -446,6 +446,108 @@ html[data-theme=blush] #authGate{background:#fdf5f7e6}
   html[data-theme=blush] #moreSheet .ms-card{background:#ffffff;border:1px solid #f3d6df;box-shadow:0 20px 40px #3a273033}
   html[data-theme=blush] #moreSheet a:active,html[data-theme=blush] #moreSheet a:hover{background:#fdf0f4}
 }
+html[data-theme=stone]{color-scheme:light;
+  --bg:#ebe9e4; --surface-1:#f7f6f2; --surface-2:#efede8; --line:#d9d6ce;
+  --text-primary:#1f1d24; --text-secondary:#56535c; --text-muted:#86828c;
+  --accent:#5a3d6e; --accent-ink:#ffffff; --s1:#5a3d6e; --s2:#6f8193; --s3:#3f8f6f; --s4:#b0843a;
+  --good:#2f9a72; --warning:#c48a1f; --serious:#d0703f; --critical:#d24b63; --dot:#d6d2ca}
+html[data-theme=stone] body::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23e1ded7' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat -8% -12%/min(62vmax,900px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23e5e2dc' d='M300 140c70-40 170-30 230 20 64 53 52 140 104 200 46 53 128 76 130 146 2 77-84 128-160 148-80 21-142-28-222-26-86 2-170 66-238 20-62-42-40-128-58-200-17-68-80-130-58-196 22-66 96-56 152-74 44-14 76-16 120-38z'/%3E%3C/svg%3E") no-repeat 112% 108%/min(70vmax,1000px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23e1ded7' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat 118% -6%/min(34vmax,520px);opacity:.9}
+html[data-theme=stone] body::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%235a3d6e' stroke-linecap='round'%3E%3Cpath stroke-opacity='.10' stroke-width='3' d='M-20 180 C 180 120, 260 320, 470 260 S 760 80, 980 200 S 1180 360, 1240 300'/%3E%3Cpath stroke-opacity='.07' stroke-width='6' d='M-40 640 C 160 560, 320 760, 560 690 S 900 520, 1240 640'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/cover}
+html[data-theme=stone] header{background:#ffffff!important;border-image:linear-gradient(90deg,transparent,#c4b6cf 25%,#5a3d6e 50%,#c4b6cf 75%,transparent) 1!important}
+html[data-theme=stone] .brand{color:#1f1d24}
+html[data-theme=stone] .brand::before{background:radial-gradient(circle at 32% 30%,#cbb9d8 0 12%,#6a4a80 38%,#3f2a50 78%);box-shadow:0 0 0 1px #0000000a inset,0 4px 12px #5a3d6e44}
+html[data-theme=stone] nav a:hover{background:#efede8}
+html[data-theme=stone] nav a.on{background:#e9e3ee!important;color:#3f2a50!important;box-shadow:inset 0 0 0 1px #c4b6cf}
+html[data-theme=stone] .pill{background:#f1efea!important;color:#3f2a50!important;border:1px solid #d9d6ce!important}
+html[data-theme=stone] .card,html[data-theme=stone] details.fold,html[data-theme=stone] details.ex,html[data-theme=stone] .stat,html[data-theme=stone] .meal,html[data-theme=stone] .fs-right,html[data-theme=stone] .exlog{background:var(--surface-1)!important;border:1px solid var(--line)!important;box-shadow:0 1px 2px #0000000a,0 10px 26px -18px #1f1d2440}
+html[data-theme=stone] .exlog{background:#fbfaf8!important}
+html[data-theme=stone] details.ex>summary .no{background:#e9e3ee;color:#3f2a50}
+html[data-theme=stone] input,html[data-theme=stone] select,html[data-theme=stone] textarea{background:#fbfaf8!important;color:var(--text-primary)!important;border:1px solid #d1cdc4!important}
+html[data-theme=stone] input:focus,html[data-theme=stone] select:focus,html[data-theme=stone] textarea:focus{border-color:#5a3d6e!important;box-shadow:0 0 0 3px #5a3d6e26}
+html[data-theme=stone] input::placeholder,html[data-theme=stone] textarea::placeholder{color:#86828c}
+html[data-theme=stone] button{background:#efede8;color:var(--text-primary);border:1px solid #d1cdc4}
+html[data-theme=stone] button:hover{background:#e6e3dc}
+html[data-theme=stone] button.primary,html[data-theme=stone] .primary{background:linear-gradient(180deg,#6a4a80,#4b3160)!important;border:1px solid #5a3d6e!important;color:#fff!important;box-shadow:0 6px 16px -8px #5a3d6e99}
+html[data-theme=stone] .chip{background:#f1efea;border-color:#d9d6ce;color:var(--text-secondary)}
+html[data-theme=stone] .chip.on{background:#e9e3ee!important;border-color:#c4b6cf!important;color:#3f2a50!important}
+html[data-theme=stone] .eff{border-color:#d1cdc4;color:var(--text-secondary)}
+html[data-theme=stone] .eff.hard{border-color:#5a3d6e;color:#5a3d6e}
+html[data-theme=stone] .focus{color:#5a3d6e}
+html[data-theme=stone] a{color:#5a3d6e}
+html[data-theme=stone] .restbtn.on{background:#e3f4ec!important;border-color:#57b48c!important;color:#22704f!important}
+html[data-theme=stone] .srow.done .sl{color:#2f9a72}
+html[data-theme=stone] .timerbar{background:rgba(255,255,255,.94)!important;border-top:1px solid #d9d6ce!important}
+html[data-theme=stone] .sessclock{background:#efede8!important;border:1px solid #d9d6ce}
+html[data-theme=stone] .sessclock.run{background:#e7f5ee!important;border-color:#9fd6bd}
+html[data-theme=stone] .sessclock.end{background:#e9e3ee!important;border-color:#c4b6cf}
+html[data-theme=stone] .sessclock .fin{background:#e9e3ee!important;border:1px solid #c4b6cf!important;color:#3f2a50!important}
+html[data-theme=stone] .autokcal{background:#e9e3ee!important;color:#3f2a50}
+html[data-theme=stone] .fsr:hover,html[data-theme=stone] .fsr.on{background:#e9e3ee!important}
+html[data-theme=stone] .bar{background:#e3e0da} html[data-theme=stone] .bar i{background:linear-gradient(90deg,#5a3d6e,#8a6aa0)}
+html[data-theme=stone] ::selection{background:#5a3d6e33}
+html[data-theme=stone] #authGate{background:#ebe9e4e6}
+@media (max-width:720px){
+  html[data-theme=stone] #tabbar{background:rgba(255,255,255,.95);border-top:1px solid #d9d6ce}
+  html[data-theme=stone] #tabbar a.on,html[data-theme=stone] #tabbar button.on{color:#5a3d6e}
+  html[data-theme=stone] #tabbar a.on svg,html[data-theme=stone] #tabbar button.on svg{filter:none}
+  html[data-theme=stone] #tabbar a.on::before,html[data-theme=stone] #tabbar button.on::before{background:#5a3d6e}
+  html[data-theme=stone] #moreSheet:not([hidden]){background:#1f1d2440}
+  html[data-theme=stone] #moreSheet .ms-card{background:#ffffff;border:1px solid #d9d6ce;box-shadow:0 20px 40px #1f1d2433}
+  html[data-theme=stone] #moreSheet a:active,html[data-theme=stone] #moreSheet a:hover{background:#efede8}
+}
+html[data-theme=stone] nav a.on{background:#5a3d6e!important;color:#ffffff!important;box-shadow:none}
+html[data-theme=stone] .card,html[data-theme=stone] details.fold,html[data-theme=stone] details.ex,html[data-theme=stone] .stat,html[data-theme=stone] .meal,html[data-theme=stone] .fs-right,html[data-theme=stone] .exlog,html[data-theme=stone] .ms-card{border-radius:10px!important}
+html[data-theme=stone] input,html[data-theme=stone] select,html[data-theme=stone] textarea,html[data-theme=stone] button,html[data-theme=stone] .chip,html[data-theme=stone] .dbtn,html[data-theme=stone] nav a,html[data-theme=stone] .pill,html[data-theme=stone] .sessclock{border-radius:8px!important}
+html[data-theme=stone] .brand::before{border-radius:6px;animation:none}
+html[data-theme=sky]{color-scheme:light;
+  --bg:#eef5fb; --surface-1:#ffffff; --surface-2:#e8f1fa; --line:#d6e5f3;
+  --text-primary:#1d2b3a; --text-secondary:#5a6b7d; --text-muted:#8796a6;
+  --accent:#2f80d1; --accent-ink:#ffffff; --s1:#2f80d1; --s2:#7a5cc4; --s3:#2f9a72; --s4:#c8902f;
+  --good:#2f9a72; --warning:#c48a1f; --serious:#d0703f; --critical:#d24b63; --dot:#d3e2f0}
+html[data-theme=sky] body::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23d8e8f7' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat -8% -12%/min(62vmax,900px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23e3eef9' d='M300 140c70-40 170-30 230 20 64 53 52 140 104 200 46 53 128 76 130 146 2 77-84 128-160 148-80 21-142-28-222-26-86 2-170 66-238 20-62-42-40-128-58-200-17-68-80-130-58-196 22-66 96-56 152-74 44-14 76-16 120-38z'/%3E%3C/svg%3E") no-repeat 112% 108%/min(70vmax,1000px),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cpath fill='%23d8e8f7' d='M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z'/%3E%3C/svg%3E") no-repeat 118% -6%/min(34vmax,520px);opacity:.9}
+html[data-theme=sky] body::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%232f80d1' stroke-linecap='round'%3E%3Cpath stroke-opacity='.10' stroke-width='3' d='M-20 180 C 180 120, 260 320, 470 260 S 760 80, 980 200 S 1180 360, 1240 300'/%3E%3Cpath stroke-opacity='.07' stroke-width='6' d='M-40 640 C 160 560, 320 760, 560 690 S 900 520, 1240 640'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/cover}
+html[data-theme=sky] header{background:#ffffff!important;border-image:linear-gradient(90deg,transparent,#b5d4f4 25%,#2f80d1 50%,#b5d4f4 75%,transparent) 1!important}
+html[data-theme=sky] .brand{color:#1d2b3a}
+html[data-theme=sky] .brand::before{background:radial-gradient(circle at 32% 30%,#d8ebff 0 12%,#4a95e0 38%,#1b5fa3 78%);box-shadow:0 0 0 1px #0000000a inset,0 4px 12px #2f80d144}
+html[data-theme=sky] nav a:hover{background:#eef5fb}
+html[data-theme=sky] nav a.on{background:#e1eefa!important;color:#1b5fa3!important;box-shadow:inset 0 0 0 1px #b5d4f4}
+html[data-theme=sky] .pill{background:#f1f7fd!important;color:#1b5fa3!important;border:1px solid #d6e5f3!important}
+html[data-theme=sky] .card,html[data-theme=sky] details.fold,html[data-theme=sky] details.ex,html[data-theme=sky] .stat,html[data-theme=sky] .meal,html[data-theme=sky] .fs-right,html[data-theme=sky] .exlog{background:var(--surface-1)!important;border:1px solid var(--line)!important;box-shadow:0 1px 2px #0000000a,0 10px 26px -18px #1d2b3a40}
+html[data-theme=sky] .exlog{background:#f8fbfe!important}
+html[data-theme=sky] details.ex>summary .no{background:#e1eefa;color:#1b5fa3}
+html[data-theme=sky] input,html[data-theme=sky] select,html[data-theme=sky] textarea{background:#f8fbfe!important;color:var(--text-primary)!important;border:1px solid #cfe0f0!important}
+html[data-theme=sky] input:focus,html[data-theme=sky] select:focus,html[data-theme=sky] textarea:focus{border-color:#2f80d1!important;box-shadow:0 0 0 3px #2f80d126}
+html[data-theme=sky] input::placeholder,html[data-theme=sky] textarea::placeholder{color:#8796a6}
+html[data-theme=sky] button{background:#eef5fb;color:var(--text-primary);border:1px solid #cfe0f0}
+html[data-theme=sky] button:hover{background:#e2eef9}
+html[data-theme=sky] button.primary,html[data-theme=sky] .primary{background:linear-gradient(180deg,#4a95e0,#1f6fbf)!important;border:1px solid #2f80d1!important;color:#fff!important;box-shadow:0 6px 16px -8px #2f80d199}
+html[data-theme=sky] .chip{background:#f1f7fd;border-color:#d6e5f3;color:var(--text-secondary)}
+html[data-theme=sky] .chip.on{background:#e1eefa!important;border-color:#b5d4f4!important;color:#1b5fa3!important}
+html[data-theme=sky] .eff{border-color:#cfe0f0;color:var(--text-secondary)}
+html[data-theme=sky] .eff.hard{border-color:#2f80d1;color:#1f6fbf}
+html[data-theme=sky] .focus{color:#1f6fbf}
+html[data-theme=sky] a{color:#1f6fbf}
+html[data-theme=sky] .restbtn.on{background:#e3f4ec!important;border-color:#57b48c!important;color:#22704f!important}
+html[data-theme=sky] .srow.done .sl{color:#2f9a72}
+html[data-theme=sky] .timerbar{background:rgba(255,255,255,.94)!important;border-top:1px solid #d6e5f3!important}
+html[data-theme=sky] .sessclock{background:#eef5fb!important;border:1px solid #d6e5f3}
+html[data-theme=sky] .sessclock.run{background:#e7f5ee!important;border-color:#9fd6bd}
+html[data-theme=sky] .sessclock.end{background:#e1eefa!important;border-color:#b5d4f4}
+html[data-theme=sky] .sessclock .fin{background:#e1eefa!important;border:1px solid #b5d4f4!important;color:#1b5fa3!important}
+html[data-theme=sky] .autokcal{background:#e1eefa!important;color:#1b5fa3}
+html[data-theme=sky] .fsr:hover,html[data-theme=sky] .fsr.on{background:#e1eefa!important}
+html[data-theme=sky] .bar{background:#e1ecf6} html[data-theme=sky] .bar i{background:linear-gradient(90deg,#2f80d1,#7fb6ea)}
+html[data-theme=sky] ::selection{background:#2f80d133}
+html[data-theme=sky] #authGate{background:#eef5fbe6}
+@media (max-width:720px){
+  html[data-theme=sky] #tabbar{background:rgba(255,255,255,.95);border-top:1px solid #d6e5f3}
+  html[data-theme=sky] #tabbar a.on,html[data-theme=sky] #tabbar button.on{color:#1f6fbf}
+  html[data-theme=sky] #tabbar a.on svg,html[data-theme=sky] #tabbar button.on svg{filter:none}
+  html[data-theme=sky] #tabbar a.on::before,html[data-theme=sky] #tabbar button.on::before{background:#2f80d1}
+  html[data-theme=sky] #moreSheet:not([hidden]){background:#1d2b3a40}
+  html[data-theme=sky] #moreSheet .ms-card{background:#ffffff;border:1px solid #d6e5f3;box-shadow:0 20px 40px #1d2b3a33}
+  html[data-theme=sky] #moreSheet a:active,html[data-theme=sky] #moreSheet a:hover{background:#eef5fb}
+}
 </style>
 </head>
 <body>
@@ -643,6 +745,6 @@ html[data-theme=blush] #authGate{background:#fdf5f7e6}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794904314";</script><script src="config.js"></script><script src="boot.js?v=1794904314"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794904680";</script><script src="config.js"></script><script src="boot.js?v=1794904680"></script>
 </body>
 </html>
