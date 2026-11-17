@@ -229,7 +229,7 @@ details.evold>summary::-webkit-details-marker{display:none}
 
 /* ===== มือถือ: แถบเมนูล่าง + ใช้นิ้วโป้งง่าย ===== */
 #tabbar,#moreSheet{display:none}
-header{padding-top:calc(env(safe-area-inset-top) + 2px)}
+header{padding-top:calc(env(safe-area-inset-top) + 10px)}
 @supports (padding-top: env(safe-area-inset-top)){html{scroll-padding-top:calc(env(safe-area-inset-top) + 64px)}}
 .timerbar{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
 @media (max-width:720px){
@@ -276,7 +276,7 @@ body::before{content:"";position:fixed;inset:-15%;z-index:-2;pointer-events:none
 body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 900' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%238b5cf6' stroke-linecap='round'%3E%3Cpath stroke-opacity='.10' stroke-width='3' d='M-20 180 C 180 120, 260 320, 470 260 S 760 80, 980 200 S 1180 360, 1240 300'/%3E%3Cpath stroke-opacity='.07' stroke-width='6' d='M-40 640 C 160 560, 320 760, 560 690 S 900 520, 1240 640'/%3E%3Cpath stroke-opacity='.06' stroke-width='2' d='M200 -20 C 260 160, 120 300, 220 460 S 420 760, 360 920'/%3E%3Cpath stroke-opacity='.06' stroke-width='2' d='M1000 -20 C 940 180, 1080 320, 980 520 S 860 780, 940 920'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/cover}
 @keyframes goo{0%{transform:translate(0,0) scale(1) rotate(0)}50%{transform:translate(2%,-1.5%) scale(1.04) rotate(2deg)}100%{transform:translate(-1.5%,1%) scale(.98) rotate(-1.5deg)}}
 @media (prefers-reduced-motion: reduce){body::before{animation:none}}
-header{background:#120d18!important;-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);border-bottom:1px solid transparent!important;border-image:linear-gradient(90deg,transparent,#5b3d8f 25%,#8f63f5 50%,#5b3d8f 75%,transparent) 1!important}
+header{background:#120d18!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transform:translateZ(0);border-bottom:1px solid transparent!important;border-image:linear-gradient(90deg,transparent,#5b3d8f 25%,#8f63f5 50%,#5b3d8f 75%,transparent) 1!important}
 .brand{display:inline-flex;align-items:center;gap:8px;color:#efe8fa;letter-spacing:.2px}
 .brand::before{content:"";width:22px;height:22px;flex:0 0 22px;border-radius:58% 42% 55% 45% / 48% 60% 40% 52%;background:radial-gradient(circle at 32% 30%,#c8b0ff 0 12%,#8f63f5 38%,#4b2a86 78%);box-shadow:0 0 0 1px #ffffff14 inset,0 4px 12px #8f63f544;animation:blob 7s ease-in-out infinite}
 @keyframes blob{0%,100%{border-radius:58% 42% 55% 45% / 48% 60% 40% 52%}33%{border-radius:44% 56% 38% 62% / 58% 42% 58% 42%}66%{border-radius:62% 38% 50% 50% / 40% 55% 45% 60%}}
@@ -543,6 +543,6 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794892701";</script><script src="config.js"></script><script src="boot.js?v=1794892701"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794892943";</script><script src="config.js"></script><script src="boot.js?v=1794892943"></script>
 </body>
 </html>
