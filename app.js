@@ -1,3 +1,87 @@
+// ตารางอาหาร (ต่อ 100 ก. ส่วนที่กินได้) — วัตถุดิบ: ค่าจาก USDA FoodData Central · เมนูปรุง: ค่าประมาณจากสูตรทั่วไป
+// [ชื่อ, P, C, F, คำค้นเพิ่มเติม, กรัมต่อหน่วย(ถ้ามี), ชื่อหน่วย]
+const THAI_FOODS = [
+ ['อกไก่ ดิบ (ไม่มีหนัง)',22.5,0,2.6,'chicken breast ไก่'],
+ ['อกไก่ สุก ต้ม/ย่าง (ไม่มีหนัง)',31,0,3.6,'chicken breast ไก่ อกไก่ต้ม อกไก่ย่าง'],
+ ['สะโพกไก่ ดิบ (ไม่มีหนัง)',19.7,0,4.1,'chicken thigh ไก่ น่องไก่'],
+ ['สะโพกไก่ ดิบ (มีหนัง)',15.5,0,17,'chicken thigh skin ไก่'],
+ ['ไก่ย่าง (มีหนัง)',27.3,0,13.6,'roast chicken ไก่'],
+ ['ไก่ทอด (มีแป้ง มีหนัง)',24.8,9,13.2,'fried chicken ไก่'],
+ ['ไข่ไก่ ทั้งฟอง ดิบ',12.6,0.7,9.5,'egg ไข่',50,'ฟอง'],
+ ['ไข่ต้ม',12.6,1.1,10.6,'boiled egg ไข่',50,'ฟอง'],
+ ['ไข่ขาว',10.9,0.7,0.2,'egg white ไข่',33,'ฟอง'],
+ ['ไข่ดาว (ทอดน้ำมัน)',13.6,0.8,14.8,'fried egg ไข่',46,'ฟอง'],
+ ['ไข่เจียว',11,1,20,'omelet ไข่'],
+ ['สันในหมู ดิบ',20.9,0,2.2,'pork tenderloin หมู'],
+ ['หมูสับ ดิบ (ติดมันปานกลาง)',16.9,0,21.2,'ground pork หมู'],
+ ['หมูสามชั้น ดิบ',9.3,0,53,'pork belly หมู'],
+ ['เนื้อวัว สันใน ดิบ',21,0,6,'beef tenderloin เนื้อ'],
+ ['เนื้อวัวบด 90% ดิบ',20,0,10,'ground beef เนื้อ'],
+ ['ปลาแซลมอน ดิบ',20.4,0,13.4,'salmon ปลา'],
+ ['ปลานิล ดิบ',20.1,0,1.7,'tilapia ปลา ปลาเนื้อขาว ดอลลี่'],
+ ['กุ้ง ดิบ',20.1,0,0.5,'shrimp กุ้ง'],
+ ['ปลาหมึก ดิบ',15.6,3.1,1.4,'squid หมึก'],
+ ['ทูน่ากระป๋องในน้ำแร่ (สะเด็ดน้ำ)',25.5,0,0.8,'tuna ทูน่า ปลา'],
+ ['เต้าหู้แข็ง',17.3,2.8,8.7,'tofu เต้าหู้'],
+ ['เวย์โปรตีน (ผง)',80,8,6,'whey protein เวย์',30,'สกู๊ป'],
+ ['ข้าวสวย (ขาว)',2.7,28.2,0.3,'rice ข้าว',150,'ทัพพี/จาน'],
+ ['ข้าวกล้อง สุก',2.7,25.6,1,'brown rice ข้าว'],
+ ['ข้าวไรซ์เบอร์รี่ สุก (ประมาณ)',3,25,1,'riceberry ข้าว'],
+ ['ข้าวเหนียว นึ่ง',2,21.1,0.2,'sticky rice glutinous ข้าว'],
+ ['เส้นก๋วยเตี๋ยว (เส้นเล็ก/ใหญ่) ลวก',1.8,24,0.2,'rice noodles เส้น ก๋วยเตี๋ยว'],
+ ['บะหมี่เหลือง ลวก',4.5,25,2.1,'egg noodles บะหมี่ เส้น'],
+ ['พาสต้า สุก',5.8,30.9,0.9,'pasta spaghetti เส้น'],
+ ['ขนมปังโฮลวีต',13,41,3.4,'whole wheat bread ขนมปัง',30,'แผ่น'],
+ ['ขนมปังขาว',9,49,3.2,'white bread ขนมปัง',30,'แผ่น'],
+ ['ข้าวโอ๊ต (ดิบ)',16.9,66.3,6.9,'oats oatmeal โอ๊ต'],
+ ['มันฝรั่ง ต้ม',1.9,20.1,0.1,'potato มัน'],
+ ['มันเทศ อบ/ต้ม',2,20.7,0.2,'sweet potato มัน'],
+ ['กล้วยหอม',1.1,22.8,0.3,'banana กล้วย',120,'ลูก'],
+ ['กล้วยน้ำว้า (ประมาณ)',1.2,27,0.3,'banana กล้วย',60,'ลูก'],
+ ['แอปเปิ้ล',0.3,13.8,0.2,'apple',180,'ลูก'],
+ ['มะม่วงสุก',0.8,15,0.4,'mango มะม่วง'],
+ ['ฝรั่ง',2.6,14.3,1,'guava ฝรั่ง'],
+ ['แตงโม',0.6,7.6,0.2,'watermelon'],
+ ['มะละกอสุก',0.5,10.8,0.3,'papaya'],
+ ['สับปะรด',0.5,13.1,0.1,'pineapple'],
+ ['บรอกโคลี',2.8,6.6,0.4,'broccoli ผัก'],
+ ['ผักบุ้ง',2.6,3.1,0.2,'morning glory ผัก'],
+ ['กะหล่ำปลี',1.3,5.8,0.1,'cabbage ผัก'],
+ ['แครอท',0.9,9.6,0.2,'carrot ผัก'],
+ ['แตงกวา',0.7,3.6,0.1,'cucumber ผัก'],
+ ['มะเขือเทศ',0.9,3.9,0.2,'tomato ผัก'],
+ ['นมจืด (วัว)',3.2,4.8,3.3,'milk นม',200,'กล่อง'],
+ ['นมพร่องมันเนย',3.4,5,1,'low fat milk นม',200,'กล่อง'],
+ ['นมถั่วเหลือง ไม่หวาน',2.9,1.7,1.6,'soy milk นม'],
+ ['กรีกโยเกิร์ต 0%',10.2,3.6,0.4,'greek yogurt โยเกิร์ต'],
+ ['ชีสเชดด้า',24.9,1.3,33.1,'cheddar cheese ชีส'],
+ ['อัลมอนด์',21.2,21.6,49.9,'almond ถั่ว'],
+ ['ถั่วลิสง อบ',23.7,21.5,49.7,'peanut ถั่ว'],
+ ['เนยถั่ว',25,20,50,'peanut butter',16,'ช้อนโต๊ะ'],
+ ['อะโวคาโด',2,8.5,14.7,'avocado'],
+ ['น้ำมันพืช',0,0,100,'oil น้ำมัน',14,'ช้อนโต๊ะ'],
+ ['ข้าวกะเพราไก่ (รวมข้าว) — ประมาณ',7,20,5.5,'กะเพรา kaprao',350,'จาน'],
+ ['กะเพราไก่ (ไม่รวมข้าว) — ประมาณ',15,4,9,'กะเพรา kaprao'],
+ ['ข้าวมันไก่ — ประมาณ',8,25,7,'chicken rice ข้าวมันไก่',300,'จาน'],
+ ['ข้าวผัดหมู — ประมาณ',6,25,6,'fried rice ข้าวผัด',300,'จาน'],
+ ['ผัดไทยกุ้งสด — ประมาณ',7,25,6,'pad thai ผัดไทย',300,'จาน'],
+ ['ส้มตำไทย — ประมาณ',2,12,0.5,'somtam ส้มตำ',150,'จาน'],
+ ['ต้มยำกุ้ง น้ำใส — ประมาณ',4,2,0.8,'tom yum ต้มยำ'],
+ ['แกงเขียวหวานไก่ — ประมาณ',7,4,9,'green curry แกง'],
+ ['ก๋วยเตี๋ยวน้ำหมู (รวมน้ำ) — ประมาณ',3.5,7,1.8,'noodle soup ก๋วยเตี๋ยว',450,'ชาม'],
+ ['หมูปิ้ง — ประมาณ',18,15,18,'grilled pork หมูปิ้ง',30,'ไม้'],
+ ['ลาบหมู — ประมาณ',16,3,8,'larb ลาบ'],
+ ['ข้าวเหนียวมะม่วง — ประมาณ',3,40,6,'mango sticky rice'],
+];
+// คำไทย → อังกฤษ สำหรับค้นฐานข้อมูล USDA
+const TH_EN = [['อกไก่','chicken breast'],['สะโพกไก่','chicken thigh'],['น่องไก่','chicken drumstick'],['ปีกไก่','chicken wing'],['ไก่','chicken'],['ไข่ขาว','egg white'],['ไข่แดง','egg yolk'],['ไข่','egg'],
+ ['สันในหมู','pork tenderloin'],['หมูสับ','ground pork'],['สามชั้น','pork belly'],['หมู','pork'],['เนื้อวัว','beef'],['เนื้อ','beef'],['แซลมอน','salmon'],['ทูน่า','tuna'],['ปลานิล','tilapia'],['ปลา','fish'],['กุ้ง','shrimp'],['หมึก','squid'],['ปู','crab'],
+ ['เต้าหู้','tofu'],['ข้าวกล้อง','brown rice'],['ข้าวเหนียว','glutinous rice'],['ข้าวโอ๊ต','oats'],['ข้าว','rice'],['ขนมปัง','bread'],['มันฝรั่ง','potato'],['มันเทศ','sweet potato'],['ข้าวโพด','corn'],['พาสต้า','pasta'],['เส้น','noodles'],
+ ['กล้วย','banana'],['แอปเปิ้ล','apple'],['ส้ม','orange'],['มะม่วง','mango'],['ฝรั่ง','guava'],['แตงโม','watermelon'],['มะละกอ','papaya'],['สับปะรด','pineapple'],['องุ่น','grapes'],['สตรอว์เบอร์รี','strawberries'],
+ ['บรอกโคลี','broccoli'],['กะหล่ำ','cabbage'],['แครอท','carrot'],['แตงกวา','cucumber'],['มะเขือเทศ','tomato'],['ผักโขม','spinach'],['ผัก','vegetables'],['เห็ด','mushrooms'],
+ ['นมถั่วเหลือง','soymilk'],['นม','milk'],['โยเกิร์ต','yogurt'],['ชีส','cheese'],['เนยถั่ว','peanut butter'],['เนย','butter'],['อัลมอนด์','almonds'],['ถั่วลิสง','peanuts'],['ถั่ว','nuts'],['อะโวคาโด','avocado'],['น้ำมันมะกอก','olive oil'],['น้ำมัน','oil'],
+ ['เวย์','whey protein'],['น้ำตาล','sugar'],['ดิบ','raw'],['สุก','cooked'],['ต้ม','boiled'],['ย่าง','grilled'],['ทอด','fried'],['อบ','roasted']];
+
 (() => {
 // ---------- Program definition ----------
 const LIFTS = {
@@ -385,7 +469,7 @@ function renderWorkout(){
   h += `<p class="tiny" style="margin:6px 0 0">+ คาร์ดิโอ ${esc(day.cardio.replace(/^Zone 2 /,'Zone 2 '))}</p>`;
   $('#workoutCard').innerHTML = h;
   const card = $('#workoutCard');
-  card.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => formDirty = true));
+  card.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { formDirty = true; autoSave(); }));
   // เติมเซ็ตถัดไปให้อิงจากเซ็ตล่าสุดที่กรอก (น้ำหนักและจำนวนครั้ง)
   card.querySelectorAll('input[data-k]').forEach(inp => inp.addEventListener('change', () => {
     const {k,i,j,f} = inp.dataset; if (!inp.value) return;
@@ -1093,16 +1177,106 @@ ${text}`;
   } finally { btn.disabled = false; }
 }
 $('#calcFood').addEventListener('click', calcFood);
+// ---------- ค้นหาอาหาร (ตารางไทยในเว็บ + USDA) ----------
 (() => {
-  const ids = ['mfP','mfC','mfF'], upd = () => { $('#mfK').textContent = macroKcal(...ids.map(i => $('#'+i).value)); };
-  ids.forEach(i => $('#'+i).addEventListener('input', upd)); upd();
+  const ids = ['mfP','mfC','mfF'];
+  const upd = () => { $('#mfK').textContent = macroKcal(...ids.map(i => $('#'+i).value)); };
+  ids.forEach(i => $('#'+i).addEventListener('input', () => { sel = null; upd(); }));
+  let sel = null, recent = [], usdaCache = {}, usdaT = null, lastQ = '';
+  const r1 = x => Math.round(x*10)/10;
+  const LOCAL = (typeof THAI_FOODS !== 'undefined' ? THAI_FOODS : []).map(([n,p,c,f,kw,ug,un]) => ({name:n, p, c, f, kw:(n+' '+(kw||'')).toLowerCase(), ug, un, src:'ตารางไทย'}));
+  try { db?.doc && 0; } catch(e){}
+  const loadRecent = async () => { try { if (!db) return; const d = await db.doc('foodlib/recent').get(); recent = d.exists ? (d.data().items || []) : []; } catch(e){} };
+  setTimeout(loadRecent, 2500);
+  function parseQ(q){
+    q = q.trim(); let grams = null, unit = null, n = null;
+    const m = q.match(/(\d+(?:\.\d+)?)\s*(ก\.?|กรัม|g|gram|grams)?\s*([ก-๙a-zA-Z/]+)?\s*$/);
+    if (m){ n = +m[1]; if (m[2]) grams = n; else if (m[3]) unit = m[3]; else grams = n; q = q.slice(0, m.index).trim(); }
+    return {text:q.toLowerCase(), grams, unit, n};
+  }
+  function gramsFor(item, pq){
+    if (pq.grams) return pq.grams;
+    if (pq.unit && item.ug && item.un && item.un.split('/').some(u => pq.unit.includes(u) || u.includes(pq.unit))) return Math.round(pq.n * item.ug);
+    if (pq.unit) return item.ug ? Math.round(pq.n * item.ug) : 100;
+    return item.ug && !pq.n ? item.ug : (pq.n || 100);
+  }
+  const words = t => t.split(/\s+/).filter(Boolean);
+  function localHits(pq){
+    if (!pq.text) return [];
+    const w = words(pq.text);
+    const score = it => { let s = 0; for (const x of w){ if (!it.kw.includes(x)) return -1; s += it.name.toLowerCase().startsWith(x) ? 3 : 1; } return s - it.name.length/100; };
+    return LOCAL.map(it => [score(it), it]).filter(x => x[0] >= 0).sort((a,b) => b[0]-a[0]).slice(0, 10).map(x => x[1]);
+  }
+  function recentHits(pq){
+    if (!pq.text) return recent.slice(0, 6);
+    const w = words(pq.text);
+    return recent.filter(it => w.every(x => it.name.toLowerCase().includes(x))).slice(0, 5);
+  }
+  function toEnglish(t){
+    let out = t; [...TH_EN].sort((a,b) => b[0].length-a[0].length).forEach(([th,en]) => { out = out.split(th).join(' '+en+' '); });
+    return out.replace(/[ก-๙]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  async function usdaSearch(q){
+    if (usdaCache[q]) return usdaCache[q];
+    const url = 'https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&pageSize=10&dataType=Foundation,SR%20Legacy&query=' + encodeURIComponent(q);
+    const r = await fetch(url);
+    if (r.status === 429) throw {code:'rate'};
+    if (!r.ok) throw {code:'http'};
+    const j = await r.json();
+    const get = (f, id) => +(f.foodNutrients.find(n => n.nutrientId === id)?.value || 0);
+    const out = (j.foods || []).map(f => ({name: f.description, p: r1(get(f,1003)), c: r1(Math.max(0, get(f,1005))), f: r1(get(f,1004)), src:'USDA'})).filter(x => x.p || x.c || x.f);
+    usdaCache[q] = out; return out;
+  }
+  function row(it, pq, i){
+    const g = gramsFor(it, pq), k = g/100, P = r1(it.p*k), C = r1(it.c*k), F = r1(it.f*k);
+    return `<button class="fsr" data-i="${i}"><span class="src">${esc(it.src||'')}</span><b>${esc(it.name)}</b><span>${fmt(g,0)} ก. · P ${fmt(P,1)} · C ${fmt(C,1)} · F ${fmt(F,1)} · <b style="display:inline">${macroKcal(P,C,F)} kcal</b></span></button>`;
+  }
+  let shown = [];
+  function render(pq, usda, usdaMsg){
+    const rec = recentHits(pq), loc = localHits(pq).filter(x => !rec.some(r => r.name === x.name));
+    shown = [...rec, ...loc, ...(usda || [])];
+    let h = '', i = 0;
+    if (rec.length) h += `<div class="fs-h">ที่เคยเลือก</div>` + rec.map(it => row(it, pq, i++)).join('');
+    if (loc.length) h += `<div class="fs-h">ตารางอาหารไทย</div>` + loc.map(it => row(it, pq, i++)).join('');
+    if (usda?.length) h += `<div class="fs-h">ฐานข้อมูล USDA (ต่างประเทศ)</div>` + usda.map(it => row(it, pq, i++)).join('');
+    if (usdaMsg) h += `<p class="tiny muted" style="margin:6px 2px">${esc(usdaMsg)}</p>`;
+    if (!h) h = `<p class="tiny muted" style="margin:0">${pq.text ? 'ไม่พบในตารางไทย' : 'ผลค้นหาจะขึ้นตรงนี้'}</p>`;
+    $('#fsRes').innerHTML = h;
+    $('#fsRes').querySelectorAll('.fsr').forEach(b => b.onclick = () => pick(shown[+b.dataset.i], pq, b));
+  }
+  function fillFromSel(){
+    if (!sel) return; const g = +$('#mfG').value || 0, k = g/100;
+    $('#mfP').value = r1(sel.p*k); $('#mfC').value = r1(sel.c*k); $('#mfF').value = r1(sel.f*k); upd();
+  }
+  function pick(it, pq, btn){
+    sel = it; $('#mfName').value = it.name; $('#mfG').value = gramsFor(it, pq); fillFromSel();
+    $('#fsRes').querySelectorAll('.fsr').forEach(b => b.classList.toggle('on', b===btn));
+    $('#foodMsg').textContent = 'ตรวจตัวเลขแล้วกด "เพิ่มลงมื้อที่เลือก"';
+  }
+  $('#mfG').addEventListener('input', fillFromSel);
+  $('#fsQ').addEventListener('input', () => {
+    const q = $('#fsQ').value, pq = parseQ(q); lastQ = q;
+    render(pq, null, pq.text.length >= 2 ? 'กำลังค้นฐานข้อมูล USDA…' : '');
+    clearTimeout(usdaT);
+    if (pq.text.length < 2) return;
+    usdaT = setTimeout(async () => {
+      const en = toEnglish(pq.text);
+      if (!en){ if (lastQ === q) render(pq, null, 'USDA ค้นได้เฉพาะคำที่แปลเป็นอังกฤษได้ — ลองพิมพ์ชื่ออังกฤษ เช่น chicken breast'); return; }
+      try { const u = await usdaSearch(en); if (lastQ === q) render(pq, u, u.length ? '' : `USDA ไม่พบ "${en}"`); }
+      catch(e){ if (lastQ === q) render(pq, null, e?.code==='rate' ? 'ค้น USDA ถี่เกินไป (จำกัดชั่วโมงละ ~30 ครั้ง) — ใช้ตารางไทยไปก่อน' : 'ค้น USDA ไม่ได้ตอนนี้ — ใช้ตารางไทยหรือกรอกเอง'); }
+    }, 700);
+  });
+  upd();
   $('#mfAdd').addEventListener('click', () => {
     const [p,c,f] = ids.map(i => +$('#'+i).value || 0);
-    if (!p && !c && !f){ $('#foodMsg').textContent = 'กรอกโปรตีน/คาร์บ/ไขมันเป็นกรัมก่อน'; return; }
-    const name = $('#mfName').value.trim() || 'กรอกเอง', kcal = macroKcal(p,c,f);
-    const item = {name, grams:0, kcal, protein:p, carbs:c, fat:f, note:'กรอกเอง'};
+    if (!p && !c && !f){ $('#foodMsg').textContent = 'เลือกอาหารจากผลค้นหา หรือกรอกโปรตีน/คาร์บ/ไขมันก่อน'; return; }
+    const g = +$('#mfG').value || 0, name = $('#mfName').value.trim() || 'กรอกเอง', kcal = macroKcal(p,c,f);
+    const item = {name, grams:g, kcal, protein:p, carbs:c, fat:f, note: sel ? sel.src : 'กรอกเอง'};
     const meals = [...(logs.get(foodDay)?.meals || []), {name: $('#mealName').value, items:[item], totals:{kcal, p, c, f}, text:name, at:new Date().toISOString()}];
-    ['mfName',...ids].forEach(i => $('#'+i).value = ''); upd(); writeMeals(foodDay, meals);
+    if (sel){ recent = [{name:sel.name, p:sel.p, c:sel.c, f:sel.f, ug:sel.ug, un:sel.un, src:'เคยเลือก'}, ...recent.filter(r => r.name !== sel.name)].slice(0, 30);
+      try { db && db.doc('foodlib/recent').set({items: recent, updatedAt: new Date().toISOString()}); } catch(e){} }
+    sel = null; ['mfName','mfG','fsQ',...ids].forEach(i => $('#'+i).value = ''); upd(); render(parseQ(''), null, '');
+    writeMeals(foodDay, meals);
   });
 })();
 $('#foodDate').addEventListener('change', e => { foodDay = e.target.value || isoLocal(new Date()); pendingFood = null; renderFood(); });
@@ -1151,7 +1325,7 @@ route(); renderAll(); renderCoach(); renderSummary();
 (async () => {
   const msg = $('#globalMsg');
   const t = setTimeout(() => { msg.innerHTML = '<div class="banner warn">ยังเชื่อมต่อข้อมูลไม่ได้ — ตรวจอินเทอร์เน็ตแล้วรอสักครู่</div>'; }, 10000);
-  claude.use('sample').then(f => { sampleFn = f; if (!f) $('#calcFood').disabled = true; });
+  claude.use('sample').then(f => { sampleFn = f; if (!f){ $('#calcFood').hidden = true; $('#foodInput').hidden = true; } });
   db = await claude.use('db');
   let owner = false;
   if (db){ try { const u = await claude.use('user'); owner = !!(await u?.canEdit?.()); } catch(e){} }

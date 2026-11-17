@@ -205,7 +205,55 @@ details.evold>summary::-webkit-details-marker{display:none}
 .sessclock.run{background:#2e7d3222}
 .sessclock.end{background:#1565c022}
 .autokcal{background:var(--surface-2,#8881)!important;font-weight:600}
+.fsearch{display:grid;grid-template-columns:1fr;grid-template-areas:"q" "res" "left";gap:10px}
+.fs-q{grid-area:q}.fs-left{grid-area:left}.fs-right{grid-area:res}
+@media (min-width:640px){.fsearch{grid-template-columns:1.1fr 1fr;grid-template-areas:"q res" "left res"}}
+.fs-right{border:1px solid var(--line);border-radius:10px;padding:8px;max-height:360px;overflow:auto;background:var(--surface-1)}
+.fsr{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:transparent;border-radius:0;cursor:pointer;color:inherit}
+.fsr:last-child{border-bottom:0}
+.fsr:hover,.fsr.on{background:var(--surface-2,#8881)}
+.fsr b{display:block;font-size:14px;font-weight:600}
+.fsr span{font-size:12.5px;color:var(--text-secondary)}
+.fsr .src{float:right;font-size:11px;color:var(--text-muted)}
+.fs-h{font-size:12px;color:var(--text-muted);margin:6px 2px 2px}
 .demo img.sq{aspect-ratio:1/1;max-width:300px;object-fit:contain;background:#fff}
+
+/* ===== ธีมม่วงเข้ม (Purple fang) ===== */
+:root{color-scheme:dark;
+  --bg:#0c0611; --surface-1:#170b20; --surface-2:#231031; --line:#3b1d52;
+  --text-primary:#f4ecff; --text-secondary:#cbb5e3; --text-muted:#9378ae;
+  --accent:#9d34ff; --accent-ink:#ffffff;
+  --s1:#b45cff; --s2:#ff5c93; --s3:#3ddc97; --s4:#ffb547;
+  --good:#3ddc97; --warning:#ffc247; --serious:#ff8a5c; --critical:#ff4d6a; --dot:#4b2c66}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0c0611; --surface-1:#170b20; --surface-2:#231031; --line:#3b1d52;
+  --text-primary:#f4ecff; --text-secondary:#cbb5e3; --text-muted:#9378ae;
+  --accent:#9d34ff; --accent-ink:#ffffff; --s1:#b45cff; --s2:#ff5c93; --s3:#3ddc97; --s4:#ffb547; --dot:#4b2c66}}
+html,body{background:var(--bg)}
+body{background:radial-gradient(900px 520px at 0% -8%,#3d0f6266,transparent 70%),radial-gradient(800px 520px at 105% 6%,#5e1b9244,transparent 70%),radial-gradient(700px 500px at 50% 110%,#2a0b4555,transparent 70%),var(--bg);background-attachment:fixed;color:var(--text-primary)}
+header{background:linear-gradient(180deg,#1a0a26,#12081b)!important;border-bottom:0!important;box-shadow:0 6px 18px #0009}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-19px;height:20px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='20' viewBox='0 0 56 20'%3E%3Cpath d='M0 0 L9 19 L18 0 L23 9 L28 0 L37 19 L46 0 L51 9 L56 0 Z' fill='%23efe4fa'/%3E%3Cpath d='M9 19 L13 9 L18 0 Z M37 19 L41 9 L46 0 Z' fill='%23cdb6e6' opacity='.7'/%3E%3C/svg%3E") repeat-x;
+  filter:drop-shadow(0 3px 3px #000a)}
+.brand{color:#d8a8ff;text-shadow:0 0 14px #a43dff99;letter-spacing:.3px}
+.card,details.fold,details.ex,.exlog,.stat,.meal,.fs-right{background:linear-gradient(180deg,#1c0d29,#140a1d)!important;border-color:var(--line)!important;box-shadow:0 0 0 1px #24103566,0 10px 24px #0007}
+input,select,textarea{background:#11081a!important;color:var(--text-primary)!important;border-color:#3b1d52!important}
+input::placeholder,textarea::placeholder{color:#7d6496}
+button{background:#231031;color:var(--text-primary);border-color:#3b1d52}
+button.primary,.primary{background:linear-gradient(180deg,#a542ff,#6c1fc0)!important;border-color:#b45cff!important;color:#fff!important;box-shadow:0 0 14px #9d34ff55}
+nav a{color:var(--text-secondary)}
+nav a.on,nav a[aria-current],nav a.active{background:linear-gradient(180deg,#a542ff,#6c1fc0)!important;color:#fff!important;box-shadow:0 0 12px #9d34ff66}
+.pill{background:#231031!important;color:#d8b9f5!important;border-color:#3b1d52!important}
+.chip{background:#170b20;border-color:#3b1d52;color:var(--text-secondary)}
+.chip.on{background:linear-gradient(180deg,#a542ff,#6c1fc0)!important;border-color:#b45cff!important;color:#fff!important}
+.restbtn.on{background:linear-gradient(180deg,#3ddc97,#1f9e68)!important;border-color:#3ddc97!important;color:#06130d!important}
+.sessclock{background:#231031!important;border:1px solid #3b1d52}
+.sessclock.run{background:#1b2b1f!important;border-color:#2f6b45}
+.sessclock.end{background:#24123a!important;border-color:#5a2c86}
+.autokcal{background:#2a1340!important;color:#e7d3ff}
+.demo img{background:#fff}
+a{color:#c48bff}
+
 .demo .setup{margin:4px 0 0;padding-left:20px;color:var(--text-muted,#999);font-size:14px;line-height:1.5}
 .demo .setup li{margin:2px 0}
 .corabtn{display:block;text-align:center;margin:4px auto 2px;max-width:420px;padding:9px;border-radius:10px;border:1px solid var(--accent,#2f7cf6);color:var(--accent,#2f7cf6);text-decoration:none;font-weight:600;font-size:14px}
@@ -323,15 +371,22 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
         <span id="foodMsg" class="tiny" style="flex:1"></span>
       </div>
       <div id="foodResult"></div>
-      <h3 style="margin-top:14px">หรือกรอกสารอาหารเอง (กรัม)</h3>
-      <div class="row"><div style="flex:2"><label>ชื่ออาหาร</label><input id="mfName" placeholder="เช่น อกไก่ + ข้าว"></div></div>
-      <div class="macro-in" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;align-items:end">
-        <div><label>โปรตีน (ก.)</label><input id="mfP" type="number" inputmode="decimal" min="0"></div>
-        <div><label>คาร์บ (ก.)</label><input id="mfC" type="number" inputmode="decimal" min="0"></div>
-        <div><label>ไขมัน (ก.)</label><input id="mfF" type="number" inputmode="decimal" min="0"></div>
-        <div><label>= kcal</label><div class="autokcal" id="mfK" style="padding:9px 10px;border-radius:8px">0</div></div>
+      <h3 style="margin-top:14px">ค้นหาอาหาร</h3>
+      <div class="fsearch">
+        <div class="fs-q"><input id="fsQ" type="search" autocomplete="off" placeholder="พิมพ์ เช่น อกไก่ 150 · ข้าวสวย 200 ก. · ไข่ 2 ฟอง">
+          <div class="tiny" style="margin:4px 0 0">กดเลือกจากรายการ แล้วตัวเลขจะเข้าช่องให้เอง</div></div>
+        <div class="fs-left">
+          <div class="row"><div style="flex:3"><label>ชื่ออาหาร</label><input id="mfName" placeholder="เลือกจากผลค้นหา หรือพิมพ์เอง"></div><div style="flex:1"><label>กรัม</label><input id="mfG" type="number" inputmode="decimal" min="0"></div></div>
+          <div class="macro-in" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;align-items:end">
+            <div><label>โปรตีน (ก.)</label><input id="mfP" type="number" inputmode="decimal" min="0"></div>
+            <div><label>คาร์บ (ก.)</label><input id="mfC" type="number" inputmode="decimal" min="0"></div>
+            <div><label>ไขมัน (ก.)</label><input id="mfF" type="number" inputmode="decimal" min="0"></div>
+            <div><label>= kcal</label><div class="autokcal" id="mfK" style="padding:9px 10px;border-radius:8px">0</div></div>
+          </div>
+          <button class="primary" id="mfAdd" style="margin-top:8px">เพิ่มลงมื้อที่เลือก</button>
+        </div>
+        <div class="fs-right" id="fsRes"><p class="tiny muted" style="margin:0">ผลค้นหาจะขึ้นตรงนี้</p></div>
       </div>
-      <button class="primary" id="mfAdd" style="margin-top:8px">เพิ่มลงมื้อที่เลือก</button>
     </div>
     <div class="card"><h2>มื้ออาหารวันนี้</h2><div id="mealList"></div></div>
     <details class="fold"><summary>เป้าหมายและวิธีจัดอาหาร</summary><div class="inner">
@@ -417,6 +472,6 @@ body.guest .card.compact .row>div:last-child select{pointer-events:auto}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794890111";</script><script src="config.js"></script><script src="boot.js?v=1794890111"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794890976";</script><script src="config.js"></script><script src="boot.js?v=1794890976"></script>
 </body>
 </html>
