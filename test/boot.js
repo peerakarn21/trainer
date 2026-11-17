@@ -25,6 +25,20 @@ function applyTheme(t){
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = THEME_META[t];
   try { t ? localStorage.setItem('trainerTheme', t) : localStorage.removeItem('trainerTheme'); } catch(e){}
 }
+function watchProgram(uid){
+  let base = null;
+  try { fs.doc(`users/${uid}/program/days`).onSnapshot(s => {
+    if (s.metadata && s.metadata.hasPendingWrites) return;
+    const j = s.exists ? JSON.stringify(s.data()) : '';
+    if (base === null){ base = j; return; }
+    if (j === base || document.getElementById('progUpd')) return;
+    const b = document.createElement('div'); b.id = 'progUpd';
+    b.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);z-index:60;max-width:92vw;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:14px;background:var(--surface-1);border:1px solid var(--accent);box-shadow:0 10px 30px -10px #0006;font-size:14px';
+    b.innerHTML = '<span>โค้ชอัปเดตโปรแกรมของคุณแล้ว</span><button class="primary" style="flex:0 0 auto;padding:6px 12px">โหลดใหม่</button>';
+    b.querySelector('button').onclick = () => location.reload();
+    document.body.appendChild(b);
+  }, () => {}); } catch(e){}
+}
 function showGate(html){ gate.hidden = false; gate.innerHTML = `<div class="gatecard"><div class="brand" style="font-size:22px;margin-bottom:12px">Trainer</div>${html}</div>`; }
 
 async function loginView(){
@@ -95,7 +109,7 @@ async function startInner(user){
     $('#gOut').onclick = () => auth.signOut(); return;
   }
   step('กำลังโหลดโปรแกรม…');
-  try { const p = await withTimeout(fs.doc(`users/${uid}/program/days`).get(), 15000, 'program'); if (p.exists) program = p.data(); } catch(e){ if (e?.code==='timeout') throw {message:'โหลดโปรแกรมไม่ได้ (หมดเวลา) — กดลองใหม่'}; }
+  try { const p = await withTimeout(fs.doc(`users/${uid}/program/days`).get(), 15000, 'program'); if (p.exists) program = p.data(); } catch(e){ throw {message: e?.code==='timeout' ? 'โหลดโปรแกรมไม่ได้ (หมดเวลา) — กดลองใหม่' : 'โหลดโปรแกรมไม่ได้: ' + errTxt(e) + ' — กดลองใหม่'}; }
   try { const sref = fs.doc(`users/${uid}/settings/main`);
     const sdoc = await sref.get(); applyTheme(sdoc.exists ? sdoc.data().theme : '');
     if (!sdoc.exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
@@ -109,7 +123,7 @@ async function startInner(user){
   const db = {doc: ref, collection: ref};
   window.claude = {use: async k => k==='db' ? db : k==='user' ? {canEdit: async () => true} : null};
   const s = document.createElement('script'); s.src = 'app.js?v=' + (window.APP_VER||1);
-  s.onload = () => accountUI(user, isAdmin);
+  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); };
   document.body.appendChild(s);
 }
 
@@ -140,7 +154,7 @@ function accountUI(user, isAdmin){
   if (!isAdmin) return;
   const ad = document.createElement('div'); ad.className = 'card';
   const defProg = JSON.stringify({days: window.__PROGRAM?.days || window.__DEFAULT_DAYS}, null, 1);
-  ad.innerHTML = `<h2>ผู้ดูแล: บัญชีผู้ใช้</h2><div id="adList" class="tiny">กำลังโหลด…</div>
+  ad.innerHTML = `<h2>ผู้ดูแล: บัญชีผู้ใช้</h2><p class="tiny" style="margin:0 0 4px;opacity:.8">เปลี่ยนโปรแกรมให้สมาชิกได้ที่นี่ — เครื่องของสมาชิกจะขึ้นแถบให้กดโหลดโปรแกรมใหม่</p><div id="adList" class="tiny">กำลังโหลด…</div>
     <h3>สร้างบัญชีใหม่</h3>
     <div class="row"><div><label>ชื่อผู้ใช้</label><input id="adU" autocapitalize="none"></div><div><label>รหัสผ่านเริ่มต้น</label><input id="adP" type="text"></div></div>
     <div class="grid3" style="margin-top:8px"><div><label>เบนช์ 1RM</label><input id="adRb" type="number" step="2.5"></div><div><label>สควอท 1RM</label><input id="adRs" type="number" step="2.5"></div><div><label>เดดลิฟต์ 1RM</label><input id="adRd" type="number" step="2.5"></div></div>
@@ -148,16 +162,29 @@ function accountUI(user, isAdmin){
     <label style="margin-top:8px">โปรแกรม (JSON)</label><textarea id="adProg" rows="6" style="width:100%;font-family:monospace;font-size:12px">${esc(defProg)}</textarea>
     <div class="row" style="margin-top:8px;align-items:center"><button class="primary" id="adGo" style="flex:0 0 auto">สร้างบัญชี</button><span id="adMsg" class="tiny" style="flex:1"></span></div>`;
   card.after(ad);
+  const tpls = {};
+  const tplOpts = () => Object.entries(tpls).map(([k,v]) => `<option value="${esc(k)}">${esc(v.name || k)}</option>`).join('');
   const loadList = async () => {
     try { const q = await fs.collection('members').get();
-      $('#adList').innerHTML = q.docs.map(d => `• ${esc(d.data().username)}${d.data().admin?' (แอดมิน)':''} <span style="opacity:.6">สร้าง ${esc((d.data().createdAt||'').slice(0,10))}</span>`).join('<br>') || 'ยังไม่มี';
+      const rows = await Promise.all(q.docs.map(async d => {
+        const m = d.data(), mine = d.id === acc.uid;
+        let cur = '—'; try { const pd = await fs.doc(`users/${d.id}/program/days`).get(); cur = pd.exists ? (pd.data().name || 'โปรแกรมกำหนดเอง') : 'โปรแกรมเริ่มต้น'; } catch(e){}
+        const set = mine ? '' : `<div class="row" style="margin-top:6px;align-items:center;gap:6px"><select data-mtpl="${esc(d.id)}" style="flex:1;min-width:0"><option value="">— เลือกโปรแกรม —</option>${tplOpts()}</select><button data-mset="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:0 0 auto">ใช้โปรแกรมนี้</button></div>`;
+        return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(m.username)}</b>${m.admin||mine?' (แอดมิน)':''} <span style="opacity:.6">สร้าง ${esc((m.createdAt||'').slice(0,10))}</span><br><span style="opacity:.8">โปรแกรมตอนนี้: ${esc(cur)}</span>${set}</div>`;
+      }));
+      $('#adList').innerHTML = rows.join('') || 'ยังไม่มี';
+      $('#adList').querySelectorAll('[data-mset]').forEach(b => b.onclick = async () => {
+        const uid = b.dataset.mset, k = $(`[data-mtpl="${uid}"]`).value, tp = tpls[k];
+        if (!tp){ b.textContent = 'เลือกโปรแกรมก่อน'; setTimeout(() => b.textContent = 'ใช้โปรแกรมนี้', 1500); return; }
+        b.disabled = true; b.textContent = 'กำลังบันทึก…';
+        try { await fs.doc(`users/${uid}/program/days`).set({name: tp.name || k, days: tp.days, extra: tp.extra || {}}); b.textContent = 'บันทึกแล้ว ✓'; setTimeout(loadList, 900); }
+        catch(e){ b.disabled = false; b.textContent = 'ไม่สำเร็จ: ' + errTxt(e); }
+      });
     } catch(e){ $('#adList').textContent = 'โหลดรายชื่อไม่ได้: ' + errTxt(e); }
   };
-  loadList();
-  const tpls = {};
   fs.collection(`users/${acc.uid}/templates`).get().then(q => {
     q.docs.forEach(d => { tpls[d.id] = d.data(); const o = document.createElement('option'); o.value = d.id; o.textContent = d.data().name || d.id; $('#adTpl').appendChild(o); });
-  }).catch(() => {});
+  }).catch(() => {}).finally(loadList);
   $('#adTpl').onchange = () => {
     const t = tpls[$('#adTpl').value];
     $('#adProg').value = t ? JSON.stringify({days: t.days, extra: t.extra || undefined}, null, 1) : defProg;
