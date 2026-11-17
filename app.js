@@ -352,8 +352,8 @@ function renderSwapList(){
   el.querySelectorAll('[data-unswap]').forEach(b => b.onclick = () => setSwap(b.dataset.unswap, null));
 }
 const DAY_ORDER = ['CH','LAT','LEG','SH','THK','rest'];
-const WEEKDAY_DAY = {1:'CH',2:'LAT',3:'LEG',4:'SH',5:'THK',6:'rest',0:'rest'};
-const MUSCLES = {chest:'อก', back:'หลัง (ปีก + หนา)', side:'ไหล่ข้าง', rear:'ไหล่หลัง', tri:'ไตรเซ็ป', bi:'ไบเซ็ป', quad:'ต้นขาหน้า', ham:'ต้นขาหลัง', calf:'น่อง', abs:'หน้าท้อง', fore:'ปลายแขน', glute:'ก้น'};
+const WEEKDAY_DAY = (() => { const m = {0:'rest',1:'rest',2:'rest',3:'rest',4:'rest',5:'rest',6:'rest'}; for (const k of DAY_ORDER) if (k !== 'rest' && DAYS[k] && DAYS[k].wd != null) m[DAYS[k].wd % 7] = k; return m; })();
+const MUSCLES = {chest:'อก', back:'หลัง (ปีก + หนา)', side:'ไหล่ข้าง', rear:'ไหล่หลัง', tri:'ไตรเซ็ป', bi:'ไบเซ็ป', quad:'ต้นขาหน้า', ham:'ต้นขาหลัง', calf:'น่อง', abs:'หน้าท้อง', fore:'ปลายแขน', glute:'ก้น', add:'ขาด้านใน', front:'ไหล่หน้า'};
 const EFF = {'0':['หมดแรง','hard'], '0p':['หมดแรง + ครึ่งล่าง','hard'], '1':['เหลือ 1','']};
 const MAIN_FSL = 3;
 const AMRAP_MIN = {1:5, 2:3, 3:1};
@@ -506,7 +506,7 @@ function renderOverPanel(){
     ${over ? '' : '<div class="tiny" style="margin-bottom:6px">เลื่อนต่อไม่ได้แล้ว — กดเริ่มรอบใหม่ได้เลย</div>'}
     <div class="tiny" style="margin-bottom:10px">TM รอบใหม่: ${prop.map(p => `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>${fmt(p.sug)}</b>`).join(' · ')}${prop.filter(p=>p.fail).map(p=>`<br>⚠ ${LIFTS[p.l].th}: ${p.note}`).join('')}</div>
     <button class="primary bigbtn" id="overGo">เริ่มรอบที่ ${cyc+1} วันนี้ (${thDate(today)})</button>
-    <div class="tiny" id="overMsg" style="margin-top:6px;text-align:center">เริ่มตามวันจริง — วันนี้${WD[weekdayOf(today)]==='อา'||WD[weekdayOf(today)]==='ส'?'เป็นวันพัก':`จะเปิดตารางวัน${DAYS[WEEKDAY_DAY[weekdayOf(today)]].name.split(' — ')[0]}`}</div>`;
+    <div class="tiny" id="overMsg" style="margin-top:6px;text-align:center">เริ่มตามวันจริง — วันนี้${WEEKDAY_DAY[weekdayOf(today)]==='rest'?'เป็นวันพัก':`จะเปิดตารางวัน${DAYS[WEEKDAY_DAY[weekdayOf(today)]].name.split(' — ')[0]}`}</div>`;
   $('#overGo').onclick = async () => {
     const tms = {}; prop.forEach(p => { if (p.sug) tms[p.l] = p.sug; });
     $('#overGo').disabled = true;
