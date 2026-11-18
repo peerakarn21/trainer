@@ -205,6 +205,21 @@ details.evold>summary::-webkit-details-marker{display:none}
 .macro4 .m .k{font-size:12px;color:var(--text-secondary)}
 .macro4 .m .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
 .macro4 .m .v small{font-size:12px;font-weight:400;color:var(--text-muted)}
+.pmopt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer}
+.pmopt input{width:auto;margin-top:3px;flex:0 0 auto}
+.sugline{margin:4px 0 2px;color:var(--text-muted)}
+.sugline.up{color:var(--good,#2e9e6a)}
+.sugline.down{color:var(--warn,#c98a2b)}
+.fsug{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.fsug h3{margin:0 0 4px;font-size:15px}
+.fsug .gap{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.fsug .gap span{background:var(--surface-2);border-radius:999px;padding:3px 10px;font-size:13px}
+.fsug .gap span.over{background:transparent;border:1px solid var(--warn,#c98a2b);color:var(--warn,#c98a2b)}
+.fsug .opt{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-top:8px;display:flex;gap:10px;align-items:center}
+.fsug .opt .body{flex:1;min-width:0}
+.fsug .opt .items{font-size:14px;line-height:1.5}
+.fsug .opt .tot{font-size:12px;color:var(--text-muted);margin-top:2px}
+.fsug .opt button{flex:0 0 auto;padding:7px 12px}
 /* swap */
 .swapbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:12.5px;font-weight:500;color:var(--text-secondary)}
 .swapbox[hidden]{display:none}
@@ -633,6 +648,7 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
     <div class="card">
       <div class="row" style="align-items:center"><h2 style="margin:0;flex:1">วันนี้กินไปแล้ว</h2><input type="date" id="foodDate" style="flex:0 0 auto;width:auto"></div>
       <div class="macro4" id="foodTotals" style="margin-top:10px"></div>
+      <div id="foodSuggest"></div>
     </div>
     <div class="card mealin">
       <h2>เพิ่มอาหาร</h2>
@@ -734,6 +750,9 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
         <tr><td>วันฝึก</td><td><input id="tTk" type="number"></td><td><input id="tTp" type="number"></td><td><input id="tTc" type="number"></td><td><input id="tTf" type="number"></td></tr>
         <tr><td>วันพัก</td><td><input id="tRk" type="number"></td><td><input id="tRp" type="number"></td><td><input id="tRc" type="number"></td><td><input id="tRf" type="number"></td></tr>
       </table></div>
+      <h3>การเพิ่มน้ำหนัก (ท่าเสริม)</h3>
+      <p class="tiny" style="margin:-4px 0 6px">ทุกแบบใช้หลัก Double Progression: น้ำหนักเดิมจนทำได้ถึงจำนวนครั้งสูงสุดของช่วง แล้วเพิ่ม 2.5% (ท่าช่วงบน) / 5% (ท่าช่วงล่าง) ปัดตามขั้นของเครื่อง · ถ้าเซ็ตแรกต่ำกว่าช่วง 2 ครั้งติดจะลด ~4% ต่อครั้งที่ขาด · ท่าหลัก 5/3/1 ใช้สูตรของ Wendler แยกต่างหาก</p>
+      <div id="progModeBox"></div>
       <div class="row" style="margin-top:12px;align-items:center">
         <button class="primary" id="sSave" style="flex:0 0 auto">บันทึก</button>
         <span id="sMsg" style="flex:1"></span>
@@ -746,6 +765,6 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794929057";</script><script src="config.js"></script><script src="boot.js?v=1794929057"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1794968929";</script><script src="config.js"></script><script src="boot.js?v=1794968929"></script>
 </body>
 </html>

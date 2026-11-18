@@ -253,7 +253,19 @@ const VIDEO = {'Cable Lateral Raise แขนเดียว (แบบ Jeff Nip
 const kindOf = n => HOW[n]?.[0] || 'i';
 const kOf = ex => ex.k || kindOf(ex.n);
 const restOf = (ex) => kOf(ex)==='c' ? '2–3 นาที' : '1.5–2 นาที';
-const incOf = (ex) => kOf(ex)==='c' ? 2.5 : 1;
+const LOWER_M = new Set(['quad','ham','glute','calf','add']);
+const isLower = ex => LOWER_M.has(ex.m);
+// ขั้นน้ำหนักของอุปกรณ์ (ตั้งเองต่อท่าได้ในหน้าโปรแกรม) · ค่าเริ่มต้น: ดัมเบล 2 กก. อื่นๆ 2.5 กก.
+const stepOf = ex => { const v = +settings?.incs?.[ex.n]; return v > 0 ? v : (/dumbbell|\bDB\b|ดัมเบล/i.test(ex.n) ? 2 : 2.5); };
+const roundStep = (x, st) => Math.round(x/st)*st;
+// เพิ่มตามงานวิจัย: ช่วงบน 2.5–5% · ช่วงล่าง 5–10% (ACSM 2009 / NSCA) ปัดเป็นขั้นของเครื่อง อย่างน้อย 1 ขั้น
+function incFor(ex, w){ const st = stepOf(ex); if (!w) return st; return Math.max(st, roundStep(w*(isLower(ex)?0.05:0.025), st)); }
+const incOf = ex => stepOf(ex);
+const PROG_MODES = {
+  fast:   {name:'ก. ขึ้นเร็ว (Double Progression แบบ Helms)', short:'ครบช่วงบน 1 ครั้ง → เพิ่ม', desc:'ทุกเซ็ตทำได้ถึงจำนวนครั้งสูงสุดของช่วงในครั้งเดียว ครั้งหน้าเพิ่มน้ำหนักเลย — เหมาะกับมือใหม่หรือคนที่กลับมาเริ่มใหม่ น้ำหนักขึ้นเร็ว'},
+  confirm:{name:'ข. ขึ้นแบบยืนยัน 2 ครั้ง (กฎ 2-for-2 ของ NSCA)', short:'ครบช่วงบน 2 ครั้งติด → เพิ่ม', desc:'ต้องทำได้ถึงจำนวนครั้งสูงสุดของช่วงทุกเซ็ต 2 ครั้งติดกันที่เล่นท่านี้ ถึงจะเพิ่มน้ำหนัก — ช้ากว่าแต่ชัวร์ว่าแข็งแรงขึ้นจริง เหมาะกับคนที่เล่นมานาน'}
+};
+const progMode = () => PROG_MODES[settings?.progMode] ? settings.progMode : 'fast';
 // ท่าทดแทน (กล้ามเดียวกัน)
 const ALTS = {
   'Incline DB Press 30°':['Incline Barbell Press','Incline Smith Press','Incline Machine Press'],
@@ -477,7 +489,8 @@ function renderWorkout(){
     const n = setsFor(ex, wi.idx), sug = suggestion(ex, wi.idx, curDate);
     const saved = a.log || (a.w!=null ? [{w:a.w, reps:a.reps}] : []);
     h += `<div class="exlog"><div class="exh"><span class="exname">${i+1+(day.main?1:0)}. ${esc(ex.n)} <button class="swapbtn" data-swapbtn>⇄</button></span><span class="tiny">${n}×${esc(ex.r)}${deload?'':' · '+EFF[ex.e][0]}</span></div>${swapBox(ex)}`;
-    for (let j=0;j<n;j++){ const sv = saved[j] || {}; h += row('a', i, j, `เซ็ต ${j+1}`, sv.w, sug.w!=null?fmt(sug.w):'กก.', sv.reps, ex.r, sv.done); }
+    for (let j=0;j<n;j++){ const sv = saved[j] || {}; h += row('a', i, j, `เซ็ต ${j+1}`, sv.w ?? (sv.done || sug.w==null ? null : sug.w), sug.w!=null?fmt(sug.w):'กก.', sv.reps, ex.r, sv.done); }
+    if (sug.w!=null && wi.idx<3) h += `<div class="tiny sugline${sug.up?' up':''}${sug.down?' down':''}">${sug.up?'⬆ ':sug.down?'⬇ ':''}${esc(sug.text)}</div>`;
     h += `</div>`;
   });
   h += `<p class="tiny" style="margin:6px 0 0">+ คาร์ดิโอ ${esc(day.cardio.replace(/^Zone 2 /,'Zone 2 '))}</p>`;
@@ -772,28 +785,57 @@ async function save(quiet){
 
 // ---------- exercise details ----------
 const repRange = r => { const n = String(r).match(/\d+/g)?.map(Number) || []; return {lo:n[0]??null, hi:n[n.length-1]??null}; };
-function lastPerf(name, beforeDate){
-  const arr = sortedLogs().filter(l => !beforeDate || l.date < beforeDate).reverse();
-  for (const l of arr){
-    const a = l.workout?.acc?.find(x => x.name===name && (x.w!=null || x.log?.some(s => s.w!=null)));
-    if (!a) continue;
-    const sets = (a.log || []).filter(s => s.w!=null && s.reps!=null);
-    if (sets.length) { const w = Math.max(...sets.map(s=>s.w)); const top = sets.filter(s=>s.w===w); return {date:l.date, w, reps:Math.min(...top.map(s=>s.reps)), sets:sets.length, log:sets}; }
-    return {date:l.date, w:a.w, reps:a.reps, sets:a.sets};
+// ประวัติท่าเสริม: เรียงใหม่→เก่า · แยกตามวัน (dayType) ก่อน ถ้าวันนั้นยังไม่เคยเล่นค่อยใช้วันอื่น
+function perfHistory(name, beforeDate, dayKey){
+  const out = [], other = [];
+  for (const l of sortedLogs().filter(l => !beforeDate || l.date < beforeDate).reverse()){
+    const a = l.workout?.acc?.find(x => x.name===name); if (!a) continue;
+    let p = null;
+    if (Array.isArray(a.log)){
+      const sets = a.log.filter(s => s.w!=null && s.reps!=null);
+      if (!sets.length) continue;
+      const w = Math.max(...sets.map(s=>s.w)), top = sets.filter(s=>s.w===w);
+      p = {date:l.date, w, reps:Math.min(...top.map(s=>s.reps)), first:sets[0].reps, firstW:sets[0].w, sets:sets.length, log:sets, day:l.dayType||l.workout?.day};
+    } else if (a.w!=null && a.reps!=null) p = {date:l.date, w:a.w, reps:a.reps, first:a.reps, firstW:a.w, sets:a.sets, log:[{w:a.w, reps:a.reps}], day:l.dayType||l.workout?.day};
+    if (!p) continue;
+    (dayKey && p.day!==dayKey ? other : out).push(p);
   }
-  return null;
+  return out.length ? out : other;
 }
+function lastPerf(name, beforeDate, dayKey){ return perfHistory(name, beforeDate, dayKey)[0] || null; }
 function lastMain(lift, beforeDate){
   const arr = sortedLogs().filter(l => !beforeDate || l.date < beforeDate).reverse();
   for (const l of arr){ const w = l.workout; if (w?.lift===lift && w.amrapReps!=null && w.topW) return {date:l.date, topW:w.topW, reps:w.amrapReps}; }
   return null;
 }
 function suggestion(ex, widx, forDate){
-  const {lo, hi} = repRange(ex.r), last = lastPerf(ex.n, forDate);
+  const {lo, hi} = repRange(ex.r), dayKey = forDate ? dayTypeFor(forDate) : null;
+  const hist = perfHistory(ex.n, forDate, dayKey), last = hist[0];
   if (!last) return {w:null, text:`ครั้งแรก: เลือกน้ำหนักที่ทำได้ประมาณ ${lo}–${hi} ครั้งตามความหนักที่กำหนด แล้วกรอกไว้ ครั้งหน้าระบบจะแนะนำให้`};
+  const repsTxt = p => p.log.filter(s => s.w===p.w).map(s => s.reps).join(', ');
+  const was = `ครั้งก่อน ${fmt(last.w)} กก. × ${repsTxt(last)}`;
   if (widx===3) return {w:last.w, text:`Deload: ใช้ ${fmt(last.w)} กก. เท่าเดิม ทำครึ่งเซ็ต เหลือแรง 2–3 ครั้ง`};
-  if (last.reps!=null && hi!=null && last.reps >= hi) return {w:last.w+incOf(ex), text:`ครั้งก่อน ${fmt(last.w)} กก. × ${last.reps} ครั้ง ถึงช่วงบนแล้ว → เพิ่มเป็น ${fmt(last.w+incOf(ex))} กก.`};
-  return {w:last.w, text:`ครั้งก่อน ${fmt(last.w)} กก. × ${last.reps ?? '?'} ครั้ง → ใช้น้ำหนักเดิม พยายามให้ได้ ${hi} ครั้ง`};
+  if (lo==null || hi==null) return {w:last.w, text:`${was} → ใช้น้ำหนักเดิม`};
+  const st = stepOf(ex), inc = incFor(ex, last.w);
+  const big = last.w > 0 && st/last.w > 0.10;                 // ขั้นเครื่องห่างเกิน 10% → ต้องเกินช่วงอีก 2 ครั้งก่อน
+  const need = big ? hi + 2 : hi;
+  const topOK = p => p && p.reps >= need;                       // ทุกเซ็ตที่น้ำหนักสูงสุดถึงเป้า
+  const pct = w => Math.round(inc/w*100);
+  if (topOK(last)){
+    const confirmed = progMode()==='fast' || (hist[1] && hist[1].w===last.w && topOK(hist[1]));
+    if (confirmed) return {w:last.w+inc, up:true, text:`${was} ครบ${big?` ${need} ครั้ง (เกินช่วง +2 เพราะเครื่องขึ้นทีละ ${fmt(st)} กก.)`:'ช่วงบน'}${progMode()==='confirm'?' 2 ครั้งติด':''} → เพิ่มเป็น ${fmt(last.w+inc)} กก. (+${pct(last.w)}%) จำนวนครั้งจะลดลงมาอยู่ต้นช่วง เป็นเรื่องปกติ`};
+    return {w:last.w, text:`${was} ครบ${big?` ${need} ครั้ง`:'ช่วงบน'}แล้ว 1 ครั้ง → ใช้น้ำหนักเดิม ถ้าครั้งนี้ทำได้อีก ครั้งหน้าเพิ่มเป็น ${fmt(last.w+inc)} กก.`};
+  }
+  if (last.first!=null && last.first < lo && last.firstW===last.w){
+    const prev = hist[1], twice = prev && prev.w===last.w && prev.first!=null && prev.first < lo;
+    if (twice){
+      const miss = Math.round(((lo-last.first)+(lo-prev.first))/2);
+      const nw = Math.max(st, Math.min(last.w - st, roundStep(last.w*(1-0.04*miss), st)));
+      return {w:nw, down:true, text:`${was} ต่ำกว่า ${lo} ครั้ง 2 ครั้งติด → ลดเป็น ${fmt(nw)} กก. (~4% ต่อครั้งที่ขาด) แล้วไต่ขึ้นใหม่`};
+    }
+    return {w:last.w, text:`${was} เซ็ตแรกต่ำกว่า ${lo} ครั้ง → ใช้น้ำหนักเดิมอีกครั้ง ถ้ายังไม่ถึง ${lo} ครั้งหน้าจะลดให้`};
+  }
+  return {w:last.w, text:`${was} → ใช้น้ำหนักเดิม พยายามเพิ่มจำนวนครั้งให้ถึง ${need}${big?` (เครื่องขึ้นทีละ ${fmt(st)} กก. เลยต้องเกินช่วง +2 ก่อนเพิ่ม)`:''}`};
 }
 function effLabel(e, isLast, deload){
   if (deload) return 'เหลือแรง 2–3';
@@ -827,7 +869,8 @@ function accDetail(ex, widx, forDate){
     <h4>น้ำหนักครั้งนี้</h4><div class="muted">${esc(sug.text)}</div>
     <h4>รายละเอียด</h4><dl class="kv"><dt>เน้น</dt><dd>${esc(ex.t)}</dd><dt>พัก</dt><dd>${restOf(ex)}</dd>
     ${ex.ramp ? `<dt>ไต่วอลุ่ม</dt><dd>ส.1 ${ex.s} → ส.2 ${ex.s+rampExtra(1)} → ส.3 ${ex.s+rampExtra(2)} เซ็ต</dd>` : ''}
-    <dt>ขึ้นน้ำหนัก</dt><dd>ทำได้ ${repRange(ex.r).hi} ครั้งทุกเซ็ต → ครั้งหน้า +${incOf(ex)} กก.</dd></dl>
+    <dt>ขึ้นน้ำหนัก</dt><dd>${esc(PROG_MODES[progMode()].short)} · เพิ่มครั้งละ ${isLower(ex)?'5':'2.5'}% (ขั้นต่ำ 1 ขั้น)</dd>
+    <dt>ขั้นเครื่อง</dt><dd><input class="incin" data-inc="${esc(ex.n)}" type="number" step="0.5" min="0.5" inputmode="decimal" value="${stepOf(ex)}" style="width:72px;display:inline-block"> กก. <span class="tiny">น้ำหนักขั้นเล็กสุดที่เพิ่มได้ของเครื่อง/ดัมเบลนี้</span></dd></dl>
     <h4>วิธีเล่น</h4><div class="muted">${esc(HOW[ex.n]?.[1]||'')}</div>
     <h4>ทำไมท่านี้</h4><div class="muted">${esc(ex.why)}</div>`;
 }
@@ -856,7 +899,9 @@ function renderDayPlan(){
     h += `<details class="ex"><summary><span class="no">${no++}</span><span class="mid"><div class="exname">${esc(ex.n)}</div><span class="tag">${esc(ex.t)}</span> ${w===3?'<span class="eff">เหลือ 2–3</span>':effTag(ex.e)} ${ex.ramp&&w<3?'<span class="eff">ไต่</span>':''}</span><span class="rt"><b>${setsFor(ex,w)} × ${esc(ex.r)}</b><span class="tiny">${sug.w!=null?fmt(sug.w)+' กก.':'เลือกน้ำหนัก'}</span></span><span class="chev">›</span></summary><div class="body">${accDetail(ex, w, forDate)}</div></details>`;
   });
   h += `<p class="tiny" style="margin-top:10px"><b>คาร์ดิโอหลังเล่น:</b> ${esc(day.cardio)}</p></div>`;
+  const wasOpen = new Set([...document.querySelectorAll('#dayPlan details.ex[open] .exname')].map(e => e.textContent));
   $('#dayPlan').innerHTML = h;
+  if (wasOpen.size) document.querySelectorAll('#dayPlan details.ex').forEach(d => { if (wasOpen.has(d.querySelector('.exname')?.textContent)) d.open = true; });
   bindSwaps($('#dayPlan'));
 }
 
@@ -1101,6 +1146,9 @@ function renderSettings(){
   const t = settings.targets || {};
   [['T','train'],['R','rest']].forEach(([p,k]) => { ['k','p','c','f'].forEach(m => { $(`#t${p}${m}`).value = t[k]?.[m==='k'?'kcal':m] ?? ''; }); });
   bindTargetKcal();
+  const pmBox = $('#progModeBox');
+  if (pmBox){ const cur = progMode();
+    pmBox.innerHTML = Object.entries(PROG_MODES).map(([k,v]) => `<label class="pmopt"><input type="radio" name="progMode" value="${k}"${k===cur?' checked':''}><span><b>${esc(v.name)}</b><span class="tiny" style="display:block">${esc(v.desc)}</span></span></label>`).join(''); }
 }
 async function saveSettings(next, msg){
   if (!db) { $('#sMsg').innerHTML='<span class="err">ยังไม่ได้เข้าสู่ระบบ</span>'; return; }
@@ -1117,10 +1165,20 @@ function settingsFromForm(){
   const g = id => num($(id).value);
   const tg = pf => { const p = g(`#t${pf}p`), c = g(`#t${pf}c`), f = g(`#t${pf}f`); return {kcal: macroKcal(p,c,f), p, c, f}; };
   n.targets = {train: tg('T'), rest: tg('R')};
+  const pm = document.querySelector('input[name=progMode]:checked'); if (pm) n.progMode = pm.value;
   n.updatedAt = new Date().toISOString();
   return n;
 }
 $('#sSave').addEventListener('click', () => saveSettings(settingsFromForm(), 'บันทึกการตั้งค่าแล้ว ✓'));
+document.addEventListener('change', async e => {
+  const inp = e.target.closest?.('input.incin'); if (!inp) return;
+  const name = inp.dataset.inc, v = num(inp.value);
+  if (!(v > 0) || !settings) return;
+  settings.incs = {...(settings.incs||{}), [name]: v};
+  try { if (db && !guest) await db.doc('settings/main').set({incs:{[name]:v}}, {merge:true}); inp.style.outline = '2px solid var(--good,#3a9)'; setTimeout(() => inp.style.outline = '', 1200); }
+  catch(err){ inp.style.outline = '2px solid #c44'; }
+  renderWorkout(); renderDayPlan();
+});
 
 
 
@@ -1207,7 +1265,94 @@ function renderFood(){
   $('#mealList').innerHTML = meals.length ? meals.map((m,mi) => `<div class="meal"><div class="meal-h"><b>${esc(m.name)}</b><span class="tiny">${fmt(m.totals?.kcal,0)} kcal · P ${fmt(m.totals?.p,0)} · C ${fmt(m.totals?.c,0)} · F ${fmt(m.totals?.f,0)}</span><button class="linkbtn" data-delmeal="${mi}">ลบ</button></div>
       <div class="tiny" style="margin-top:4px">${m.items.map(i => i.grams ? `${esc(i.name)} ${fmt(i.grams,0)} ก.` : esc(i.name)).join(' · ')}</div></div>`).join('') : '<p class="muted" style="margin:0">ยังไม่มีอาหารวันนี้</p>';
   $('#mealList').querySelectorAll('[data-delmeal]').forEach(b => b.onclick = () => { const m = [...meals]; m.splice(+b.dataset.delmeal, 1); writeMeals(foodDay, m); });
+  renderFoodSuggest(meals, t, tg);
   renderFoodResult();
+}
+// ---------- แนะนำอาหารเติมสารอาหารที่ยังขาด ----------
+// ค่าอาหารดึงจากตาราง THAI_FOODS (ต่อ 100 ก.) · u/ug = หน่วยนับ · max = ปริมาณสูงสุดที่จะแนะนำต่อครั้ง
+const SUG_POOL = {
+  p: [ {n:'อกไก่ สุก ต้ม/ย่าง (ไม่มีหนัง)', s:'อกไก่ต้ม/ย่าง', max:250},
+       {n:'ไข่ขาว', s:'ไข่ขาว', u:'ฟอง', ug:33, max:8},
+       {n:'ทูน่ากระป๋องในน้ำแร่ (สะเด็ดน้ำ)', s:'ทูน่ากระป๋อง (น้ำแร่)', max:160},
+       {n:'กรีกโยเกิร์ต 0%', s:'กรีกโยเกิร์ต 0%', max:300},
+       {n:'กุ้ง ดิบ', s:'กุ้ง (น้ำหนักดิบ)', max:250},
+       {n:'เวย์โปรตีน (ผง)', s:'เวย์โปรตีน', u:'สกู๊ป', ug:30, max:2},
+       {n:'ปลานิล ดิบ', s:'ปลานิล (น้ำหนักดิบ)', max:250},
+       {n:'สันในหมู ดิบ', s:'สันในหมู (น้ำหนักดิบ)', max:250} ],
+  c: [ {n:'ข้าวสวย (ขาว)', s:'ข้าวสวย', tp:55, max:400},
+       {n:'มันเทศ อบ/ต้ม', s:'มันเทศต้ม/อบ', max:400},
+       {n:'กล้วยหอม', s:'กล้วยหอม', u:'ลูก', ug:120, max:3},
+       {n:'ข้าวโอ๊ต (ดิบ)', s:'ข้าวโอ๊ต (ก่อนต้ม)', max:100},
+       {n:'ขนมปังโฮลวีต', s:'ขนมปังโฮลวีต', u:'แผ่น', ug:30, max:4},
+       {n:'ข้าวกล้อง สุก', s:'ข้าวกล้อง', tp:55, max:400} ],
+  f: [ {n:'อัลมอนด์', s:'อัลมอนด์', max:30},
+       {n:'อะโวคาโด', s:'อะโวคาโด', max:150},
+       {n:'เนยถั่ว', s:'เนยถั่ว', u:'ช้อนโต๊ะ', ug:16, max:2},
+       {n:'ไข่ต้ม', s:'ไข่ต้ม', u:'ฟอง', ug:50, max:3} ]
+};
+const SUG_DB = (() => { const m = {}; (typeof THAI_FOODS!=='undefined' ? THAI_FOODS : []).forEach(([n,p,c,f]) => m[n] = {p,c,f}); return m; })();
+function sugRank(list){
+  // ของที่เคยกินบ่อยขึ้นก่อน (นับจากชื่อในบันทึกอาหารทุกวัน)
+  const cnt = {};
+  for (const l of logs.values()) for (const m of (l.meals||[])) for (const i of (m.items||[])) {
+    const nm = String(i.name||'');
+    for (const f of list){ const key = f.s.split(/[ (\/]/)[0]; if (key && nm.includes(key)) cnt[f.n] = (cnt[f.n]||0) + 1; }
+  }
+  return list.filter(f => SUG_DB[f.n]).map((f,i) => ({f, i, k:cnt[f.n]||0})).sort((a,b) => b.k-a.k || a.i-b.i).map(x => x.f);
+}
+function sugAmount(f, macro, need){
+  const v = SUG_DB[f.n], per = v[macro]/100; if (!per || need <= 0) return null;
+  let g = Math.min(need/per, f.u ? f.max*f.ug : f.max);
+  if (f.u){ const n = Math.max(1, Math.round(g/f.ug)); g = n*f.ug; return {f, g, label:`${f.s} ${n} ${f.u}`}; }
+  g = g >= 40 ? Math.round(g/10)*10 : Math.max(10, Math.round(g/5)*5);
+  if (g < 15) return null;
+  return {f, g, label:`${f.s} ${g} ก.${f.tp ? ` (≈${fmt(Math.round(g/f.tp*2)/2)} ทัพพี)` : ''}`};
+}
+const sugMac = x => { const v = SUG_DB[x.f.n], k = x.g/100; return {p:v.p*k, c:v.c*k, f:v.f*k}; };
+function buildSuggestions(gap){
+  const P = sugRank(SUG_POOL.p), C = sugRank(SUG_POOL.c), F = sugRank(SUG_POOL.f), out = [];
+  for (let k=0; k<3; k++){
+    const items = []; let g = {...gap};
+    const add = x => { if (!x) return; items.push(x); const m = sugMac(x); g.p -= m.p; g.c -= m.c; g.f -= m.f; };
+    if (g.p >= 8) add(sugAmount(P[k % P.length], 'p', g.p));
+    if (g.c >= 15) add(sugAmount(C[k % C.length], 'c', g.c));
+    if (g.f >= 5 && g.f > 0) add(sugAmount(F[k % F.length], 'f', g.f));
+    if (!items.length) break;
+    const tot = items.map(sugMac).reduce((a,b) => ({p:a.p+b.p, c:a.c+b.c, f:a.f+b.f}), {p:0,c:0,f:0});
+    const key = items.map(x => x.f.n).join('|');
+    if (!out.some(o => o.key===key)) out.push({key, items, tot, kcal: macroKcal(tot.p, tot.c, tot.f)});
+  }
+  return out;
+}
+let lastSug = [], sugMeals = null;
+function mealsLeftAuto(){ if (foodDay !== isoLocal(new Date())) return 1; const h = new Date().getHours(); return h < 10 ? 4 : h < 14 ? 3 : h < 18 ? 2 : 1; }
+function renderFoodSuggest(meals, t, tg){
+  const el = $('#foodSuggest'); if (!el) return;
+  if (!tg || !(tg.p || tg.c || tg.f)){ el.innerHTML = ''; return; }
+  const gap = {p: tg.p - t.p, c: tg.c - t.c, f: tg.f - t.f, kcal: tg.kcal - t.kcal};
+  const chip = (k, v, u) => v > 0.5 ? `<span>${k} ขาด <b>${fmt(v,0)}</b>${u}</span>` : v < -0.5 ? `<span class="over">${k} เกิน ${fmt(-v,0)}${u}</span>` : `<span>${k} ครบ ✓</span>`;
+  const chips = `<div class="gap">${chip('โปรตีน', gap.p, ' ก.')}${chip('คาร์บ', gap.c, ' ก.')}${chip('ไขมัน', gap.f, ' ก.')}${chip('พลังงาน', gap.kcal, ' kcal')}</div>`;
+  let nM = sugMeals || mealsLeftAuto();
+  lastSug = buildSuggestions({p:gap.p/nM, c:gap.c/nM, f:gap.f/nM, kcal:gap.kcal/nM});
+  if (!lastSug.length && nM > 1){ nM = 1; lastSug = buildSuggestions(gap); }
+  const mealPick = `<div class="tiny" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">แบ่งที่ขาดเป็น ${[1,2,3,4].map(n => `<button class="linkbtn"${n===nM?' style="font-weight:700;text-decoration:underline"':''} data-nm="${n}">${n}</button>`).join(' ')} มื้อ · ด้านล่างคือ <b>${nM===1?'ทั้งหมดที่ขาด':'มื้อถัดไป 1 มื้อ'}</b> — เลือก 1 ชุด</div>`;
+  let body;
+  if (gap.p < 8 && gap.c < 15 && gap.f < 5) body = `<p class="tiny" style="margin:0">${gap.kcal < -150 ? 'วันนี้เกินเป้าแล้ว — มื้อที่เหลือเน้นผัก/ต้ม/นึ่ง ไม่ต้องเติมอะไรเพิ่ม' : 'ใกล้ครบเป้าแล้ว 👍 ไม่ต้องเติมอะไรเพิ่ม'}</p>`;
+  else if (!lastSug.length) body = '';
+  else body = mealPick +
+    lastSug.map((o,i) => `<div class="opt"><div class="body"><div class="items">${o.items.map(x => esc(x.label)).join(' + ')}</div>
+      <div class="tot">≈ ${fmt(o.kcal,0)} kcal · P ${fmt(o.tot.p,0)} · C ${fmt(o.tot.c,0)} · F ${fmt(o.tot.f,0)}</div></div>
+      <button data-sug="${i}">ใช้ชุดนี้</button></div>`).join('');
+  el.innerHTML = `<div class="fsug"><h3>ยังขาดอะไร ควรกินอะไรเพิ่ม</h3>${chips}${body}</div>`;
+  el.querySelectorAll('[data-nm]').forEach(b => b.onclick = () => { sugMeals = +b.dataset.nm; renderFoodSuggest(meals, t, tg); });
+  el.querySelectorAll('[data-sug]').forEach(b => b.onclick = () => {
+    const o = lastSug[+b.dataset.sug]; if (!o) return;
+    const items = o.items.map(x => { const m = sugMac(x); return {name:x.label, grams:Math.round(x.g), kcal:macroKcal(m.p,m.c,m.f), protein:Math.round(m.p), carbs:Math.round(m.c), fat:Math.round(m.f), note:'จากคำแนะนำ'}; });
+    pendingFood = {meal: $('#mealName').value, items, text: o.items.map(x => x.label).join('\n')};
+    $('#foodMsg').textContent = 'ตรวจรายการแล้วกด "เพิ่ม" — ถ้ากินจริงไม่เท่านี้ ให้พิมพ์ปริมาณจริงในช่องด้านบนแทน';
+    renderFoodResult();
+    try { $('#foodResult').scrollIntoView({block:'center', behavior:'smooth'}); } catch(e){}
+  });
 }
 function renderFoodResult(){
   const el = $('#foodResult'); if (!el) return;
@@ -1366,7 +1511,7 @@ $('#calcFood').addEventListener('click', calcFood);
     writeMeals(foodDay, meals);
   });
 })();
-$('#foodDate').addEventListener('change', e => { foodDay = e.target.value || isoLocal(new Date()); pendingFood = null; renderFood(); });
+$('#foodDate').addEventListener('change', e => { foodDay = e.target.value || isoLocal(new Date()); pendingFood = null; sugMeals = null; renderFood(); });
 
 
 // ---------- guest (public viewer) mode ----------
