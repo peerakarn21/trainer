@@ -464,6 +464,13 @@ function renderWorkout(){
     h += `<p class="muted" style="margin:0">วันพัก · ${esc(day.cardio)}</p>`;
     $('#workoutCard').innerHTML = h; return;
   }
+  if (logs.get(curDate)?.skipped){
+    const r = logs.get(curDate).skipReason;
+    $('#workoutCard').innerHTML = `<div class="skipbox"><b>🚫 วันนี้ไม่ได้ไปเล่น</b>${r?`<span class="tiny">เหตุผล: ${esc(r)}</span>`:''}<span class="tiny">ไม่นับเป็นวันฝึก · เป้าอาหารวันนี้ใช้แบบวันพัก · น้ำหนักที่แนะนำครั้งหน้ายังคิดจากครั้งล่าสุดที่เล่นจริง</span><button id="unskipBtn">↩ ยกเลิก — วันนี้ไปเล่น</button></div>`;
+    $('#unskipBtn').onclick = () => setSkipped(curDate, false);
+    return;
+  }
+  if (!trained(curDate) && !(keep && keep.acc?.some(a => a.log?.some(x => x.done)))) h += `<div class="skiprow"><button class="linkbtn" id="skipBtn">🚫 วันนี้ไม่ได้ไป</button></div>`;
   h += `<div class="sessclock" id="sessClock"></div>`;
   if (deload) h += `<p class="tiny" style="margin:0 0 6px">Deload: เบาลง เหลือแรง 2–3 ครั้ง</p>`;
   if (day.warm) h += `<p class="tiny" style="margin:0 0 6px"><b>วอร์มอัพ:</b> ${esc(day.warm)}</p>`;
@@ -495,6 +502,7 @@ function renderWorkout(){
   });
   h += `<p class="tiny" style="margin:6px 0 0">+ คาร์ดิโอ ${esc(day.cardio.replace(/^Zone 2 /,'Zone 2 '))}</p>`;
   $('#workoutCard').innerHTML = h;
+  $('#skipBtn')?.addEventListener('click', () => { const r = prompt('ไม่ได้ไปเพราะอะไร? (เว้นว่างได้)', ''); if (r === null) return; setSkipped(curDate, true, r.trim()); });
   const card = $('#workoutCard');
   card.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { formDirty = true; autoSave(); }));
   // เติมเซ็ตถัดไปให้อิงจากเซ็ตล่าสุดที่กรอก (น้ำหนักและจำนวนครั้ง)
@@ -707,6 +715,20 @@ function fillForm(){
 // ---------- week / day picker ----------
 const SHORT = {CH:'อก', LAT:'หลังปีก', LEG:'ขา', SH:'ไหล่', THK:'หลังหนา', rest:'พัก'};
 const WD = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+async function setSkipped(date, on, reason=''){
+  if (guest) return;
+  const prev = logs.get(date) || {date, dayType: dayTypeFor(date)};
+  const doc = {...prev, date, dayType: prev.dayType || dayTypeFor(date), skipped: !!on, skipReason: on ? reason : null, updatedAt: new Date().toISOString()};
+  if (!on){ delete doc.skipped; delete doc.skipReason; }
+  logs.set(date, doc); formDirty = false;
+  renderWorkout(); renderWeekNav(); renderFood(); renderSummary();
+  try {
+    if (on) await db.doc('logs/'+date).set({date, dayType: doc.dayType, skipped: true, skipReason: reason || null, updatedAt: doc.updatedAt}, {merge:true});
+    else await db.doc('logs/'+date).set({skipped: firebase.firestore.FieldValue.delete(), skipReason: firebase.firestore.FieldValue.delete(), updatedAt: doc.updatedAt}, {merge:true});
+    writeSummary();
+    $('#saveMsg').innerHTML = `<span class="saved">${on ? 'บันทึกว่าไม่ได้ไปแล้ว ✓' : 'ยกเลิกแล้ว ✓'}</span>`;
+  } catch(e){ $('#saveMsg').innerHTML = `<span class="err">บันทึกไม่สำเร็จ (${esc(e?.code||'error')})</span>`; }
+}
 function trained(date){ const w = logs.get(date)?.workout; return !!(w && ((w.mainSets||[]).some(s=>s.done||s.reps!=null) || (w.acc||[]).some(a=>(a.log||[]).some(x=>x.done||x.reps!=null)))); }
 function renderWeekNav(){
   const el = $('#weekNav'); if (!el) return;
@@ -719,7 +741,8 @@ function renderWeekNav(){
   let h = `<div class="wk-head"><button class="navbtn" data-wk="-7" aria-label="สัปดาห์ก่อน"${canPrev?'':' disabled'}>‹</button><div class="wk-lab"><b>${esc(lab)}</b><span>${fmtD(monS)} – ${fmtD(sunS)}</span></div><button class="navbtn" data-wk="7" aria-label="สัปดาห์ถัดไป"${canNext?'':' disabled title="ถึงสัปดาห์สุดท้ายของรอบแล้ว"'}>›</button></div><div class="daystrip">`;
   for (let i=0;i<7;i++){
     const d = fromNum(mon+i), k = (logs.get(d)?.dayType && DAYS[logs.get(d).dayType]) ? logs.get(d).dayType : WEEKDAY_DAY[weekdayOf(d)];
-    h += `<button class="dbtn${d===curDate?' on':''}${d===today?' today':''}${k==='rest'?' rest':''}" data-d="${d}">${trained(d)?'<span class="dot"></span>':''}<span class="dw">${WD[weekdayOf(d)]}</span><span class="dn">${+d.slice(8)}</span><span class="df">${SHORT[k]}</span></button>`;
+    const sk = !!logs.get(d)?.skipped && k!=='rest';
+    h += `<button class="dbtn${d===curDate?' on':''}${d===today?' today':''}${k==='rest'?' rest':''}${sk?' skip':''}" data-d="${d}">${trained(d)?'<span class="dot"></span>':''}<span class="dw">${WD[weekdayOf(d)]}</span><span class="dn">${+d.slice(8)}</span><span class="df">${sk?'ไม่ได้ไป':SHORT[k]}</span></button>`;
   }
   const todayOk = dayNum(today) <= cycleEndN();
   h += `</div>${curDate!==today && todayOk?`<div style="text-align:center;margin-top:8px"><button class="linkbtn" data-today>กลับไปวันนี้</button></div>`:''}`;
@@ -1259,7 +1282,7 @@ function renderFood(){
   if (!$('#foodTotals')) return;
   $('#foodDate').value = foodDay;
   const meals = logs.get(foodDay)?.meals || [], t = sumMeals(meals);
-  const tg = settings?.targets?.[dayTypeFor(foodDay)==='rest'?'rest':'train'] || {kcal:0,p:0,c:0,f:0};
+  const tg = settings?.targets?.[(dayTypeFor(foodDay)==='rest' || logs.get(foodDay)?.skipped)?'rest':'train'] || {kcal:0,p:0,c:0,f:0};
   const tile = (k, v, goal, u) => `<div class="m"><div class="k">${k}</div><div class="v">${fmt(v,0)}<small> / ${fmt(goal,0)}${u}</small></div><div class="bar"><i style="width:${goal?Math.min(100,v/goal*100):0}%"></i></div></div>`;
   $('#foodTotals').innerHTML = tile('kcal', t.kcal, tg.kcal, '') + tile('โปรตีน', t.p, tg.p, ' ก.') + tile('คาร์บ', t.c, tg.c, ' ก.') + tile('ไขมัน', t.f, tg.f, ' ก.');
   $('#mealList').innerHTML = meals.length ? meals.map((m,mi) => `<div class="meal"><div class="meal-h"><b>${esc(m.name)}</b><span class="tiny">${fmt(m.totals?.kcal,0)} kcal · P ${fmt(m.totals?.p,0)} · C ${fmt(m.totals?.c,0)} · F ${fmt(m.totals?.f,0)}</span><button class="linkbtn" data-delmeal="${mi}">ลบ</button></div>
