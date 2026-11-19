@@ -43,7 +43,25 @@ function watchProgram(uid){
 const splash = $('#splash'); let spPct = 8, inStep = false;
 function splashPct(p){ spPct = Math.max(spPct, p); const b = $('#spBar'); if (b) b.style.width = spPct + '%'; }
 function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); setTimeout(() => splash.remove(), 450); }, Math.max(0, (minMs||0) - performance.now())); }
-setTimeout(() => splashPct(20), 60); setTimeout(() => splashOut(), 25000);
+setTimeout(() => splashPct(20), 60);
+// โหลดเสร็จ → เปิดแอปครั้งแรกให้กดปุ่ม "เริ่ม" (รีโหลดในรอบเดียวกันไม่ต้องกดซ้ำ)
+function splashReady(){
+  if (!splash || splash.dataset.out) return;
+  splashPct(100);
+  let seen = false; try { seen = sessionStorage.getItem('trainerStarted') === '1'; } catch(e){}
+  if (seen){ splashOut(900); return; }
+  const l = splash.querySelector('.sp-load'); if (!l) { splashOut(); return; }
+  setTimeout(() => {
+    l.outerHTML = '<button class="primary sp-go" id="spGo">เริ่มเลย 💪</button>';
+    $('#spGo').onclick = () => { try { sessionStorage.setItem('trainerStarted','1'); } catch(e){} splashOut(); };
+  }, 600);
+}
+// เช็คเวอร์ชันใหม่ทุกครั้งที่เปิด (แอปบนหน้าจอโฮมชอบค้างเวอร์ชันเก่า) → เจอใหม่กว่าโหลดใหม่เอง 1 ครั้ง
+(async () => { try {
+  const h = await fetch('index.html?_=' + Date.now(), {cache:'no-store'}).then(r => r.text());
+  const v = (h.match(/APP_VER="(\d+)"/)||[])[1];
+  if (v && window.APP_VER && +v > +window.APP_VER && sessionStorage.getItem('trainerUpd') !== v){ sessionStorage.setItem('trainerUpd', v); location.replace(location.pathname + '?v=' + v + location.hash); }
+} catch(e){} })();
 function showGate(html){ if (!inStep) splashOut(); gate.hidden = false; gate.innerHTML = `<div class="gatecard"><div class="brand" style="font-size:22px;margin-bottom:12px">Trainer</div>${html}</div>`; }
 
 async function loginView(){
@@ -129,7 +147,7 @@ async function startInner(user){
   window.claude = {use: async k => k==='db' ? db : k==='user' ? {canEdit: async () => true} : null};
   const s = document.createElement('script'); s.src = 'app.js?v=' + (window.APP_VER||1);
   splashPct(88);
-  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); splashPct(100); splashOut(1400); };
+  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); splashReady(); };
   s.onerror = () => splashOut();
   document.body.appendChild(s);
 }

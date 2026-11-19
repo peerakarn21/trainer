@@ -600,8 +600,10 @@ function paintClock(){
   }
   const sec = Math.max(0, Math.floor((Date.now() - Date.parse(sess.start))/1000));
   const t = `${Math.floor(sec/3600)}:${pad(Math.floor(sec/60)%60)}:${pad(sec%60)}`;
+  const tEl = el.querySelector('#scT');
+  if (el.className === 'sessclock run' && tEl){ if (tEl.textContent !== t) tEl.textContent = t; return; }   // อัปเดตแค่ตัวเลข ไม่วาดปุ่มใหม่ทุกวินาที
   el.className = 'sessclock run';
-  el.innerHTML = `<button class="fin" type="button">จบการฝึก</button>⏱ เล่นไปแล้ว <b>${t}</b> · เริ่ม ${hm(sess.start)}`;
+  el.innerHTML = `<span class="sc-t">⏱ เล่นไปแล้ว <b id="scT">${t}</b> · เริ่ม ${hm(sess.start)}</span><button class="fin" type="button">จบการฝึก</button>`;
   el.querySelector('.fin').onclick = () => save(false);
 }
 setInterval(paintClock, 1000);

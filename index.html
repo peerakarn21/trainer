@@ -272,7 +272,10 @@ header{padding-top:calc(env(safe-area-inset-top) + 10px)}
   .srow input{min-height:44px}
   .wrap{padding:0 12px}
 }
-.sessclock .fin{float:right;margin:-3px -4px 0 8px;padding:6px 12px;font-size:13.5px;border-radius:10px;background:#2a1f3d!important;border:1px solid #5c4390!important;color:#e3d6ff!important}
+.sessclock.run{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sessclock .sc-t{min-width:0}
+main{overflow-x:clip}
+.sessclock .fin{float:none;margin:0;flex:0 0 auto;padding:6px 12px;font-size:13.5px;border-radius:10px;background:#2a1f3d!important;border:1px solid #5c4390!important;color:#e3d6ff!important}
 /* ===== ธีม Symbiote ม่วงเข้ม (สบายตา) ===== */
 :root,:root[data-x]{color-scheme:dark;
   --bg:#100c15; --surface-1:#18131e; --surface-2:#211a29; --line:#2d2437;
@@ -394,6 +397,8 @@ input,select,textarea{box-shadow:inset 0 2px 4px #0008}
 @keyframes spToss{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-62px) rotate(180deg)}}
 @keyframes spBlob{0%,100%{transform:scale(1.07,.9)}18%{transform:scale(.95,1.06)}50%{transform:scale(1,1)}85%{transform:scale(.97,1.04)}}
 @keyframes spSh{0%,100%{transform:scaleX(1.1);opacity:.5}50%{transform:scaleX(.85);opacity:.3}}
+#splash .sp-go{margin-top:8px;padding:13px 40px;font-size:17px;font-weight:700;border-radius:14px!important;animation:spPop .35s ease-out}
+@keyframes spPop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes spDot{0%,60%,100%{opacity:.2}30%{opacity:1}}
 .timerbar .tb-btns button[data-t=push]{flex:1.7!important;white-space:nowrap;font-size:13px}
 .dbtn.today{border-color:var(--accent)}
@@ -889,6 +894,6 @@ html[data-theme=sky] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1
 </main>
 <div id="splash" aria-label="กำลังโหลด"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="spG" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".28" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient></defs><ellipse class="sp-sh" cx="100" cy="184" rx="52" ry="7" fill="#000" opacity=".4"/><g class="sp-db"><rect x="62" y="92" width="76" height="8" rx="4" fill="currentColor"/><rect x="50" y="78" width="13" height="36" rx="5" fill="currentColor"/><rect x="38" y="84" width="10" height="24" rx="4" fill="currentColor"/><rect x="137" y="78" width="13" height="36" rx="5" fill="currentColor"/><rect x="152" y="84" width="10" height="24" rx="4" fill="currentColor"/></g><g class="sp-blob"><g transform="translate(52,84) scale(.12)"><path fill="var(--accent,#8f63f5)" d="M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z"/><path fill="url(#spG)" d="M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z"/></g></g></svg><div class="sp-name">Trainer</div><div class="sp-bar"><b id="spBar"></b></div><div class="sp-load">LOADING<i>.</i><i>.</i><i>.</i></div></div>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795111887";</script><script src="config.js"></script><script src="boot.js?v=1795111887"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795113352";</script><script src="config.js"></script><script src="boot.js?v=1795113352"></script>
 </body>
 </html>
