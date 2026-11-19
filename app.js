@@ -397,6 +397,39 @@ function weekInfo(date){
   const w = Math.floor(diff/7);
   return {idx: Math.max(0, Math.min(3, w)), over: w > 3, before: diff < 0};
 }
+// ---------- ท่าหลักที่ไม่ได้ไป → เลื่อนทั้งรอบ (Wendler: เล่นต่อจากที่ค้าง) ----------
+// ทุกครั้งที่ข้ามวันท่าหลักในสัปดาห์ที่ไม่ใช่ Deload ท่านั้นจะช้ากว่าปฏิทิน 1 สัปดาห์ · ข้าม Deload ไม่ชดเชย
+function liftSkipped(date, lift){ const l = logs.get(date); return !!(l?.skipped && DAYS[l.dayType]?.main===lift && !trained(date)); }
+function liftState(lift, date){
+  const tmNow = tmOf(lift), cyc = settings?.cycle || 1;
+  if (!settings?.cycleStart) return {idx:0, tm:tmNow, cycle:cyc, lag:0};
+  const s0 = dayNum(settings.cycleStart), dn = dayNum(date);
+  if (dn < s0) return {idx:0, tm:tmNow, cycle:cyc, lag:0};
+  let lag = settings.lag?.[lift] || 0;
+  for (const l of sortedLogs()){
+    const d = dayNum(l.date); if (d < s0 || d >= dn) continue;
+    if (!liftSkipped(l.date, lift)) continue;
+    const e = Math.floor((d - s0)/7) - lag, wave = e < 0 ? e + 4 : e;
+    if (wave >= 0 && wave < 3) lag++;
+  }
+  const e = Math.floor((dn - s0)/7) - lag;
+  if (e < 0){ const prev = settings.prevTm?.[lift] ?? tmNow; return {idx:Math.max(0, e+4), tm:prev, cycle:cyc-1, lag, prevCycle:true}; }
+  const pend = settings.tmPending?.[lift];
+  return {idx:Math.min(3, e), tm: pend ? pendingTm(lift) : tmNow, cycle:cyc, lag, beyond: e > 3};
+}
+// ท่าที่ช้ากว่ารอบ: TM รอบใหม่ตัดสินหลังเล่นสัปดาห์ที่เหลือของรอบเดิมครบ
+function pendingTm(lift){ const p = liftProposal(lift, (settings.cycle||1) - 1, settings.prevTm?.[lift] ?? tmOf(lift)); return p.sug ?? tmOf(lift); }
+let tmFinalizing = false;
+async function finalizePendingTm(lift){
+  if (tmFinalizing || guest || !db || !settings?.tmPending?.[lift]) return;
+  tmFinalizing = true;
+  try {
+    const v = pendingTm(lift), n = JSON.parse(JSON.stringify(settings));
+    n.tm = {...(n.tm||{}), [lift]: v}; delete n.tmPending[lift];
+    (n.history ||= []).push({cycle:n.cycle, start:n.cycleStart, tm:{[lift]:v}, by:'auto-shift'});
+    await db.doc('settings/main').set(n); settings = n;
+  } catch(e){ console.error('finalize tm', e); } finally { tmFinalizing = false; }
+}
 function rampExtra(widx){ return 0; }
 function setsFor(ex, widx){
   if (widx===3) return Math.max(1, Math.ceil(ex.s/2));
@@ -480,8 +513,10 @@ function renderWorkout(){
       <input class="sr" data-k="${k}" data-i="${i}" data-j="${j}" data-f="reps" type="number" inputmode="numeric" value="${r ?? ''}" placeholder="${esc(rph ?? 'ครั้ง')}">
       <button class="restbtn${done?' on':''}" data-k="${k}" data-i="${i}" data-j="${j}">${done?'✓ เสร็จ':'✓ พัก'}</button></div>`;
   if (day.main){
-    const tm = tmOf(day.main), saved = log.mainSets || [];
-    const rows = mainSetRows(day.main, wi.idx).filter(r => r.cls!=='warm');
+    const ls = liftState(day.main, curDate), tm = ls.tm, saved = log.mainSets || [];
+    if (settings.tmPending?.[day.main] && !ls.prevCycle) finalizePendingTm(day.main);
+    if (ls.lag) h += `<p class="tiny shiftnote">⏩ ${esc(shiftText(day.main, ls))}</p>`;
+    const rows = mainSetRows(day.main, ls.idx, tm).filter(r => r.cls!=='warm');
     h += `<div class="exlog main"><div class="exh"><span class="exname">1. ${LIFTS[day.main].th}</span><span class="tiny">วอร์ม ${fmt(rnd(tm*.4))}·${fmt(rnd(tm*.5))}·${fmt(rnd(tm*.6))}</span></div>`;
     rows.forEach((r, j) => {
       const sv = saved[j] || {};
@@ -531,7 +566,7 @@ function renderOverPanel(){
   el.hidden = false;
   el.innerHTML = `<h2 style="margin-bottom:4px">${over ? `ครบ 4 สัปดาห์ของรอบที่ ${cyc} แล้ว 🎉` : `สัปดาห์สุดท้ายของรอบที่ ${cyc} (Deload)`}</h2>
     ${over ? '' : '<div class="tiny" style="margin-bottom:6px">เลื่อนต่อไม่ได้แล้ว — กดเริ่มรอบใหม่ได้เลย</div>'}
-    <div class="tiny" style="margin-bottom:10px">TM รอบใหม่: ${prop.map(p => `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>${fmt(p.sug)}</b>`).join(' · ')}${prop.filter(p=>p.fail).map(p=>`<br>⚠ ${LIFTS[p.l].th}: ${p.note}`).join('')}</div>
+    <div class="tiny" style="margin-bottom:10px">TM รอบใหม่: ${prop.map(p => { const s = liftState(p.l, mondayOf(today)); const late = !s.prevCycle && !s.beyond && s.lag > 0; return late ? `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>รอเล่นอีก ${4 - s.idx} สัปดาห์ของรอบเดิมก่อน</b>` : `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>${fmt(p.sug)}</b>`; }).join(' · ')}${prop.filter(p=>p.fail).map(p=>`<br>⚠ ${LIFTS[p.l].th}: ${p.note}`).join('')}</div>
     <button class="primary bigbtn" id="overGo">เริ่มรอบที่ ${cyc+1} วันนี้ (${thDate(today)})</button>
     <div class="tiny" id="overMsg" style="margin-top:6px;text-align:center">เริ่มตามวันจริง — วันนี้${WEEKDAY_DAY[weekdayOf(today)]==='rest'?'เป็นวันพัก':`จะเปิดตารางวัน${DAYS[WEEKDAY_DAY[weekdayOf(today)]].name.split(' — ')[0]}`}</div>`;
   $('#overGo').onclick = async () => {
@@ -765,12 +800,12 @@ function collectWorkout(){
   const w = {day:key, cycle:settings?.cycle||1, week:wi.idx+1};
   if (sess.start){ w.startedAt = sess.start; w.lastSetAt = sess.last; w.endedAt = sess.end; w.durationMin = sessMin(); }
   if (day.main){
-    const tm = tmOf(day.main), ms = read('m',0);
-    const labels = mainSetRows(day.main, wi.idx).filter(r=>r.cls!=='warm');
+    const ls = liftState(day.main, curDate), tm = ls.tm, mw = WAVES[ls.idx], ms = read('m',0);
+    const labels = mainSetRows(day.main, ls.idx, tm).filter(r=>r.cls!=='warm');
     w.mainSets = ms.map((s,j) => ({...s, label:labels[j]?.no, target:labels[j]?.reps, planW:labels[j]?.w}));
-    Object.assign(w, {lift:day.main, tm, topW: ms[2]?.w ?? rnd(tm*wave.sets[2][0]), target: wave.sets[2][1]});
+    Object.assign(w, {lift:day.main, tm, topW: ms[2]?.w ?? rnd(tm*mw.sets[2][0]), target: mw.sets[2][1], cycle: ls.cycle, week: ls.idx+1, calWeek: wi.idx+1, lag: ls.lag||0});
     w.mainDone = ms.slice(0,3).every(s => s.done);
-    if (wi.idx<3){ w.amrapReps = ms[2]?.reps ?? null; w.fslDone = ms.slice(3).length>0 && ms.slice(3).every(s => s.done); }
+    if (ls.idx<3){ w.amrapReps = ms[2]?.reps ?? null; w.fslDone = ms.slice(3).length>0 && ms.slice(3).every(s => s.done); }
   }
   w.acc = (renderedAcc || accOf(key)).map((ex,i) => {
     const lg = read('a', i), filled = lg.filter(s => s.w!=null || s.reps!=null), last = filled[filled.length-1] || {};
@@ -866,19 +901,21 @@ function effLabel(e, isLast, deload){
   if (e==='0') return 'หมดแรง (เหลือ 0)';
   return 'เหลือแรง 1 ครั้ง';
 }
-function mainSetRows(lift, widx){
-  const tm = tmOf(lift), wave = WAVES[widx], rows = [];
+function mainSetRows(lift, widx, tmOverride){
+  const tm = tmOverride ?? tmOf(lift), wave = WAVES[widx], rows = [];
   [[.4,5],[.5,5],[.6,3]].forEach(([p,r],i) => rows.push({cls:'warm', no:`วอร์ม ${i+1}`, reps:r, w:rnd(tm*p), eff:'เบา'}));
   wave.sets.forEach(([p,r],i) => rows.push({cls: i===2&&widx<3 ? 'topset':'', no:`เซ็ต ${i+1}`, reps:r, w:rnd(tm*p), eff: i===2&&widx<3 ? 'มากที่สุด แต่หยุดก่อนหมดแรง 1–2' : (widx===3?'เบา':'คุมฟอร์ม')}));
   if (wave.fsl) for (let i=0;i<MAIN_FSL;i++) rows.push({cls:'', no:`FSL ${i+1}`, reps:5, w:rnd(tm*wave.fsl), eff:'คุมฟอร์ม'});
   return rows;
 }
+function shiftText(lift, ls){ return `${LIFTS[lift].th}ช้ากว่าปฏิทิน ${ls.lag} สัปดาห์ (เพราะไม่ได้ไป) → สัปดาห์นี้เล่น ${WAVES[ls.idx].name}${ls.prevCycle ? ` ของรอบที่ ${ls.cycle} (TM เดิม ${fmt(ls.tm)} กก.)` : ''}`; }
 function setTable(rows){
   return `<table class="settbl"><tr><th>เซ็ต</th><th class="num">น้ำหนัก</th><th class="num">ครั้ง</th><th>ความหนัก</th></tr>${rows.map(r=>`<tr class="${r.cls||''}"><td>${esc(r.no)}</td><td class="num">${r.w!=null?fmt(r.w)+' กก.':'<span class="tiny">เลือกเอง</span>'}</td><td class="num">${esc(r.reps)}</td><td class="tiny">${esc(r.eff)}</td></tr>`).join('')}</table>`;
 }
 function mainDetail(lift, widx, forDate){
-  const tm = tmOf(lift), last = lastMain(lift, forDate);
-  return `${demoBlock(lift)}${setTable(mainSetRows(lift, widx))}
+  const ls = forDate ? liftState(lift, forDate) : {idx:widx, tm:tmOf(lift)};
+  widx = ls.idx; const tm = ls.tm, last = lastMain(lift, forDate);
+  return `${demoBlock(lift)}${ls.lag ? `<p class="tiny shiftnote">⏩ ${shiftText(lift, ls)}</p>` : ''}${setTable(mainSetRows(lift, widx, tm))}
     <h4>รายละเอียด</h4><dl class="kv"><dt>TM</dt><dd>${fmt(tm)} กก. (90% ของ 1RM)</dd><dt>พัก</dt><dd>3–5 นาที (เซ็ตหลัก) · 2–3 นาที (FSL)</dd>
     <dt>ครั้งก่อน</dt><dd>${last ? `${thDate(last.date)}: ${fmt(last.topW)} กก. × ${last.reps} ครั้ง (1RM ประมาณ ${fmt(last.topW*(1+last.reps/30))} กก.)` : 'ยังไม่มีบันทึก'}</dd></dl>
     <h4>วิธีเล่น</h4><div class="muted">${esc(HOW[lift]?.[1]||'')}</div>
@@ -914,8 +951,8 @@ function renderDayPlan(){
   if (day.warm) h += `<p class="tiny" style="margin:0 0 8px"><b>วอร์มอัพ:</b> ${esc(day.warm)}</p>`;
   let no = 1;
   if (day.main){
-    const top = WAVES[w].sets[2];
-    h += `<details class="ex"><summary><span class="no">${no++}</span><span class="mid"><div class="exname">${LIFTS[day.main].th}</div><span class="tag">ท่าใหญ่ 5/3/1</span></span><span class="rt"><b>${fmt(rnd(tmOf(day.main)*top[0]))} กก. × ${top[1]}</b><span class="tiny">3 เซ็ต${WAVES[w].fsl?` + FSL ${MAIN_FSL}×5`:''}</span></span><span class="chev">›</span></summary><div class="body">${mainDetail(day.main, w, forDate)}</div></details>`;
+    const ls = liftState(day.main, forDate), top = WAVES[ls.idx].sets[2];
+    h += `<details class="ex"><summary><span class="no">${no++}</span><span class="mid"><div class="exname">${LIFTS[day.main].th}</div><span class="tag">ท่าใหญ่ 5/3/1${ls.lag?` · ⏩ ${esc(WAVES[ls.idx].name)}`:''}</span></span><span class="rt"><b>${fmt(rnd(ls.tm*top[0]))} กก. × ${top[1]}</b><span class="tiny">3 เซ็ต${WAVES[ls.idx].fsl?` + FSL ${MAIN_FSL}×5`:''}</span></span><span class="chev">›</span></summary><div class="body">${mainDetail(day.main, w, forDate)}</div></details>`;
   }
   plist.forEach(ex => {
     const sug = suggestion(ex, w, forDate);
@@ -1208,6 +1245,12 @@ document.addEventListener('change', async e => {
 
 // ---------- new cycle page ----------
 let cycArm = false;
+function liftProposal(l, cyc, tm){
+    const byWk = {}; sortedLogs().forEach(x => { const w = x.workout; if (w?.lift===l && (w.cycle||1)===cyc && w.week>=1 && w.week<=3 && w.amrapReps!=null) byWk[w.week] = w.amrapReps; });
+    const fail = [1,2,3].find(k => byWk[k]!=null && byWk[k] < AMRAP_MIN[k]);
+    const sug = tm==null ? null : fail ? floor25(tm*.9) : tm + LIFTS[l].inc;
+    return {sug, fail, byWk};
+}
 function cycleProposal(){
   const cyc = settings?.cycle || 1;
   return LIFT_ORDER.map(l => {
@@ -1223,8 +1266,16 @@ function cycleProposal(){
   });
 }
 async function startNewCycle(newTm, startDate){
-  const n = JSON.parse(JSON.stringify(settings)); n.tm = {...(n.tm||{}), ...newTm};
-  n.cycle = (settings.cycle||1) + 1; n.cycleStart = mondayOf(startDate); n.rampExtra = [0,1,2,0]; n.updatedAt = new Date().toISOString();
+  const n = JSON.parse(JSON.stringify(settings));
+  const st = mondayOf(startDate), oldTm = Object.fromEntries(LIFT_ORDER.map(l => [l, tmOf(l)]));
+  n.prevTm = oldTm; n.lag = {}; n.tmPending = {};
+  for (const l of LIFT_ORDER){
+    const s = liftState(l, st);                       // ตำแหน่งของท่านี้ในรอบเดิม ณ วันเริ่มรอบใหม่
+    const left = s.prevCycle ? 0 : (s.beyond ? 0 : 4 - s.idx);
+    if (!s.prevCycle && !s.beyond && s.lag > 0 && left > 0){ n.lag[l] = left; n.tmPending[l] = true; newTm = {...newTm, [l]: oldTm[l]}; }
+  }
+  n.tm = {...(n.tm||{}), ...newTm};
+  n.cycle = (settings.cycle||1) + 1; n.cycleStart = st; n.rampExtra = [0,1,2,0]; n.updatedAt = new Date().toISOString();
   (n.history ||= []).push({cycle:n.cycle, start:n.cycleStart, tm:{...n.tm}, by:'user'});
   if (guest){ const g = lsGet(); g.tm = n.tm; g.cycle = n.cycle; g.cycleStart = n.cycleStart; lsSet(g); settings = guestSettings(g); renderAll(); return n; }
   if (!db) throw {code:'no_db'};
