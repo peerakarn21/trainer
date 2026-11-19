@@ -663,7 +663,7 @@ async function pushPost(path, extra){
   const s = await pushSub(); if (!s) return false;
   try { const r = await fetch(PUSH_URL + path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sub:{endpoint:s.endpoint}, ...extra}), keepalive:true}); return r.ok; } catch(e){ return false; }
 }
-const pushSchedule = () => timer.end > Date.now() ? pushPost('/schedule', {at: timer.end}) : Promise.resolve(false);
+const pushSchedule = () => timer.end > Date.now() ? pushPost('/schedule', {delay: timer.end - Date.now()}) : Promise.resolve(false);
 const pushCancel = () => pushPost('/cancel', {});
 async function restInfoForSW(){ try { const c = await caches.open('trainer-rest'); await c.put('rest.json', new Response(JSON.stringify({next:timer.next, end:timer.end}), {headers:{'Content-Type':'application/json'}})); } catch(e){} }
 function pushState(){ if (!pushSupported()) return /iPhone|iPad/.test(navigator.userAgent) && !isStandalone() ? 'ios-browser' : 'unsupported'; return Notification.permission === 'granted' ? 'on' : Notification.permission === 'denied' ? 'denied' : 'off'; }
@@ -724,6 +724,9 @@ function restoreTimer(){
   runTimer();
 }
 setTimeout(restoreTimer, 0);
+// ล็อกซูม (iOS ไม่สนใจ user-scalable=no → กันด้วย event)
+for (const ev of ['gesturestart','gesturechange','gestureend']) document.addEventListener(ev, e => e.preventDefault(), {passive:false});
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, {passive:false});
 document.addEventListener('focusin', e => { if (e.target.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select')) document.body.classList.add('kb-open'); });
 document.addEventListener('focusout', () => setTimeout(() => {
   const a = document.activeElement;
@@ -741,7 +744,7 @@ function renderPushCard(){
 $('#pushBtn')?.addEventListener('click', async () => { $('#pushBtn').disabled = true; const r = await pushEnable(); $('#pushBtn').disabled = false; renderPushCard(); if (!r.ok && r.why==='denied') $('#pushMsg').textContent = 'ไม่ได้อนุญาต — เปิดได้ที่ ตั้งค่าเครื่อง → การแจ้งเตือน → Trainer'; });
 $('#pushTest')?.addEventListener('click', async () => {
   try { const c = await caches.open('trainer-rest'); await c.put('rest.json', new Response(JSON.stringify({next:'ทดสอบการแจ้งเตือน'}))); } catch(e){}
-  const ok = await pushPost('/schedule', {at: Date.now() + 10000});
+  const ok = await pushPost('/schedule', {delay: 10000});
   $('#pushMsg').textContent = ok ? 'ตั้งแล้ว — ล็อกจอรอได้เลย อีก 10 วินาทีจะแจ้งเตือน' : 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง';
 });
 renderPushCard();
