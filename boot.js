@@ -41,8 +41,8 @@ function watchProgram(uid){
 }
 // ---- หน้าโหลด ----
 const splash = $('#splash'); let spPct = 8, inStep = false;
-function splashPct(p){ spPct = Math.max(spPct, p); const b = $('#spBar'); if (b) b.style.width = spPct + '%'; }
-function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); setTimeout(() => splash.remove(), 450); }, Math.max(0, (minMs||0) - performance.now())); }
+function splashPct(p){ spPct = Math.min(100, Math.max(spPct, p)); const b = $('#spBar'), n = $('#spPct'); if (b) b.style.width = spPct + '%'; if (n) n.textContent = Math.round(spPct); }
+function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); setTimeout(() => splash.remove(), 1000); }, Math.max(0, (minMs||0) - performance.now())); }
 setTimeout(() => splashPct(20), 60);
 // โหลดเสร็จ → เปิดแอปครั้งแรกให้กดปุ่ม "เริ่ม" (รีโหลดในรอบเดียวกันไม่ต้องกดซ้ำ)
 function splashReady(){
@@ -50,11 +50,11 @@ function splashReady(){
   splashPct(100);
   let seen = false; try { seen = sessionStorage.getItem('trainerStarted') === '1'; } catch(e){}
   if (seen){ splashOut(900); return; }
-  const l = splash.querySelector('.sp-load'); if (!l) { splashOut(); return; }
+  const st = $('#spStatus'), go = $('#spGo'); if (!go) { splashOut(); return; }
   setTimeout(() => {
-    l.outerHTML = '<button class="primary sp-go" id="spGo">เริ่มเลย 💪</button>';
-    $('#spGo').onclick = () => { try { sessionStorage.setItem('trainerStarted','1'); } catch(e){} splashOut(); };
-  }, 600);
+    if (st) st.textContent = 'READY'; splash.classList.add('done'); try { navigator.vibrate?.(20); } catch(e){}
+    go.onclick = () => { go.classList.add('go'); try { sessionStorage.setItem('trainerStarted','1'); } catch(e){} setTimeout(() => splashOut(), 180); };
+  }, 500);
 }
 // เช็คเวอร์ชันใหม่ทุกครั้งที่เปิด (แอปบนหน้าจอโฮมชอบค้างเวอร์ชันเก่า) → เจอใหม่กว่าโหลดใหม่เอง 1 ครั้ง
 (async () => { try {
