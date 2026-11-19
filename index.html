@@ -372,7 +372,30 @@ button.primary:active{transform:translateY(2px);box-shadow:inset 0 2px 6px #0008
 .chip.on,.dbtn.on{box-shadow:inset 0 2px 5px #000a,inset 0 0 0 1px #7a52d9}
 .card,details.fold,details.ex,.stat,.meal{box-shadow:inset 0 1px 0 #ffffff0d,0 16px 30px -18px #000}
 input,select,textarea{box-shadow:inset 0 2px 4px #0008}
-#tabbar button,.linkbtn{background:none!important;border:none!important;box-shadow:none!important}
+.linkbtn{background:none!important;border:none!important;box-shadow:none!important}
+#tabbar{gap:6px;padding-left:8px!important;padding-right:8px!important}
+#tabbar a,#tabbar button{border-radius:12px!important;background:linear-gradient(180deg,#2b2236,#1c1624)!important;border:1px solid #30273b!important;box-shadow:inset 0 1px 0 #ffffff14,0 2px 0 #0b080f,0 4px 8px -4px #000!important;transition:transform .06s}
+#tabbar a:active,#tabbar button:active{transform:translateY(1px)}
+#tabbar a.on,#tabbar button.on{box-shadow:inset 0 2px 5px #000a,inset 0 0 0 1px #7a52d9!important}
+#tabbar a.on::before,#tabbar button.on::before{top:-7px!important}
+/* หน้าโหลด */
+#splash{position:fixed;inset:0;z-index:10000;background:var(--bg,#100c15);color:var(--text-primary,#eee);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .4s}
+#splash.out{opacity:0;pointer-events:none}
+#splash svg{width:min(56vw,230px);height:auto;overflow:visible}
+#splash .sp-blob{transform-origin:100px 178px;animation:spBlob 1.1s cubic-bezier(.45,0,.55,1) infinite}
+#splash .sp-db{transform-origin:100px 96px;animation:spToss 1.1s cubic-bezier(.3,.6,.5,1) infinite}
+#splash .sp-sh{transform-origin:100px 184px;animation:spSh 1.1s ease-in-out infinite}
+#splash .sp-name{font-size:24px;font-weight:700;letter-spacing:.5px}
+#splash .sp-load{font-size:13px;letter-spacing:4px;color:var(--text-muted,#998);font-weight:600}
+#splash .sp-load i{font-style:normal;animation:spDot 1.2s infinite both}
+#splash .sp-load i:nth-child(2){animation-delay:.2s}#splash .sp-load i:nth-child(3){animation-delay:.4s}
+#splash .sp-bar{width:min(60vw,240px);height:8px;border-radius:99px;background:var(--surface-2,#221a2c);box-shadow:inset 0 1px 3px #0005;overflow:hidden}
+#splash .sp-bar b{display:block;height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,var(--accent,#8f63f5),#c9b3ff);box-shadow:inset 0 1px 0 #ffffff66;transition:width .5s ease}
+@keyframes spToss{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-62px) rotate(180deg)}}
+@keyframes spBlob{0%,100%{transform:scale(1.07,.9)}18%{transform:scale(.95,1.06)}50%{transform:scale(1,1)}85%{transform:scale(.97,1.04)}}
+@keyframes spSh{0%,100%{transform:scaleX(1.1);opacity:.5}50%{transform:scaleX(.85);opacity:.3}}
+@keyframes spDot{0%,60%,100%{opacity:.2}30%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash .sp-db,#splash .sp-blob,#splash .sp-sh{animation:none}}
 .timerbar .tb-btns button[data-t=push]{flex:1.7!important;white-space:nowrap;font-size:13px}
 .dbtn.today{border-color:var(--accent)}
 .dbtn.on{background:var(--accent);border-color:var(--accent)}
@@ -440,7 +463,8 @@ html[data-theme=lavender] #authGate{background:#f3f1f7e6}
   html[data-theme=lavender] #moreSheet .ms-card{background:#ffffff;border:1px solid #ddd6e8;box-shadow:0 20px 40px #2a243333}
   html[data-theme=lavender] #moreSheet a:active,html[data-theme=lavender] #moreSheet a:hover{background:#f1edf7}
 }
-html[data-theme=lavender] #tabbar a.on,html[data-theme=lavender] #tabbar button.on{background:transparent!important;color:#6a4fb5!important;box-shadow:none!important}
+html[data-theme=lavender] #tabbar a,html[data-theme=lavender] #tabbar button{background:linear-gradient(180deg,#ffffff,#f1edf7)!important;border:1px solid #d9d1e6!important;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #d9d1e6,0 3px 5px -2px #2a243333!important}
+html[data-theme=lavender] #tabbar a.on,html[data-theme=lavender] #tabbar button.on{background:linear-gradient(180deg,#ece5f8,#ffffff)!important;border-color:#c9b9ea!important;color:#6a4fb5!important;box-shadow:inset 0 2px 4px #7c5cc433!important}
 html[data-theme=lavender] button:not(.linkbtn),html[data-theme=lavender] .dbtn,html[data-theme=lavender] .chip{background:linear-gradient(180deg,#ffffff,#f1edf7);border:1px solid #d9d1e6;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #d9d1e6,0 3px 6px -2px #2a24332e;transition:transform .06s,box-shadow .06s}
 html[data-theme=lavender] button:not(.linkbtn):active,html[data-theme=lavender] .dbtn:active,html[data-theme=lavender] .chip:active{transform:translateY(1px);box-shadow:inset 0 2px 4px #2a243326}
 html[data-theme=lavender] button.primary,html[data-theme=lavender] .primary{box-shadow:inset 0 1px 0 #ffffff59,0 2px 0 #4f3a86,0 10px 18px -8px #7c5cc4b3!important;text-shadow:0 1px 0 #00000033}
@@ -455,7 +479,6 @@ html[data-theme=lavender] input,html[data-theme=lavender] select,html[data-theme
 html[data-theme=lavender] .bar,html[data-theme=lavender] .timerbar .tb-prog{box-shadow:inset 0 1px 2px #2a243326}
 html[data-theme=lavender] .timerbar{box-shadow:0 -10px 24px -10px #2a243340!important}
 html[data-theme=lavender] #tabbar{box-shadow:0 -6px 18px -8px #2a243333}
-html[data-theme=lavender] #tabbar button{background:none!important;border:none!important;box-shadow:none!important}
 html[data-theme=lavender] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1px 2px #2a243326}
 html[data-theme=blush]{color-scheme:light;
   --bg:#fdf5f7; --surface-1:#ffffff; --surface-2:#fbe9ee; --line:#f3d6df;
@@ -506,7 +529,8 @@ html[data-theme=blush] #authGate{background:#fdf5f7e6}
   html[data-theme=blush] #moreSheet .ms-card{background:#ffffff;border:1px solid #f3d6df;box-shadow:0 20px 40px #3a273033}
   html[data-theme=blush] #moreSheet a:active,html[data-theme=blush] #moreSheet a:hover{background:#fdf0f4}
 }
-html[data-theme=blush] #tabbar a.on,html[data-theme=blush] #tabbar button.on{background:transparent!important;color:#c2416f!important;box-shadow:none!important}
+html[data-theme=blush] #tabbar a,html[data-theme=blush] #tabbar button{background:linear-gradient(180deg,#ffffff,#fdf0f4)!important;border:1px solid #f0d3dc!important;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #f0d3dc,0 3px 5px -2px #3a273033!important}
+html[data-theme=blush] #tabbar a.on,html[data-theme=blush] #tabbar button.on{background:linear-gradient(180deg,#fde4ec,#ffffff)!important;border-color:#f2bcd0!important;color:#c2416f!important;box-shadow:inset 0 2px 4px #e0628c33!important}
 html[data-theme=blush] button:not(.linkbtn),html[data-theme=blush] .dbtn,html[data-theme=blush] .chip{background:linear-gradient(180deg,#ffffff,#fdf0f4);border:1px solid #f0d3dc;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #f0d3dc,0 3px 6px -2px #3a27302e;transition:transform .06s,box-shadow .06s}
 html[data-theme=blush] button:not(.linkbtn):active,html[data-theme=blush] .dbtn:active,html[data-theme=blush] .chip:active{transform:translateY(1px);box-shadow:inset 0 2px 4px #3a273026}
 html[data-theme=blush] button.primary,html[data-theme=blush] .primary{box-shadow:inset 0 1px 0 #ffffff59,0 2px 0 #a3355f,0 10px 18px -8px #e0628cb3!important;text-shadow:0 1px 0 #00000033}
@@ -521,7 +545,6 @@ html[data-theme=blush] input,html[data-theme=blush] select,html[data-theme=blush
 html[data-theme=blush] .bar,html[data-theme=blush] .timerbar .tb-prog{box-shadow:inset 0 1px 2px #3a273026}
 html[data-theme=blush] .timerbar{box-shadow:0 -10px 24px -10px #3a273040!important}
 html[data-theme=blush] #tabbar{box-shadow:0 -6px 18px -8px #3a273033}
-html[data-theme=blush] #tabbar button{background:none!important;border:none!important;box-shadow:none!important}
 html[data-theme=blush] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1px 2px #3a273026}
 html[data-theme=stone]{color-scheme:light;
   --bg:#ebe9e4; --surface-1:#f7f6f2; --surface-2:#efede8; --line:#d9d6ce;
@@ -572,7 +595,8 @@ html[data-theme=stone] #authGate{background:#ebe9e4e6}
   html[data-theme=stone] #moreSheet .ms-card{background:#ffffff;border:1px solid #d9d6ce;box-shadow:0 20px 40px #1f1d2433}
   html[data-theme=stone] #moreSheet a:active,html[data-theme=stone] #moreSheet a:hover{background:#efede8}
 }
-html[data-theme=stone] #tabbar a.on,html[data-theme=stone] #tabbar button.on{background:transparent!important;color:#5a3d6e!important;box-shadow:none!important}
+html[data-theme=stone] #tabbar a,html[data-theme=stone] #tabbar button{background:linear-gradient(180deg,#ffffff,#efede8)!important;border:1px solid #d1cdc4!important;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #d1cdc4,0 3px 5px -2px #1f1d2433!important}
+html[data-theme=stone] #tabbar a.on,html[data-theme=stone] #tabbar button.on{background:linear-gradient(180deg,#e9e3ee,#ffffff)!important;border-color:#c4b6cf!important;color:#5a3d6e!important;box-shadow:inset 0 2px 4px #5a3d6e33!important}
 html[data-theme=stone] button:not(.linkbtn),html[data-theme=stone] .dbtn,html[data-theme=stone] .chip{background:linear-gradient(180deg,#ffffff,#efede8);border:1px solid #d1cdc4;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #d1cdc4,0 3px 6px -2px #1f1d242e;transition:transform .06s,box-shadow .06s}
 html[data-theme=stone] button:not(.linkbtn):active,html[data-theme=stone] .dbtn:active,html[data-theme=stone] .chip:active{transform:translateY(1px);box-shadow:inset 0 2px 4px #1f1d2426}
 html[data-theme=stone] button.primary,html[data-theme=stone] .primary{box-shadow:inset 0 1px 0 #ffffff59,0 2px 0 #3f2a50,0 10px 18px -8px #5a3d6eb3!important;text-shadow:0 1px 0 #00000033}
@@ -587,7 +611,6 @@ html[data-theme=stone] input,html[data-theme=stone] select,html[data-theme=stone
 html[data-theme=stone] .bar,html[data-theme=stone] .timerbar .tb-prog{box-shadow:inset 0 1px 2px #1f1d2426}
 html[data-theme=stone] .timerbar{box-shadow:0 -10px 24px -10px #1f1d2440!important}
 html[data-theme=stone] #tabbar{box-shadow:0 -6px 18px -8px #1f1d2433}
-html[data-theme=stone] #tabbar button{background:none!important;border:none!important;box-shadow:none!important}
 html[data-theme=stone] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1px 2px #1f1d2426}
 html[data-theme=stone] nav a.on{background:#5a3d6e!important;color:#ffffff!important;box-shadow:none}
 html[data-theme=stone] .card,html[data-theme=stone] details.fold,html[data-theme=stone] details.ex,html[data-theme=stone] .stat,html[data-theme=stone] .meal,html[data-theme=stone] .fs-right,html[data-theme=stone] .exlog,html[data-theme=stone] .ms-card{border-radius:10px!important}
@@ -642,7 +665,8 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
   html[data-theme=sky] #moreSheet .ms-card{background:#ffffff;border:1px solid #d6e5f3;box-shadow:0 20px 40px #1d2b3a33}
   html[data-theme=sky] #moreSheet a:active,html[data-theme=sky] #moreSheet a:hover{background:#eef5fb}
 }
-html[data-theme=sky] #tabbar a.on,html[data-theme=sky] #tabbar button.on{background:transparent!important;color:#1f6fbf!important;box-shadow:none!important}
+html[data-theme=sky] #tabbar a,html[data-theme=sky] #tabbar button{background:linear-gradient(180deg,#ffffff,#eef5fb)!important;border:1px solid #cfe0f0!important;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #cfe0f0,0 3px 5px -2px #1d2b3a33!important}
+html[data-theme=sky] #tabbar a.on,html[data-theme=sky] #tabbar button.on{background:linear-gradient(180deg,#e1eefa,#ffffff)!important;border-color:#b5d4f4!important;color:#1f6fbf!important;box-shadow:inset 0 2px 4px #2f80d133!important}
 html[data-theme=sky] button:not(.linkbtn),html[data-theme=sky] .dbtn,html[data-theme=sky] .chip{background:linear-gradient(180deg,#ffffff,#eef5fb);border:1px solid #cfe0f0;box-shadow:inset 0 1px 0 #ffffff,0 1px 0 #cfe0f0,0 3px 6px -2px #1d2b3a2e;transition:transform .06s,box-shadow .06s}
 html[data-theme=sky] button:not(.linkbtn):active,html[data-theme=sky] .dbtn:active,html[data-theme=sky] .chip:active{transform:translateY(1px);box-shadow:inset 0 2px 4px #1d2b3a26}
 html[data-theme=sky] button.primary,html[data-theme=sky] .primary{box-shadow:inset 0 1px 0 #ffffff59,0 2px 0 #1b5fa3,0 10px 18px -8px #2f80d1b3!important;text-shadow:0 1px 0 #00000033}
@@ -657,7 +681,6 @@ html[data-theme=sky] input,html[data-theme=sky] select,html[data-theme=sky] text
 html[data-theme=sky] .bar,html[data-theme=sky] .timerbar .tb-prog{box-shadow:inset 0 1px 2px #1d2b3a26}
 html[data-theme=sky] .timerbar{box-shadow:0 -10px 24px -10px #1d2b3a40!important}
 html[data-theme=sky] #tabbar{box-shadow:0 -6px 18px -8px #1d2b3a33}
-html[data-theme=sky] #tabbar button{background:none!important;border:none!important;box-shadow:none!important}
 html[data-theme=sky] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1px 2px #1d2b3a26}
 </style>
 </head>
@@ -865,7 +888,8 @@ html[data-theme=sky] details.ex>summary .no{box-shadow:inset 0 1px 0 #ffffff,0 1
     </div>
   </section>
 </main>
+<div id="splash" aria-label="กำลังโหลด"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="spG" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".28" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient></defs><ellipse class="sp-sh" cx="100" cy="184" rx="52" ry="7" fill="#000" opacity=".4"/><g class="sp-db"><rect x="62" y="92" width="76" height="8" rx="4" fill="currentColor"/><rect x="50" y="78" width="13" height="36" rx="5" fill="currentColor"/><rect x="38" y="84" width="10" height="24" rx="4" fill="currentColor"/><rect x="137" y="78" width="13" height="36" rx="5" fill="currentColor"/><rect x="152" y="84" width="10" height="24" rx="4" fill="currentColor"/></g><g class="sp-blob"><g transform="translate(52,84) scale(.12)"><path fill="var(--accent,#8f63f5)" d="M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z"/><path fill="url(#spG)" d="M412 96c88 6 170 58 205 140 31 73 4 146 38 214 30 60 104 98 99 166-5 79-96 132-178 140-77 8-131-46-205-58-82-13-176 30-231-29-52-56-20-140-34-214-13-71-74-140-45-206 31-71 124-80 197-120 54-29 92-37 154-33z"/></g></g></svg><div class="sp-name">Trainer</div><div class="sp-bar"><b id="spBar"></b></div><div class="sp-load">LOADING<i>.</i><i>.</i><i>.</i></div></div>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795111255";</script><script src="config.js"></script><script src="boot.js?v=1795111255"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795111887";</script><script src="config.js"></script><script src="boot.js?v=1795111887"></script>
 </body>
 </html>

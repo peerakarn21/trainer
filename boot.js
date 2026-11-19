@@ -39,7 +39,12 @@ function watchProgram(uid){
     document.body.appendChild(b);
   }, () => {}); } catch(e){}
 }
-function showGate(html){ gate.hidden = false; gate.innerHTML = `<div class="gatecard"><div class="brand" style="font-size:22px;margin-bottom:12px">Trainer</div>${html}</div>`; }
+// ---- หน้าโหลด ----
+const splash = $('#splash'); let spPct = 8, inStep = false;
+function splashPct(p){ spPct = Math.max(spPct, p); const b = $('#spBar'); if (b) b.style.width = spPct + '%'; }
+function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); setTimeout(() => splash.remove(), 450); }, Math.max(0, (minMs||0) - performance.now())); }
+setTimeout(() => splashPct(20), 60); setTimeout(() => splashOut(), 25000);
+function showGate(html){ if (!inStep) splashOut(); gate.hidden = false; gate.innerHTML = `<div class="gatecard"><div class="brand" style="font-size:22px;margin-bottom:12px">Trainer</div>${html}</div>`; }
 
 async function loginView(){
   let hasAdmin = true;
@@ -96,7 +101,7 @@ async function startFor(user){
     $('#gRetry').onclick = () => location.reload(); $('#gOut2').onclick = () => auth.signOut();
   }
 }
-const step = t => { const m = $('#gMsg'); if (m) m.innerHTML = msgHTML(t); else showGate(`<p class="tiny">${esc(t)}</p>`); };
+const step = t => { splashPct(spPct + 22); inStep = true; try { const m = $('#gMsg'); if (m) m.innerHTML = msgHTML(t); else showGate(`<p class="tiny">${esc(t)}</p>`); } finally { inStep = false; } };
 async function startInner(user){
   const uid = user.uid;
   let member = null, isAdmin = false, program = null;
@@ -123,7 +128,9 @@ async function startInner(user){
   const db = {doc: ref, collection: ref};
   window.claude = {use: async k => k==='db' ? db : k==='user' ? {canEdit: async () => true} : null};
   const s = document.createElement('script'); s.src = 'app.js?v=' + (window.APP_VER||1);
-  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); };
+  splashPct(88);
+  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); splashPct(100); splashOut(1400); };
+  s.onerror = () => splashOut();
   document.body.appendChild(s);
 }
 
