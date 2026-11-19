@@ -477,7 +477,11 @@ function renderPill(){
 // ---------- workout ----------
 function setRow(w, reps, top){ return `<div class="set${top?' top':''}"><span>${reps} ครั้ง</span><span class="w">${fmt(w)} กก.</span></div>`; }
 function effTag(e){ const x = EFF[e]; return x ? `<span class="eff ${x[1]}">${x[0]}</span>` : ''; }
+let deferWorkout = false;
+const typingInCard = () => { const a = document.activeElement; return !!(a && a.matches?.('#workoutCard input, #workoutCard textarea')); };
 function renderWorkout(){
+  if (typingInCard()){ deferWorkout = true; return; }      // กำลังพิมพ์อยู่ → ไม่วาดการ์ดทับ (คีย์บอร์ดจะได้ไม่ปิด/หน้าไม่เด้ง)
+  deferWorkout = false;
   const key = $('#fDay').value, day = DAYS[key];
   const keep = (formDirty && renderedFor===curDate+'|'+key && $('#workoutCard .srow')) ? collectWorkout() : null;
   const log = keep || logs.get(curDate)?.workout || {};
@@ -611,7 +615,7 @@ function setLabel(btn, day, list){
   return `${list[+i].n} เซ็ต ${+j+1}`;
 }
 function onRest(btn, day, list){
-  formDirty = true; audioInit();
+  formDirty = true;
   const row = btn.closest('.srow');
   if (btn.classList.contains('on')){ btn.classList.remove('on'); btn.textContent = '✓ พัก'; row.classList.remove('done'); autoSave(); return; }
   btn.classList.add('on'); btn.textContent = '✓ เสร็จ'; row.classList.add('done');
@@ -629,110 +633,118 @@ function onRest(btn, day, list){
   const secs = k==='m' ? (row.querySelector('.sl').textContent.startsWith('FSL') ? 120 : 180) : restSecOf(list[+i]);
   const sameEx = nextBtn.dataset.k===k && nextBtn.dataset.i===i;
   startTimer(secs, (sameEx ? 'ต่อไป: ' : 'ท่าต่อไป: ') + setLabel(nextBtn, day, list));
-  setTimeout(() => { try { nextBtn.closest('.srow').scrollIntoView({block:'center', behavior:'smooth'}); } catch(e){} }, 250);
+  setTimeout(() => { try { const r = nextBtn.closest('.srow'), bx = r.getBoundingClientRect(); if (bx.top < 80 || bx.bottom > innerHeight - 200) r.scrollIntoView({block:'center', behavior:'smooth'}); } catch(e){} }, 250);
 }
-function audioInit(){ try { timer.ctx ||= new (window.AudioContext||window.webkitAudioContext)(); timer.ctx.resume?.(); } catch(e){} }
-function beep(n=3){
-  try { const c = timer.ctx; if (!c) return;
-    for (let k=0;k<n;k++){ const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 880; o.connect(g); g.connect(c.destination);
-      const t0 = c.currentTime + k*0.35; g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.4,t0+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.25); o.start(t0); o.stop(t0+0.3); }
-  } catch(e){}
-  try { navigator.vibrate?.([300,150,300,150,300]); } catch(e){}
-}
-// --- เสียงเตือนแบบไฟล์เสียง: เงียบจนหมดเวลาพัก แล้วดังวนจนกว่าจะกดปิด (เล่นต่อได้แม้ปิดจอ) ---
-const REST_LS = 'trainer_rest_v1', BG_LS = 'trainer_bgAlarm';
-const bgOn = () => { try { return localStorage.getItem(BG_LS) !== '0'; } catch(e){ return true; } };
-const ALARM_SEC = 300, SR = 8000;
-function alarmWav(silentSec){
-  const n = Math.round((silentSec + ALARM_SEC) * SR), buf = new ArrayBuffer(44 + n), v = new DataView(buf), u8 = new Uint8Array(buf);
-  const str = (o,s) => { for (let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
-  str(0,'RIFF'); v.setUint32(4,36+n,true); str(8,'WAVE'); str(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
-  v.setUint32(24,SR,true); v.setUint32(28,SR,true); v.setUint16(32,1,true); v.setUint16(34,8,true); str(36,'data'); v.setUint32(40,n,true);
-  u8.fill(128, 44);
-  const s0 = Math.round(silentSec*SR), cyc = Math.round(1.6*SR), on = Math.round(0.22*SR), gap = Math.round(0.32*SR);
-  for (let i=s0; i<n; i++){
-    const p = (i-s0) % cyc, k = Math.floor(p/gap), q = p - k*gap;
-    if (k < 3 && q < on){ const tt = q/SR, env = Math.min(1, q/80, (on-q)/80);
-      u8[44+i] = 128 + Math.round(110*env*(0.6*Math.sin(2*Math.PI*880*tt) + 0.4*Math.sin(2*Math.PI*1320*tt))); }
-  }
-  return new Blob([buf], {type:'audio/wav'});
-}
-function alarmStop(){
-  try { if (timer.au){ timer.au.pause(); URL.revokeObjectURL(timer.au.src); timer.au.removeAttribute('src'); timer.au.load(); } } catch(e){}
-  timer.au = null; clearInterval(timer.ring); timer.ring = null;
-  try { if (navigator.mediaSession){ navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; } } catch(e){}
-}
-function alarmArm(){
-  alarmStop(); if (!bgOn()) return;
-  const left = Math.max(0, (timer.end - Date.now())/1000);
-  try {
-    const au = new Audio(URL.createObjectURL(alarmWav(left))); au.preload = 'auto'; au.setAttribute('playsinline','');
-    timer.au = au; au.play().catch(()=>{ if (timer.au===au) timer.au = null; });
-    if (navigator.mediaSession && window.MediaMetadata){
-      navigator.mediaSession.metadata = new MediaMetadata({title:'พักระหว่างเซ็ต', artist:timer.next || 'Trainer', album:'Trainer'});
-      for (const a of ['pause','stop']) try { navigator.mediaSession.setActionHandler(a, () => { stopTimer(); }); } catch(e){}
-    }
-  } catch(e){ timer.au = null; }
-}
-function restKeep(){ try { localStorage.setItem(REST_LS, JSON.stringify({end:timer.end, total:timer.total, next:timer.next})); } catch(e){} }
+// ---------- ตัวจับเวลาพัก: ไม่เล่นเสียงระหว่างพัก (ไม่แย่งเสียง YouTube) · ครบเวลา → แจ้งเตือนจากเซิร์ฟเวอร์ (Web Push) ----------
+function audioInit(){}                 // เดิมใช้เปิดเสียง — ตอนนี้ไม่ใช้แล้ว
+function buzz(){ try { navigator.vibrate?.([300,150,300,150,300]); } catch(e){} }
+const REST_LS = 'trainer_rest_v1';
+function restKeep(){ try { localStorage.setItem(REST_LS, JSON.stringify({end:timer.end, total:timer.total, next:timer.next})); } catch(e){} restInfoForSW(); }
 function restClear(){ try { localStorage.removeItem(REST_LS); } catch(e){} }
+// ---- Web Push ----
+const PUSH_URL = 'https://trainer-push.peragan18.workers.dev';
+const VAPID_PUBLIC = 'BBgG678rK6mhWSgD8kUw36gvLyhUPDIwrsvW_K_-TynXhNhYGnJFYK8Sh-w9-bb-UaYYyz-jK8TVt3KxZPjOdgU';
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const isStandalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+let swReg = null;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(r => swReg = r).catch(e => console.warn('sw', e));
+function b64uBytes(s){ const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(b, c => c.charCodeAt(0)); }
+async function pushSub(){ if (!pushSupported() || Notification.permission !== 'granted') return null; try { const r = swReg || await navigator.serviceWorker.ready; return await r.pushManager.getSubscription(); } catch(e){ return null; } }
+async function pushEnable(){
+  if (!pushSupported()) return {ok:false, why: /iPhone|iPad/.test(navigator.userAgent) && !isStandalone() ? 'ios-browser' : 'unsupported'};
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return {ok:false, why:'denied'};
+  const r = swReg || await navigator.serviceWorker.register('sw.js'); await navigator.serviceWorker.ready;
+  let s = await r.pushManager.getSubscription();
+  if (!s) s = await r.pushManager.subscribe({userVisibleOnly:true, applicationServerKey: b64uBytes(VAPID_PUBLIC)});
+  return {ok:!!s, sub:s};
+}
+async function pushPost(path, extra){
+  const s = await pushSub(); if (!s) return false;
+  try { const r = await fetch(PUSH_URL + path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sub:{endpoint:s.endpoint}, ...extra}), keepalive:true}); return r.ok; } catch(e){ return false; }
+}
+const pushSchedule = () => timer.end > Date.now() ? pushPost('/schedule', {at: timer.end}) : Promise.resolve(false);
+const pushCancel = () => pushPost('/cancel', {});
+async function restInfoForSW(){ try { const c = await caches.open('trainer-rest'); await c.put('rest.json', new Response(JSON.stringify({next:timer.next, end:timer.end}), {headers:{'Content-Type':'application/json'}})); } catch(e){} }
+function pushState(){ if (!pushSupported()) return /iPhone|iPad/.test(navigator.userAgent) && !isStandalone() ? 'ios-browser' : 'unsupported'; return Notification.permission === 'granted' ? 'on' : Notification.permission === 'denied' ? 'denied' : 'off'; }
+// ---- ตัวจับเวลา ----
 function startTimer(secs, next){
-  audioInit();
   try { navigator.wakeLock?.request('screen').then(w => timer.wake = w).catch(()=>{}); } catch(e){}
   timer.end = Date.now() + secs*1000; timer.total = secs; timer.next = next; timer.rang = false;
-  restKeep(); alarmArm(); runTimer();
+  restKeep(); pushSchedule(); runTimer();
 }
 function runTimer(){
   const bar = $('#timerBar'); bar.className = 'timerbar run'; bar.hidden = false; document.body.classList.add('timer-on');
-  clearInterval(timer.iv); timer.iv = setInterval(tick, 250); tick();
+  const ps = pushState();
+  bar.innerHTML = `<div class="tb-main"><div class="tb-time" id="tbTime">0:00</div><div class="tb-next" id="tbNext"></div></div>
+    <div class="tb-btns">${ps==='off' ? '<button data-t="push" title="แจ้งเตือนเมื่อหมดเวลาพัก แม้ล็อกจอ">🔔 แจ้งเตือน</button>' : ''}<button data-t="-30">−30</button><button data-t="30">+30</button><button data-t="skip">ข้าม</button></div>
+    <div class="tb-prog"><i id="tbProg"></i></div>`;
+  $('#tbNext').textContent = 'พัก · ' + timer.next;
+  bindTimerBtns();
+  clearInterval(timer.iv); timer.iv = setInterval(tick, 500); tick();
 }
-function timerResync(){
-  if (!timer.end || !timer.au) return;
-  const want = timer.total - (timer.end - Date.now())/1000;   // ตำแหน่งที่ไฟล์เสียงควรอยู่
-  try { if (Math.abs(timer.au.currentTime - want) > 1.5 && want >= 0) timer.au.currentTime = want; } catch(e){}
-}
+function timerResync(){ if (timer.end && !$('#timerBar').hidden && $('#tbTime')) tick(); }
 function tick(){
   const left = Math.max(0, Math.round((timer.end - Date.now())/1000));
-  const mm = Math.floor(left/60), ss = String(left%60).padStart(2,'0');
-  $('#timerBar').innerHTML = `<div class="tb-main"><div class="tb-time">${mm}:${ss}</div><div class="tb-next">พัก · ${esc(timer.next)}</div></div>
-    <div class="tb-btns"><button data-t="bell" title="เสียงเตือนแม้ปิดจอ">${bgOn()?'🔔':'🔕'}</button><button data-t="-30">−30</button><button data-t="30">+30</button><button data-t="skip">ข้าม</button></div>
-    <div class="tb-prog"><i style="width:${timer.total ? (1-left/timer.total)*100 : 0}%"></i></div>`;
-  bindTimerBtns();
+  const t = $('#tbTime'), p = $('#tbProg'); if (!t) return;
+  const txt = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;
+  if (t.textContent !== txt) t.textContent = txt;
+  if (p) p.style.width = `${timer.total ? (1-left/timer.total)*100 : 0}%`;
   if (left <= 0){ clearInterval(timer.iv); showTimerDone(`หมดเวลาพัก! ${timer.next.replace(/^(ท่าต่อไป|ต่อไป): /,'')} ได้เลย`, true); }
 }
 function bindTimerBtns(){
-  $('#timerBar').querySelectorAll('[data-t]').forEach(b => b.onclick = () => {
+  $('#timerBar').querySelectorAll('[data-t]').forEach(b => b.onclick = async () => {
     const v = b.dataset.t;
     if (v==='skip'){ stopTimer(); return; }
-    if (v==='bell'){ try { localStorage.setItem(BG_LS, bgOn() ? '0' : '1'); } catch(e){} audioInit(); alarmArm(); tick(); return; }
-    timer.end += (+v)*1000; timer.total = Math.max(1, timer.total + (+v)); restKeep(); alarmArm(); tick();
+    if (v==='push'){ b.disabled = true; const r = await pushEnable(); if (r.ok){ b.remove(); pushSchedule(); } else { b.disabled = false; b.textContent = r.why==='ios-browser' ? 'เปิดจากไอคอนหน้าจอโฮมก่อน' : r.why==='denied' ? 'ถูกปิดไว้ในตั้งค่าเครื่อง' : 'เครื่องนี้ไม่รองรับ'; } return; }
+    timer.end += (+v)*1000; timer.total = Math.max(1, timer.total + (+v)); restKeep(); pushSchedule(); tick();
   });
 }
-function showTimerDone(msg, ring){
+function showTimerDone(msg, fromRest){
   const bar = $('#timerBar'); bar.hidden = false; bar.className = 'timerbar done'; document.body.classList.add('timer-on');
-  bar.innerHTML = `<div class="tb-main"><div class="tb-time">GO</div><div class="tb-next">${esc(msg)}</div></div><div class="tb-btns"><button data-t="skip">${ring?'🔕 ปิดเสียง':'ปิด'}</button></div>`;
+  bar.innerHTML = `<div class="tb-main"><div class="tb-time">GO</div><div class="tb-next"></div></div><div class="tb-btns"><button data-t="skip">ปิด</button></div>`;
+  bar.querySelector('.tb-next').textContent = msg;
   bindTimerBtns();
   try { timer.wake?.release(); timer.wake = null; } catch(e){}
-  if (ring && !timer.rang){
-    timer.rang = true;
-    const fileRinging = timer.au && !timer.au.paused;
-    if (!fileRinging){ beep(); clearInterval(timer.ring); const t0 = Date.now(); timer.ring = setInterval(() => { if (Date.now()-t0 > ALARM_SEC*1000) { clearInterval(timer.ring); return; } beep(); }, 1600); }
-    else try { navigator.vibrate?.([300,150,300,150,300]); } catch(e){}
-  }
+  if (fromRest && !timer.rang){ timer.rang = true; buzz(); }
 }
-function stopTimer(){ clearInterval(timer.iv); alarmStop(); restClear(); timer.end = 0; $('#timerBar').hidden = true; document.body.classList.remove('timer-on'); try { timer.wake?.release(); timer.wake = null; } catch(e){} }
+function stopTimer(){
+  const wasRunning = timer.end > Date.now();
+  clearInterval(timer.iv); restClear(); timer.end = 0; $('#timerBar').hidden = true; document.body.classList.remove('timer-on');
+  try { timer.wake?.release(); timer.wake = null; } catch(e){}
+  if (wasRunning) pushCancel();
+  try { navigator.serviceWorker?.ready.then(r => r.getNotifications?.({tag:'trainer-rest'})).then(ns => ns?.forEach(n => n.close())); } catch(e){}
+}
 // เปิดแอปใหม่ระหว่างพัก → นับต่อจากเดิม
 function restoreTimer(){
   let r = null; try { r = JSON.parse(localStorage.getItem(REST_LS)||'null'); } catch(e){}
   if (!r || !r.end) return;
   if (Date.now() - r.end > 15*60*1000){ restClear(); return; }
-  Object.assign(timer, {end:r.end, total:r.total, next:r.next||'', rang:false});
+  Object.assign(timer, {end:r.end, total:r.total, next:r.next||'', rang: Date.now() > r.end});
   runTimer();
-  // เบราว์เซอร์ไม่ให้เล่นเสียงเองโดยไม่แตะจอ → แตะครั้งแรกค่อยตั้งเสียงเตือน
-  const arm = () => { document.removeEventListener('pointerdown', arm, true); audioInit(); if (timer.end > Date.now() && !timer.au) alarmArm(); };
-  document.addEventListener('pointerdown', arm, true);
 }
 setTimeout(restoreTimer, 0);
+document.addEventListener('focusin', e => { if (e.target.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select')) document.body.classList.add('kb-open'); });
+document.addEventListener('focusout', () => setTimeout(() => {
+  const a = document.activeElement;
+  if (!a || !a.matches?.('input, textarea, select')) document.body.classList.remove('kb-open');
+  if (deferWorkout && !typingInCard()) renderWorkout();
+}, 120));
+// การ์ดแจ้งเตือนในหน้าตั้งค่า
+function renderPushCard(){
+  const btn = $('#pushBtn'), msg = $('#pushMsg'); if (!btn) return;
+  const s = pushState();
+  btn.hidden = s === 'on';
+  $('#pushTest').hidden = s !== 'on';
+  msg.textContent = s === 'on' ? '✓ เปิดอยู่ — ครบเวลาพักจะแจ้งเตือนเครื่องนี้' : s === 'ios-browser' ? 'iPhone: กด แชร์ → "เพิ่มไปยังหน้าจอโฮม" แล้วเปิดเว็บจากไอคอนนั้น ค่อยกดเปิดการแจ้งเตือน' : s === 'denied' ? 'การแจ้งเตือนถูกปิดไว้ — เปิดได้ที่ ตั้งค่าเครื่อง → การแจ้งเตือน → Trainer' : s === 'unsupported' ? 'เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน' : 'ยังไม่ได้เปิด';
+}
+$('#pushBtn')?.addEventListener('click', async () => { $('#pushBtn').disabled = true; const r = await pushEnable(); $('#pushBtn').disabled = false; renderPushCard(); if (!r.ok && r.why==='denied') $('#pushMsg').textContent = 'ไม่ได้อนุญาต — เปิดได้ที่ ตั้งค่าเครื่อง → การแจ้งเตือน → Trainer'; });
+$('#pushTest')?.addEventListener('click', async () => {
+  try { const c = await caches.open('trainer-rest'); await c.put('rest.json', new Response(JSON.stringify({next:'ทดสอบการแจ้งเตือน'}))); } catch(e){}
+  const ok = await pushPost('/schedule', {at: Date.now() + 10000});
+  $('#pushMsg').textContent = ok ? 'ตั้งแล้ว — ล็อกจอรอได้เลย อีก 10 วินาทีจะแจ้งเตือน' : 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง';
+});
+renderPushCard();
 
 // ---------- daily form ----------
 const cycleEndN = () => settings?.cycleStart ? dayNum(settings.cycleStart) + 27 : Infinity;

@@ -353,6 +353,16 @@ a{color:#b69cff}
 .skipbox{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:4px 0}
 .skipbox button{margin-top:4px}
 .shiftnote{margin:0 0 6px;color:var(--warn,#c98a2b)}
+/* มือถือ: ลดงานกราฟิกหนักๆ ที่ทำให้แถบล่างค้าง */
+@media (max-width:900px),(hover:none){
+  body::before{animation:none!important;filter:blur(40px)!important;inset:0!important;will-change:auto}
+  .timerbar,#tabbar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  #tabbar,.timerbar{transform:translateZ(0)}
+}
+/* คีย์บอร์ดเปิด → ซ่อนแถบที่ตรึงล่างจอ (กันแถบลอยค้างกลางจอ) */
+body.kb-open #tabbar,body.kb-open .timerbar{display:none!important}
+.pushcard .row{gap:8px;align-items:center;flex-wrap:wrap}
+.timerbar .tb-btns button[data-t=push]{flex:1.7!important;white-space:nowrap;font-size:13px}
 .dbtn.today{border-color:var(--accent)}
 .dbtn.on{background:var(--accent);border-color:var(--accent)}
 .dbtn.on .dw,.dbtn.on .dn,.dbtn.on .df{color:var(--accent-ink)}
@@ -742,6 +752,12 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
 
   <!-- SETTINGS -->
   <section class="view" id="v-settings">
+    <div class="card pushcard">
+      <h2>แจ้งเตือนหมดเวลาพัก</h2>
+      <p class="tiny" style="margin-top:-4px">ครบเวลาพักแล้วจะมีแจ้งเตือน "ถึงเวลาเล่นแล้ว" แม้ล็อกจอหรืออยู่ในแอปอื่น ระหว่างพักไม่มีเสียงอะไร ไม่แย่งเสียง YouTube · iPhone ต้องเปิดเว็บจากไอคอนบนหน้าจอโฮม</p>
+      <div class="row"><button id="pushBtn" class="primary" style="flex:0 0 auto">เปิดการแจ้งเตือน</button><button id="pushTest" style="flex:0 0 auto">ทดสอบ (แจ้งใน 10 วินาที)</button></div>
+      <div class="tiny" id="pushMsg" style="margin-top:6px"></div>
+    </div>
     <div class="card">
       <h2>1RM และ Training Max</h2>
       <div class="grid3" id="rmInputs"></div>
@@ -771,6 +787,6 @@ html[data-theme=sky] #authGate{background:#eef5fbe6}
   </section>
 </main>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795065361";</script><script src="config.js"></script><script src="boot.js?v=1795065361"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795110939";</script><script src="config.js"></script><script src="boot.js?v=1795110939"></script>
 </body>
 </html>
