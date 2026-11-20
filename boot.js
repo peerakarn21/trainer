@@ -5,6 +5,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const DOMAIN = '@trainer.app';
 const toEmail = u => u.trim().toLowerCase() + DOMAIN;
 const validUser = u => /^[a-z0-9._-]{3,30}$/.test(u.trim().toLowerCase());
+try { document.documentElement.style.background = ''; } catch(e){}
 firebase.initializeApp(window.FB_CONFIG);
 const auth = firebase.auth(), fs = firebase.firestore();
 // มือถือบางเครือข่าย/บางเบราว์เซอร์ต่อ Firestore แบบปกติไม่ได้ → ให้สลับไปโหมด long-polling เองอัตโนมัติ
@@ -58,7 +59,7 @@ const spBlock = e => { if (splash && splash.isConnected && !splash.dataset.out) 
 if (splash){ document.documentElement.classList.add('sp-lock');
   ['touchmove','wheel','gesturestart','gesturechange','gestureend','dblclick','contextmenu','selectstart','dragstart'].forEach(ev => document.addEventListener(ev, spBlock, {passive:false, capture:true}));
   document.addEventListener('keydown', e => { if (splash.isConnected && !splash.dataset.out && e.target === document.body && [' ','ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key)) e.preventDefault(); }, true); }
-function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); document.documentElement.classList.remove('sp-lock'); setTimeout(() => splash.remove(), 1000); }, Math.max(0, (minMs||0) - performance.now())); }
+function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); document.documentElement.classList.remove('sp-lock'); setTimeout(() => splash.remove(), 900); }, Math.max(0, (minMs||0) - performance.now())); }
 splashPct(20);
 // โหลดเสร็จ → เปิดแอปครั้งแรกให้กดปุ่ม "เริ่ม" (รีโหลดในรอบเดียวกันไม่ต้องกดซ้ำ)
 function splashReady(){
