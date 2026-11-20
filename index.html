@@ -386,6 +386,8 @@ input,select,textarea{box-shadow:inset 0 2px 4px #0008}
   background:radial-gradient(ellipse 80% 60% at 50% 38%,var(--sp-bg0) 0%,var(--sp-bg1) 55%,var(--sp-bg2) 100%);color:var(--sp-ink);
   font-family:'Outfit','Noto Sans Thai','Segoe UI',Roboto,system-ui,-apple-system,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+html.sp-lock,html.sp-lock body{overflow:hidden!important;overscroll-behavior:none;touch-action:none}
+#splash{touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 #splash.out{opacity:0;transform:scale(1.06);filter:blur(3px);pointer-events:none}
 #splash *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 #splash .sp-wrap{display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;padding:24px 32px}
@@ -400,7 +402,7 @@ input,select,textarea{box-shadow:inset 0 2px 4px #0008}
 #splash .sp-track:after{content:"";position:absolute;left:10px;right:10px;top:5px;height:1px;background:rgba(255,255,255,.3);border-radius:1px;pointer-events:none}
 #splash .sp-chan{position:relative;height:100%;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,var(--sp-ch1) 0%,var(--sp-ch2) 60%,var(--sp-ch3) 100%);
   box-shadow:inset 0 2px 4px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.3)}
-#splash .sp-fill{position:relative;height:100%;width:0;min-width:0;border-radius:14px;overflow:hidden;transition:width .45s ease-out;
+#splash .sp-fill{position:relative;height:100%;width:0;min-width:0;border-radius:14px;overflow:hidden;
   background:linear-gradient(180deg,var(--sp-f1) 0%,var(--sp-f2) 38%,var(--sp-f3) 72%,var(--sp-f4) 100%);
   box-shadow:inset 0 -2px 3px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.45),0 0 8px var(--sp-glow)}
 #splash .sp-fill:before{content:"";position:absolute;left:5px;right:5px;top:2px;height:4px;border-radius:4px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.15))}
@@ -1023,6 +1025,6 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 
 </script>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795114598";</script><script src="config.js"></script><script src="boot.js?v=1795114598"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795144958";</script><script src="config.js"></script><script src="boot.js?v=1795144958"></script>
 </body>
 </html>

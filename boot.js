@@ -25,11 +25,12 @@ function applyTheme(t){
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = THEME_META[t];
   try { t ? localStorage.setItem('trainerTheme', t) : localStorage.removeItem('trainerTheme'); } catch(e){}
 }
-function watchProgram(uid){
-  let base = null;
+const stable = v => JSON.stringify(v ?? null, (k, x) => x && typeof x === 'object' && !Array.isArray(x) ? Object.keys(x).sort().reduce((o, key) => (o[key] = x[key], o), {}) : x);
+function watchProgram(uid, used){
+  let base = used === undefined ? null : stable(used);
   try { fs.doc(`users/${uid}/program/days`).onSnapshot(s => {
     if (s.metadata && s.metadata.hasPendingWrites) return;
-    const j = s.exists ? JSON.stringify(s.data()) : '';
+    const j = stable(s.exists ? s.data() : null);
     if (base === null){ base = j; return; }
     if (j === base || document.getElementById('progUpd')) return;
     const b = document.createElement('div'); b.id = 'progUpd';
@@ -40,10 +41,25 @@ function watchProgram(uid){
   }, () => {}); } catch(e){}
 }
 // ---- หน้าโหลด ----
-const splash = $('#splash'); let spPct = 8, inStep = false;
-function splashPct(p){ spPct = Math.min(100, Math.max(spPct, p)); const b = $('#spBar'), n = $('#spPct'); if (b) b.style.width = spPct + '%'; if (n) n.textContent = Math.round(spPct); }
-function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); setTimeout(() => splash.remove(), 1000); }, Math.max(0, (minMs||0) - performance.now())); }
-setTimeout(() => splashPct(20), 60);
+const splash = $('#splash'); let spPct = 8, inStep = false, spShown = 0, spT0 = performance.now(), spLast = spT0, spDone = null;
+// แถบโหลดวิ่งต่อเนื่อง: ระหว่างรอแต่ละขั้นจะค่อย ๆ ไหลไปข้างหน้าเอง ไม่หยุดนิ่งที่เลขเดิม
+const spGoal = now => spPct >= 100 ? 100 : spPct + (97 - spPct) * (1 - Math.exp(-(now - spT0) / 7000));
+function splashPct(p){ const now = performance.now(); spPct = Math.min(100, Math.max(spGoal(now), p)); spT0 = now; }
+(function spLoop(now){
+  if (!splash || !splash.isConnected) return;
+  now = now || performance.now(); const dt = Math.min(.25, (now - spLast) / 1000); spLast = now;
+  const g = spGoal(now); spShown += (g - spShown) * (1 - Math.exp(-dt * (g >= 100 ? 9 : 4))); if (g - spShown < .15) spShown = g;
+  const b = $('#spBar'), n = $('#spPct'); if (b) b.style.width = spShown.toFixed(2) + '%'; if (n) n.textContent = Math.floor(spShown + .01);
+  if (spShown >= 100 && spDone){ const f = spDone; spDone = null; f(); }
+  requestAnimationFrame(spLoop);
+})();
+// ล็อกหน้าโหลด: เลื่อน/ซูม/กดค้างไม่ได้ กดได้อย่างเดียวคือปุ่ม START
+const spBlock = e => { if (splash && splash.isConnected && !splash.dataset.out) e.preventDefault(); };
+if (splash){ document.documentElement.classList.add('sp-lock');
+  ['touchmove','wheel','gesturestart','gesturechange','gestureend','dblclick','contextmenu','selectstart','dragstart'].forEach(ev => document.addEventListener(ev, spBlock, {passive:false, capture:true}));
+  document.addEventListener('keydown', e => { if (splash.isConnected && !splash.dataset.out && e.target === document.body && [' ','ArrowUp','ArrowDown','PageUp','PageDown','Home','End'].includes(e.key)) e.preventDefault(); }, true); }
+function splashOut(minMs){ if (!splash || splash.dataset.out) return; splash.dataset.out = 1; setTimeout(() => { splash.classList.add('out'); document.documentElement.classList.remove('sp-lock'); setTimeout(() => splash.remove(), 1000); }, Math.max(0, (minMs||0) - performance.now())); }
+splashPct(20);
 // โหลดเสร็จ → เปิดแอปครั้งแรกให้กดปุ่ม "เริ่ม" (รีโหลดในรอบเดียวกันไม่ต้องกดซ้ำ)
 function splashReady(){
   if (!splash || splash.dataset.out) return;
@@ -51,10 +67,10 @@ function splashReady(){
   let seen = false; try { seen = sessionStorage.getItem('trainerStarted') === '1'; } catch(e){}
   if (seen){ splashOut(900); return; }
   const st = $('#spStatus'), go = $('#spGo'); if (!go) { splashOut(); return; }
-  setTimeout(() => {
+  spDone = () => {
     if (st) st.textContent = 'READY'; splash.classList.add('done'); try { navigator.vibrate?.(20); } catch(e){}
     go.onclick = () => { go.classList.add('go'); try { sessionStorage.setItem('trainerStarted','1'); } catch(e){} setTimeout(() => splashOut(), 180); };
-  }, 500);
+  };
 }
 // เช็คเวอร์ชันใหม่ทุกครั้งที่เปิด (แอปบนหน้าจอโฮมชอบค้างเวอร์ชันเก่า) → เจอใหม่กว่าโหลดใหม่เอง 1 ครั้ง
 (async () => { try {
@@ -119,25 +135,51 @@ async function startFor(user){
     $('#gRetry').onclick = () => location.reload(); $('#gOut2').onclick = () => auth.signOut();
   }
 }
-const step = t => { splashPct(spPct + 22); inStep = true; try { const m = $('#gMsg'); if (m) m.innerHTML = msgHTML(t); else showGate(`<p class="tiny">${esc(t)}</p>`); } finally { inStep = false; } };
+const step = t => { splashPct(spPct + 20); inStep = true; try { const m = $('#gMsg'); if (m) m.innerHTML = msgHTML(t); else showGate(`<p class="tiny">${esc(t)}</p>`); } finally { inStep = false; } };
+// โหลดข้อมูลตั้งต้นพร้อมกันทีเดียว · ถ้าการเชื่อมต่อค้าง → ตัดแล้วต่อใหม่เองสูงสุด 3 รอบก่อนจะแจ้งว่าโหลดไม่ได้
+const kickNet = () => { try { return fs.disableNetwork().then(() => fs.enableNetwork()).catch(() => {}); } catch(e){ return Promise.resolve(); } };
+async function fetchBoot(uid){
+  for (let n = 0;; n++){
+    try {
+      const [adm, m, p] = await withTimeout(Promise.all([fs.doc('meta/admin').get(), fs.doc('members/'+uid).get(), fs.doc(`users/${uid}/program/days`).get()]), n ? 12000 : 7000, 'timeout');
+      return {isAdmin: adm.exists && adm.data().uid === uid, member: m.exists ? m.data() : null, program: p.exists ? p.data() : null};
+    } catch(e){
+      const net = e?.code === 'timeout' || e?.code === 'unavailable' || e?.code === 'deadline-exceeded';
+      if (!net) throw {message: 'โหลดข้อมูลไม่ได้: ' + errTxt(e) + ' — กดลองใหม่'};
+      if (n >= 2) throw {message: 'เชื่อมต่อฐานข้อมูลไม่ได้ — ตรวจอินเทอร์เน็ตแล้วกดลองใหม่'};
+      const g = $('#gMsg'); if (g) g.innerHTML = msgHTML('การเชื่อมต่อช้า กำลังลองใหม่…');
+      await kickNet();
+    }
+  }
+}
 async function startInner(user){
   const uid = user.uid;
   let member = null, isAdmin = false, program = null;
   step('กำลังตรวจสิทธิ์บัญชี…');
-  const adm = await withTimeout(fs.doc('meta/admin').get(), 15000, 'เชื่อมต่อฐานข้อมูลไม่ได้ (หมดเวลา) — ตรวจอินเทอร์เน็ตแล้วกดลองใหม่');
-  isAdmin = adm.exists && adm.data().uid === uid;
-  const m = await withTimeout(fs.doc('members/'+uid).get(), 15000, 'โหลดข้อมูลสมาชิกไม่ได้ (หมดเวลา)'); member = m.exists ? m.data() : null;
+  // เคยเข้าแล้ว → ใช้ข้อมูลที่จำไว้ในเครื่องเปิดแอปได้เลยถ้าฐานข้อมูลตอบช้า (ไม่ค้างรอ) แล้วค่อยอัปเดตตามหลัง
+  const key = 'trainerBoot:' + uid; let cached = null; try { cached = JSON.parse(localStorage.getItem(key) || 'null'); } catch(e){}
+  const save = d => { try { localStorage.setItem(key, JSON.stringify(d)); } catch(e){} };
+  const live = fetchBoot(uid); let data = null, fromCache = false;
+  if (cached && (cached.member || cached.isAdmin)){
+    data = await Promise.race([live.catch(() => null), new Promise(r => setTimeout(() => r(null), 2500))]);
+    if (!data){ data = cached; fromCache = true;
+      live.then(d => { save(d); if (!d.member && !d.isAdmin){ try { localStorage.removeItem(key); } catch(e){} location.reload(); } }).catch(() => {}); }
+  } else data = await live;
+  if (!fromCache) save(data);
+  ({member, isAdmin, program} = data);
   if (!member && !isAdmin){
+    try { localStorage.removeItem(key); } catch(e){}
     showGate(`<p>บัญชีนี้ยังไม่ได้รับสิทธิ์ใช้งาน — ติดต่อผู้ดูแล</p><button id="gOut">ออกจากระบบ</button>`);
     $('#gOut').onclick = () => auth.signOut(); return;
   }
   step('กำลังโหลดโปรแกรม…');
-  try { const p = await withTimeout(fs.doc(`users/${uid}/program/days`).get(), 15000, 'program'); if (p.exists) program = p.data(); } catch(e){ throw {message: e?.code==='timeout' ? 'โหลดโปรแกรมไม่ได้ (หมดเวลา) — กดลองใหม่' : 'โหลดโปรแกรมไม่ได้: ' + errTxt(e) + ' — กดลองใหม่'}; }
-  try { const sref = fs.doc(`users/${uid}/settings/main`);
+  // ธีม/ค่าตั้งต้น: ทำตามหลัง ไม่ให้หน้าโหลดต้องรอ
+  (async () => { try { const sref = fs.doc(`users/${uid}/settings/main`);
     const sdoc = await sref.get(); applyTheme(sdoc.exists ? sdoc.data().theme : '');
     if (!sdoc.exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
       const iso = `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
-      await sref.set({oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:iso, rampExtra:[0,1,2,0], targets:null}); } } catch(e){}
+      await sref.set({oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:iso, rampExtra:[0,1,2,0], targets:null}); } } catch(e){} })();
+  window.__bootProg = fromCache ? [program] : [];
   started = true; gate.hidden = true; gate.innerHTML = '';
   window.__PROGRAM = program;
   window.__ACCOUNT = {uid, username: member?.username || user.email.replace(DOMAIN,''), isAdmin};
@@ -147,7 +189,7 @@ async function startInner(user){
   window.claude = {use: async k => k==='db' ? db : k==='user' ? {canEdit: async () => true} : null};
   const s = document.createElement('script'); s.src = 'app.js?v=' + (window.APP_VER||1);
   splashPct(88);
-  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid); splashReady(); };
+  s.onload = () => { accountUI(user, isAdmin); watchProgram(uid, ...window.__bootProg); splashReady(); };
   s.onerror = () => splashOut();
   document.body.appendChild(s);
 }
