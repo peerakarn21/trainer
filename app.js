@@ -1102,19 +1102,46 @@ const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเ
 const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
 const dm = iso => { const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
 const CWD = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+// แปลงข้อความรายเซ็ตแบบเก่า (ช่อง training ที่ขึ้นต้นบรรทัดด้วย ▸ ├ └ → 💡) ให้เป็นข้อมูลรายท่า เพื่อแสดงแบบเดียวกับรูปแบบใหม่
+const CTAG = {'🟢':'hit','🟡':'short','🔴':'low','⚪':'light','⚫':'none'};
+function coachParseTraining(tr){
+  const lines = Array.isArray(tr) ? tr : String(tr || '').split('\n'), by = {}, insight = [], rest = []; let cur = null, hit = false;
+  for (const raw of lines){ const l = String(raw).trim(); if (!l) continue;
+    if (l.startsWith('▸')){ const ps = l.slice(1).split(' · ').map(s => s.trim()); hit = true;
+      cur = by[ps[0]] = {range: (ps.find((x,k) => k > 0 && /เป้า|ช่วง|TM/.test(x)) || '').replace(/^(เป้า|ช่วง)\s*/,'').replace(/\s*ครั้ง$/,''), muscle: ps.length > 2 ? ps[ps.length-1] : '', sets: [], comment: ''}; }
+    else if (/^[├└]/.test(l) && cur){ const m = l.match(/([\d.]+)\s*×\s*([\d.]+|–)/), e = Object.keys(CTAG).find(k => l.includes(k));
+      if (m) cur.sets.push({w: m[1], reps: m[2], tag: e ? CTAG[e] : '', label: e ? l.slice(l.indexOf(e) + e.length).trim() : ''}); }
+    else if (l.startsWith('→') && cur) cur.comment = l.slice(1).trim();
+    else if (l.startsWith('💡')) insight.push(l.replace(/^💡\s*/,''));
+    else if (!/^(📊|สีบอกอะไร|🟢 )/.test(l)) rest.push(l);
+  }
+  return hit ? {by, insight: insight.join('\n'), rest} : null;
+}
+const VGROUP = [['up','เพิ่มน้ำหนัก'],['hold','คงเดิม · เพิ่มจำนวนครั้ง'],['down','ลดน้ำหนัก'],['form','แก้ฟอร์ม'],['swap','เปลี่ยนท่า'],['','อื่นๆ']];
 function coachDetail(c, when, daily){
   const list = (cls, t, arr) => Array.isArray(arr) && arr.length ? `<section class="cs ${cls}"><h4>${t}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>` : '';
-  const text = (cls, t, s) => s ? `<section class="cs ${cls}"><h4>${t}</h4><p>${esc(Array.isArray(s) ? s.join('\n') : s)}</p></section>` : '';
-  const exs = Array.isArray(c.exercises) ? c.exercises.filter(x => x && x.name) : [];
-  const exBlock = exs.length ? `<section class="cs ex"><h4>ท่าเล่น</h4><div class="cx-list">${exs.map(x => { const v = VERD[x.verdict];
-    return `<div class="cx"><div class="cx-top"><b>${esc(x.name)}</b>${v ? `<span class="cx-chip ${v[1]}">${v[0]}</span>` : ''}</div>${x.next ? `<div class="cx-next">ครั้งหน้า ${esc(x.next)}</div>` : ''}${x.note ? `<div class="cx-note">${esc(x.note)}</div>` : ''}</div>`; }).join('')}</div></section>` : '';
+  const text = (cls, t, s) => s && (!Array.isArray(s) || s.length) ? `<section class="cs ${cls}"><h4>${t}</h4><p>${esc(Array.isArray(s) ? s.join('\n') : s)}</p></section>` : '';
+  const parsed = coachParseTraining(c.training);
+  const exs = (Array.isArray(c.exercises) ? c.exercises.filter(x => x && x.name) : []).map(x => { const o = parsed?.by[x.name] || {};
+    return {...x, range: x.range || o.range || '', muscle: x.muscle || o.muscle || '', sets: Array.isArray(x.sets) && x.sets.length ? x.sets : (o.sets || []), note: x.note || '', comment: x.comment || o.comment || ''}; });
+  const all = exs.flatMap(x => x.sets), cnt = k => all.filter(s => s.tag === k).length;
+  const mins = c.stats?.minutes ?? (daily && c.date ? logs.get(c.date)?.workout?.durationMin : null);
+  const cell = (v, l, cls='') => `<div class="cst"><b class="${cls}">${v}</b><span>${l}</span></div>`;
+  const stats = daily && all.length ? `<div class="cst-row">${cell(c.stats?.sets ?? all.length, 'เซ็ต')}${cell(mins != null ? fmt(mins,0) : '–', 'นาที')}${cell(c.stats?.hit ?? cnt('hit'), 'ครบเป้า', 'g')}${cell(c.stats?.short ?? cnt('short'), 'ยังไม่ครบ', 'y')}</div>` : '';
+  const item = x => `<div class="cg-item"><div class="cg-name">${esc(x.name)}</div>${x.range || x.muscle ? `<div class="cg-meta">${[x.range ? 'เป้า ' + esc(x.range) + (/^\d/.test(x.range) ? ' ครั้ง' : '') : '', esc(x.muscle)].filter(Boolean).join(' · ')}</div>` : ''}${x.next ? `<div class="cg-next">ครั้งหน้า ${esc(x.next)}</div>` : ''}${x.sets.length ? `<div class="cg-pills">${x.sets.map(s => `<span class="cg-pill ${esc(s.tag||'')}"${s.label ? ` title="${esc(s.label)}"` : ''}>${esc(String(s.w ?? '–'))} × ${esc(String(s.reps ?? '–'))}</span>`).join('')}</div>` : ''}${(x.comment || x.note) ? `<p class="cg-note">${esc(x.comment || x.note)}</p>` : ''}</div>`;
+  const groups = VGROUP.map(([k, l]) => { const L = exs.filter(x => k ? x.verdict === k : !VGROUP.some(g => g[0] && g[0] === x.verdict)); if (!L.length) return '';
+    return `<div class="cg"><div class="cg-head"><span class="cx-chip ${(VERD[k]||[])[1] || 'hold'}">${l}</span><em>${L.length} ท่า</em></div><div class="cg-list">${L.map(item).join('')}</div></div>`; }).join('');
+  const legend = all.length ? `<div class="cg-legend"><span><i class="hit"></i>ครบเป้า</span><span><i class="short"></i>ยังไม่ครบ</span><span><i class="low"></i>หนักไป</span><span><i class="light"></i>วอร์ม/เบาไป</span></div>` : '';
+  const exBlock = exs.length ? `<section class="cs ex"><h4>ท่าเล่น (${exs.length})</h4>${legend}${groups}</section>` : '';
+  const insight = c.insight || parsed?.insight || '';
+  const train = parsed ? (parsed.rest.length && !exs.length ? c.training : '') : c.training;
   const st = ST[c.status];
   return `<article class="cd ${esc(c.status||'')}">
     <div class="cd-head"><div class="cd-when">${when}</div><h3>${esc(c.title||'ประเมินผล')}</h3>${st ? `<span class="cd-st">${st[1]}</span>` : ''}</div>
-    ${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}
+    ${stats}${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}
     ${daily
-      ? list('act','ทำครั้งหน้า', c.actions) + exBlock + text('train','เทคนิคและความหนัก', c.training)
-      : list('act','แผนสัปดาห์หน้า', c.actions) + exBlock + text('food','อาหาร', c.nutrition) + text('train','การฝึกและเทคนิค', c.training) + text('rec','การพักฟื้น', c.recovery) + list('win','ทำได้ดี', c.wins) + list('chg','ข้อเสนอปรับแผน', c.changes)}
+      ? list('act','ทำครั้งหน้า', c.actions) + exBlock + text('train','เทคนิคและความหนัก', train) + text('tip','ข้อสังเกตหลัก', insight)
+      : list('act','แผนสัปดาห์หน้า', c.actions) + exBlock + text('food','อาหาร', c.nutrition) + text('train','การฝึกรายวัน', c.training) + text('rec','การพักฟื้น', c.recovery) + list('win','ทำได้ดี', c.wins) + list('chg','ข้อเสนอปรับแผน', c.changes) + text('tip','ข้อสังเกตหลัก', c.insight)}
   </article>`;
 }
 function weekStats(mon){
@@ -1308,13 +1335,18 @@ ${days}${hasMain ? `
 รายวัน = ประเมินการฝึกของวันนั้นเท่านั้น สั้น กระชับ ไม่ใส่เรื่องอาหาร การพักฟื้น หรือภาพรวมสัปดาห์ (เรื่องพวกนั้นไปอยู่ในรายสัปดาห์) วันที่ไม่ได้ฝึกไม่ต้องเขียน
 1. อ่านข้อมูลล่าสุด (ทาง ก หรือข้อความที่ผมวาง)
 2. ประเมินทีละท่าของวันที่ฝึก เทียบกับครั้งก่อนของวันเดียวกัน: ท่าไหนพร้อมเพิ่มน้ำหนัก เพิ่มเป็นกี่กก. ท่าไหนคงไว้ ท่าไหนแรงตก · ท่าใหญ่ดู 1RM ประมาณการเทียบครั้งก่อน
-3. (เฉพาะทาง ก) เขียนผลลงเว็บ แล้วอ่านกลับมาเช็คว่าเขียนสำเร็จ — หน้าโค้ชแสดงรายวันแค่ 4 ส่วนนี้:
+3. (เฉพาะทาง ก) เขียนผลลงเว็บ แล้วอ่านกลับมาเช็คว่าเขียนสำเร็จ — รูปแบบเต็มอยู่ในเอกสารโปรเจกต์ claude/trainer-coach-format-v2.md (อ่านก่อนเขียน) หน้าโค้ชจัดกลุ่มท่าตามผล (เพิ่มน้ำหนัก / คงเดิม / ลด / แก้ฟอร์ม) และแสดงรายเซ็ตเป็นป้ายสี:
   await base.collection('coach').doc('<YYYY-MM-DD>').set({
     date:'<YYYY-MM-DD>', type:'daily', status:'good' | 'warn' | 'alert', title:'หัวข้อสั้นๆ ของการฝึกวันนี้',
     summary:'ภาพรวมการฝึกวันนี้ 1–2 บรรทัด',
-    exercises:[{name:'ชื่อท่าตรงกับในเว็บ', verdict:'up' | 'hold' | 'down' | 'form', next:'น้ำหนัก × ครั้ง ที่ให้เล่นครั้งหน้า', note:'เหตุผลสั้นๆ 1 บรรทัด'}],
+    stats:{sets:27, minutes:104},
     actions:['สิ่งที่ต้องทำครั้งหน้า ไม่เกิน 3 ข้อ'],
-    training:'ข้อสังเกตเรื่องเทคนิค/ความหนัก/เวลาเล่น (ใส่เฉพาะเมื่อมีเรื่องสำคัญ)', createdAt:new Date().toISOString()});
+    exercises:[{name:'ชื่อท่าตรงกับในเว็บ', range:'6–10', muscle:'อก', verdict:'up' | 'hold' | 'down' | 'form',
+      next:'น้ำหนัก × ครั้ง ที่ให้เล่นครั้งหน้า', note:'ความเห็น 1–2 บรรทัด',
+      sets:[{w:60, reps:12, tag:'warm'}, {w:70, reps:10, tag:'hit'}, {w:75, reps:6, tag:'short'}]}],
+    insight:'ข้อสังเกตหลักของวัน 1–2 บรรทัด', createdAt:new Date().toISOString()});
+  tag ของแต่ละเซ็ต: 'hit' = ครบเป้า (ถึงช่วงบน) · 'short' = อยู่ในช่วงแต่ยังไม่ครบ · 'low' = ต่ำกว่าช่วง (หนักไป) · 'light' = เกินช่วง (เบาไป) · 'warm' = เซ็ตวอร์ม/ไล่น้ำหนัก
+  ไม่ต้องเขียนช่อง training เป็นข้อความรายเซ็ตอีก (ข้อมูลรายเซ็ตอยู่ใน exercises[].sets แล้ว)
 
 == เมื่อผมพิมพ์ว่า "ประเมินสัปดาห์" (รายสัปดาห์ จันทร์–อาทิตย์) ==
 ภาพรวมทั้งสัปดาห์: มาฝึกกี่วันจากแผน ท่าใหญ่แต่ละท่าเทียบสัปดาห์ก่อน ท่าเสริมที่ขึ้นเด่น/ค้างนาน/แรงตก ค่าเฉลี่ยอาหารเทียบเป้า และแผนสัปดาห์หน้า:
