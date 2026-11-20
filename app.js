@@ -1096,7 +1096,7 @@ function renderProgress(){
 
 // ---------- coach ----------
 const ST = {good:['✓','ตามแผน'], warn:['!','ต้องปรับเล็กน้อย'], alert:['!!','ต้องแก้ด่วน']};
-let coachTab = 'daily', coachWeek = null, coachDay = null, coachBlock = null, props = [];
+let coachTab = 'daily', coachWeek = null, coachDay = null, coachBlock = null, coachExGroup = null, props = [];
 const coachType = c => c.type === 'weekly' ? 'weekly' : 'daily';
 const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเดิม','hold'], down:['ลดน้ำหนัก','down'], form:['แก้ฟอร์ม','form'], swap:['เปลี่ยนท่า','form']};
 const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
@@ -1129,8 +1129,11 @@ function coachDetail(c, when, daily){
   const cell = (v, l, cls='') => `<div class="cst"><b class="${cls}">${v}</b><span>${l}</span></div>`;
   const stats = daily && all.length ? `<div class="cst-row">${cell(c.stats?.sets ?? all.length, 'เซ็ต')}${cell(mins != null ? fmt(mins,0) : '–', 'นาที')}${cell(c.stats?.hit ?? cnt('hit'), 'ครบเป้า', 'g')}${cell(c.stats?.short ?? cnt('short'), 'ยังไม่ครบ', 'y')}</div>` : '';
   const item = x => `<div class="cg-item"><div class="cg-name">${esc(x.name)}</div>${x.range || x.muscle ? `<div class="cg-meta">${[x.range ? 'เป้า ' + esc(x.range) + (/^\d/.test(x.range) ? ' ครั้ง' : '') : '', esc(x.muscle)].filter(Boolean).join(' · ')}</div>` : ''}${x.next ? `<div class="cg-next">ครั้งหน้า ${esc(x.next)}</div>` : ''}${x.sets.length ? `<div class="cg-pills">${x.sets.map(s => `<span class="cg-pill ${esc(s.tag||'')}"${s.label ? ` title="${esc(s.label)}"` : ''}>${esc(String(s.w ?? '–'))} × ${esc(String(s.reps ?? '–'))}</span>`).join('')}</div>` : ''}${(x.comment || x.note) ? `<p class="cg-note">${esc(x.comment || x.note)}</p>` : ''}</div>`;
-  const groups = VGROUP.map(([k, l]) => { const L = exs.filter(x => k ? x.verdict === k : !VGROUP.some(g => g[0] && g[0] === x.verdict)); if (!L.length) return '';
-    return `<div class="cg"><div class="cg-head"><span class="cx-chip ${(VERD[k]||[])[1] || 'hold'}">${l}</span><em>${L.length} ท่า</em></div><div class="cg-list">${L.map(item).join('')}</div></div>`; }).join('');
+  const gList = VGROUP.map(([k, l]) => [k || 'other', l, exs.filter(x => k ? x.verdict === k : !VGROUP.some(g => g[0] && g[0] === x.verdict))]).filter(g => g[2].length);
+  const gSel = gList.some(g => g[0] === coachExGroup) ? coachExGroup : null;
+  const gCls = k => ({up:'up', hold:'hold', down:'down', form:'form', swap:'form'})[k] || 'hold';
+  const filter = gList.length > 1 ? `<div class="cgf">${gList.map(([k, l, L]) => `<button type="button" class="cgf-b ${gCls(k)}${gSel === k ? ' on' : ''}" data-cg="${k}"><b>${L.length}</b><span>${l.split(' · ')[0]}</span></button>`).join('')}</div>${gSel ? `<button type="button" class="cgf-all" data-cg="">ดูทุกหมวด</button>` : ''}` : '';
+  const groups = filter + gList.filter(g => !gSel || g[0] === gSel).map(([k, l, L]) => `<div class="cg"><div class="cg-head ${gCls(k)}"><span>${l}</span><em>${L.length} ท่า</em></div><div class="cg-list">${L.map(item).join('')}</div></div>`).join('');
   const legend = all.length ? `<div class="cg-legend"><span><i class="hit"></i>ครบเป้า</span><span><i class="short"></i>ยังไม่ครบ</span><span><i class="low"></i>หนักไป</span><span><i class="light"></i>วอร์ม/เบาไป</span></div>` : '';
   const exBlock = exs.length ? `<section class="cs ex"><h4>ท่าเล่น (${exs.length})</h4>${legend}${groups}</section>` : '';
   const insight = c.insight || parsed?.insight || '';
@@ -1212,7 +1215,7 @@ function renderCoach(){
   const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์'],['props','รออนุมัติ']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}${k==='props'&&nPend?` <em class="ct-badge">${nPend}</em>`:''}</button>`).join('')}</div>`;
   if (coachTab === 'props'){
     box.innerHTML = tabs + propsHTML();
-    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; renderCoach(); });
+    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; renderCoach(); });
     box.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => propDecide(b.dataset.id, b.dataset.pa, b));
     return;
   }
@@ -1233,10 +1236,11 @@ function renderCoach(){
       : `<div class="card cd-empty"><p class="muted" style="margin:0">ยังไม่มีสรุปของสัปดาห์นี้ — โค้ชจะเขียนให้ตอนจบสัปดาห์</p></div>`);
   }
   box.innerHTML = tabs + nav + body;
-  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; renderCoach(); });
-  box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; coachBlock = null; renderCoach(); });
-  box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; coachBlock = null; renderCoach(); });
-  box.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => { coachBlock = b.dataset.cb || null; renderCoach();
+  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; renderCoach(); });
+  box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; coachBlock = null; coachExGroup = null; renderCoach(); });
+  box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; coachBlock = null; coachExGroup = null; renderCoach(); });
+  box.querySelectorAll('[data-cg]').forEach(b => b.onclick = () => { coachExGroup = b.dataset.cg && b.dataset.cg !== coachExGroup ? b.dataset.cg : null; renderCoach(); });
+  box.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => { coachBlock = b.dataset.cb || null; coachExGroup = null; renderCoach();
     const top = box.getBoundingClientRect().top + scrollY - 8; if (scrollY > top) scrollTo({top, behavior:'smooth'}); });
 }
 
