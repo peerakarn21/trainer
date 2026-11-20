@@ -588,6 +588,19 @@ function sessKeep(){ try { localStorage.setItem(SESS_LS, JSON.stringify({date:cu
 function sessMin(){ if (!sess.start) return null; const e = sess.end || sess.last || sess.start; return Math.max(0, Math.round((Date.parse(e) - Date.parse(sess.start))/60000)); }
 const hm = iso => new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 const durTxt = m => m>=60 ? `${Math.floor(m/60)} ชม. ${m%60} นาที` : `${m} นาที`;
+// ล้างเวลาที่จับไว้ของวันนี้ (กด 2 ครั้งเพื่อยืนยัน) → เริ่มนับใหม่เมื่อกด ✓ เซ็ตถัดไป
+let clrT = null;
+function sessClear(e){
+  const b = e.currentTarget;
+  if (!b.classList.contains('ask')){ b.classList.add('ask'); b.textContent = 'ยืนยันล้าง?'; clearTimeout(clrT); clrT = setTimeout(() => { if (b.isConnected){ b.classList.remove('ask'); b.textContent = 'ล้างเวลา'; } }, 3000); return; }
+  clearTimeout(clrT);
+  sess = {start:null, end:null, last:null}; if (curDate===isoLocal(new Date())) sessKeep();
+  const l = logs.get(curDate), w = l?.workout, had = !!(w && (w.startedAt || w.endedAt || w.durationMin != null));
+  if (w){ delete w.startedAt; delete w.lastSetAt; delete w.endedAt; delete w.durationMin; }
+  const el = document.getElementById('sessClock'); if (el) el.className = 'sessclock';
+  paintClock();
+  if (had) save(true);
+}
 function paintClock(){
   const el = document.getElementById('sessClock'); if (!el) return;
   const live = curDate===isoLocal(new Date());
@@ -595,7 +608,8 @@ function paintClock(){
   el.hidden = false;
   if (sess.end || !live){
     const m = sessMin(); el.className = 'sessclock end';
-    el.innerHTML = `⏱ เล่นทั้งหมด <b>${durTxt(m)}</b> · ${hm(sess.start)}–${hm(sess.end || sess.last || sess.start)}${sess.end?'':' (ถึงเซ็ตสุดท้าย)'}`;
+    el.innerHTML = `<span class="sc-t">⏱ เล่นทั้งหมด <b>${durTxt(m)}</b> · ${hm(sess.start)}–${hm(sess.end || sess.last || sess.start)}${sess.end?'':' (ถึงเซ็ตสุดท้าย)'}</span><span class="sc-b"><button class="clr" type="button">ล้างเวลา</button></span>`;
+    el.querySelector('.clr').onclick = sessClear;
     return;
   }
   const sec = Math.max(0, Math.floor((Date.now() - Date.parse(sess.start))/1000));
@@ -603,8 +617,9 @@ function paintClock(){
   const tEl = el.querySelector('#scT');
   if (el.className === 'sessclock run' && tEl){ if (tEl.textContent !== t) tEl.textContent = t; return; }   // อัปเดตแค่ตัวเลข ไม่วาดปุ่มใหม่ทุกวินาที
   el.className = 'sessclock run';
-  el.innerHTML = `<span class="sc-t">⏱ เล่นไปแล้ว <b id="scT">${t}</b> · เริ่ม ${hm(sess.start)}</span><button class="fin" type="button">จบการฝึก</button>`;
+  el.innerHTML = `<span class="sc-t">⏱ เล่นไปแล้ว <b id="scT">${t}</b> · เริ่ม ${hm(sess.start)}</span><span class="sc-b"><button class="clr" type="button">ล้างเวลา</button><button class="fin" type="button">จบการฝึก</button></span>`;
   el.querySelector('.fin').onclick = () => save(false);
+  el.querySelector('.clr').onclick = sessClear;
 }
 setInterval(paintClock, 1000);
 

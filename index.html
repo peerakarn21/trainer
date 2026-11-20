@@ -272,7 +272,10 @@ header{padding-top:calc(env(safe-area-inset-top) + 10px)}
   .srow input{min-height:44px}
   .wrap{padding:0 12px}
 }
-.sessclock.run{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sessclock.run,.sessclock.end{display:flex;align-items:center;justify-content:space-between;gap:6px 8px;flex-wrap:wrap}
+.sessclock .sc-b{display:flex;gap:6px;flex:0 0 auto;margin-left:auto}
+.sessclock .clr{flex:0 0 auto;margin:0;padding:6px 10px;font-size:13px;border-radius:10px;opacity:.85}
+.sessclock .clr.ask{opacity:1;background:#c62828!important;border-color:#c62828!important;color:#fff!important}
 .sessclock .sc-t{min-width:0}
 main{overflow-x:clip}
 .sessclock .fin{float:none;margin:0;flex:0 0 auto;padding:6px 12px;font-size:13.5px;border-radius:10px;background:#2a1f3d!important;border:1px solid #5c4390!important;color:#e3d6ff!important}
@@ -1032,6 +1035,6 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 </script>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795146824";</script><script src="config.js"></script><script src="boot.js?v=1795146824"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795148137";</script><script src="config.js"></script><script src="boot.js?v=1795148137"></script>
 </body>
 </html>
