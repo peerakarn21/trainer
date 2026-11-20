@@ -1102,7 +1102,7 @@ const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเ
 const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
 const dm = iso => { const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
 const CWD = ['จ','อ','พ','พฤ','ศ','ส','อา'];
-function coachDetail(c, when){
+function coachDetail(c, when, daily){
   const list = (cls, t, arr) => Array.isArray(arr) && arr.length ? `<section class="cs ${cls}"><h4>${t}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>` : '';
   const text = (cls, t, s) => s ? `<section class="cs ${cls}"><h4>${t}</h4><p>${esc(Array.isArray(s) ? s.join('\n') : s)}</p></section>` : '';
   const exs = Array.isArray(c.exercises) ? c.exercises.filter(x => x && x.name) : [];
@@ -1112,7 +1112,9 @@ function coachDetail(c, when){
   return `<article class="cd ${esc(c.status||'')}">
     <div class="cd-head"><div class="cd-when">${when}</div><h3>${esc(c.title||'ประเมินผล')}</h3>${st ? `<span class="cd-st">${st[1]}</span>` : ''}</div>
     ${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}
-    ${list('act','ทำครั้งหน้า', c.actions)}${exBlock}${text('food','อาหาร', c.nutrition)}${text('train','การฝึกและเทคนิค', c.training)}${text('rec','การพักฟื้น', c.recovery)}${list('win','ทำได้ดี', c.wins)}${list('chg','ข้อเสนอปรับแผน', c.changes)}
+    ${daily
+      ? list('act','ทำครั้งหน้า', c.actions) + exBlock + text('train','เทคนิคและความหนัก', c.training)
+      : list('act','แผนสัปดาห์หน้า', c.actions) + exBlock + text('food','อาหาร', c.nutrition) + text('train','การฝึกและเทคนิค', c.training) + text('rec','การพักฟื้น', c.recovery) + list('win','ทำได้ดี', c.wins) + list('chg','ข้อเสนอปรับแผน', c.changes)}
   </article>`;
 }
 function weekStats(mon){
@@ -1139,7 +1141,7 @@ function renderCoach(){
     const strip = `<div class="cday-row">${days.map(d => { const c = byDate.get(d), i = Math.round(dayNum(d) - dayNum(mon));
       return `<button type="button" data-cd="${d}" class="cday${d===coachDay?' on':''}${c?' has '+esc(c.status||''):''}${d===today?' today':''}"><span class="cday-w">${CWD[i]}</span><span class="cday-d">${+d.slice(8)}</span><i></i></button>`; }).join('')}</div>`;
     const c = byDate.get(coachDay);
-    body = strip + (c ? coachDetail(c, thDate(coachDay))
+    body = strip + (c ? coachDetail(c, thDate(coachDay), true)
       : `<div class="card cd-empty"><p class="muted" style="margin:0">${thDate(coachDay)} — ${coachDay > today ? 'ยังไม่ถึงวันนี้' : trained(coachDay) ? 'ฝึกแล้ว แต่โค้ชยังไม่ได้เขียนผลประเมิน' : 'ยังไม่มีผลประเมิน'}</p></div>`);
   } else {
     const c = weekly.find(w => { const d = w.weekEnd || w.date; return d && d >= mon && d <= sun; });
@@ -1267,22 +1269,24 @@ ${days}${hasMain ? `
 ผมไม่ได้บันทึกน้ำหนักตัว/การนอน
 
 == เมื่อผมพิมพ์ว่า "ประเมิน" (รายวัน) ==
+รายวัน = ประเมินการฝึกของวันนั้นเท่านั้น สั้น กระชับ ไม่ใส่เรื่องอาหาร การพักฟื้น หรือภาพรวมสัปดาห์ (เรื่องพวกนั้นไปอยู่ในรายสัปดาห์) วันที่ไม่ได้ฝึกไม่ต้องเขียน
 1. อ่านข้อมูลล่าสุด (ทาง ก หรือข้อความที่ผมวาง)
-2. ประเมินแต่ละท่าของวันล่าสุดที่ฝึก: ท่าไหนพร้อมเพิ่มน้ำหนัก เพิ่มเป็นกี่กก. ท่าไหนคงไว้ ท่าไหนแรงตกและน่าจะเพราะอะไร · ท่าใหญ่ดู 1RM ประมาณการเทียบครั้งก่อน
-3. ถ้ามีข้อมูลอาหาร เทียบโปรตีน/แคลอรี่กับเป้า
-4. (เฉพาะทาง ก) เขียนผลลงเว็บ แล้วอ่านกลับมาเช็คว่าเขียนสำเร็จ — หน้าโค้ชของเว็บแสดงแยกเป็นบล็อกตามฟิลด์ ใส่เฉพาะฟิลด์ที่มีเรื่องจะบอกจริง:
+2. ประเมินทีละท่าของวันที่ฝึก เทียบกับครั้งก่อนของวันเดียวกัน: ท่าไหนพร้อมเพิ่มน้ำหนัก เพิ่มเป็นกี่กก. ท่าไหนคงไว้ ท่าไหนแรงตก · ท่าใหญ่ดู 1RM ประมาณการเทียบครั้งก่อน
+3. (เฉพาะทาง ก) เขียนผลลงเว็บ แล้วอ่านกลับมาเช็คว่าเขียนสำเร็จ — หน้าโค้ชแสดงรายวันแค่ 4 ส่วนนี้:
   await base.collection('coach').doc('<YYYY-MM-DD>').set({
-    date:'<YYYY-MM-DD>', type:'daily', status:'good' | 'warn' | 'alert', title:'หัวข้อสั้นๆ',
-    summary:'ภาพรวมของวัน 2–4 บรรทัด',
-    actions:['สิ่งที่ต้องทำครั้งหน้า ข้อละ 1 เรื่อง'],
-    exercises:[{name:'ชื่อท่าตรงกับในเว็บ', verdict:'up' | 'hold' | 'down' | 'form', next:'น้ำหนัก × ครั้ง ที่ให้เล่นครั้งหน้า', note:'เหตุผล/คำแนะนำสั้นๆ'}],
-    nutrition:'คำแนะนำเรื่องอาหาร (ถ้ามีข้อมูล)', training:'เทคนิค ความหนัก เวลาเล่น', recovery:'การพัก/คาร์ดิโอ (ถ้ามีเรื่องจะบอก)',
-    wins:['สิ่งที่ทำได้ดี'], changes:['สิ่งที่เสนอให้ปรับแผน (ต้องถามผมก่อนแก้จริง)'], createdAt:new Date().toISOString()});
+    date:'<YYYY-MM-DD>', type:'daily', status:'good' | 'warn' | 'alert', title:'หัวข้อสั้นๆ ของการฝึกวันนี้',
+    summary:'ภาพรวมการฝึกวันนี้ 1–2 บรรทัด',
+    exercises:[{name:'ชื่อท่าตรงกับในเว็บ', verdict:'up' | 'hold' | 'down' | 'form', next:'น้ำหนัก × ครั้ง ที่ให้เล่นครั้งหน้า', note:'เหตุผลสั้นๆ 1 บรรทัด'}],
+    actions:['สิ่งที่ต้องทำครั้งหน้า ไม่เกิน 3 ข้อ'],
+    training:'ข้อสังเกตเรื่องเทคนิค/ความหนัก/เวลาเล่น (ใส่เฉพาะเมื่อมีเรื่องสำคัญ)', createdAt:new Date().toISOString()});
 
 == เมื่อผมพิมพ์ว่า "ประเมินสัปดาห์" (รายสัปดาห์ จันทร์–อาทิตย์) ==
-สรุปทั้งสัปดาห์: มาฝึกกี่วันจากแผน ท่าใหญ่แต่ละท่าเทียบสัปดาห์ก่อน ท่าเสริมที่ขึ้น/ค้าง/ตก ค่าเฉลี่ยอาหารเทียบเป้า และแผนสัปดาห์หน้า — เขียนด้วยฟิลด์ชุดเดียวกัน แต่:
-  await base.collection('coach').doc('week-<วันอาทิตย์ YYYY-MM-DD>').set({date:'<วันอาทิตย์>', type:'weekly', weekStart:'<วันจันทร์>', weekEnd:'<วันอาทิตย์>', …ฟิลด์เดียวกับรายวัน…});
-  exercises ของรายสัปดาห์ = เฉพาะท่าที่มีเรื่องต้องบอก (ขึ้นเด่น ค้างนาน แรงตก) · actions = แผนสัปดาห์หน้า
+ภาพรวมทั้งสัปดาห์: มาฝึกกี่วันจากแผน ท่าใหญ่แต่ละท่าเทียบสัปดาห์ก่อน ท่าเสริมที่ขึ้นเด่น/ค้างนาน/แรงตก ค่าเฉลี่ยอาหารเทียบเป้า และแผนสัปดาห์หน้า:
+  await base.collection('coach').doc('week-<วันอาทิตย์ YYYY-MM-DD>').set({date:'<วันอาทิตย์>', type:'weekly', weekStart:'<วันจันทร์>', weekEnd:'<วันอาทิตย์>', status:'good' | 'warn' | 'alert', title:'หัวข้อของสัปดาห์',
+    summary:'ภาพรวม 3–5 บรรทัด', actions:['แผนสัปดาห์หน้า ข้อละ 1 เรื่อง'],
+    exercises:[{name, verdict, next, note}] (เฉพาะท่าใหญ่ + ท่าที่มีเรื่องต้องบอก ไม่ต้องครบทุกท่า),
+    nutrition:'อาหารเฉลี่ยเทียบเป้า', training:'ปริมาณ/ความหนัก/เวลาเล่น', recovery:'การพัก/คาร์ดิโอ', wins:['ทำได้ดี'], changes:['ข้อเสนอปรับแผน (ต้องถามผมก่อนแก้จริง)'], createdAt:new Date().toISOString()});
+เขียนสั้น เป็นภาษาไทยธรรมดา มีตัวเลขประกอบ ใส่เฉพาะฟิลด์ที่มีเรื่องจะบอกจริง
 
 == ตั้งเวลา (ทำเมื่อผมสั่งในแชทนี้) ==
 ถ้าผมบอกให้ตั้งเวลา ให้สร้างงานตั้งเวลา 2 งานจากแชทนี้ โดยใช้คอมที่ล็อกอินเว็บไว้: รายวันหลังผมฝึกเสร็จ (ประมาณ 22:00 เวลาไทย) และรายสัปดาห์ทุกคืนวันอาทิตย์ — แต่ละงานทำตามขั้นตอนประเมินข้างบนและเขียนผลลงเว็บ ถามเวลาที่ผมต้องการก่อนสร้าง
