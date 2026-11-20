@@ -1096,7 +1096,7 @@ function renderProgress(){
 
 // ---------- coach ----------
 const ST = {good:['✓','ตามแผน'], warn:['!','ต้องปรับเล็กน้อย'], alert:['!!','ต้องแก้ด่วน']};
-let coachTab = 'daily', coachWeek = null, coachDay = null;
+let coachTab = 'daily', coachWeek = null, coachDay = null, props = [];
 const coachType = c => c.type === 'weekly' ? 'weekly' : 'daily';
 const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเดิม','hold'], down:['ลดน้ำหนัก','down'], form:['แก้ฟอร์ม','form'], swap:['เปลี่ยนท่า','form']};
 const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
@@ -1126,12 +1126,48 @@ function weekStats(mon){
   const cell = (v, l) => `<div class="ws"><b>${v}</b><span>${l}</span></div>`;
   return `<div class="ws-row">${cell(`${done}/${plan}`, 'วันที่ฝึก')}${cell(dur != null ? durTxt(Math.round(dur)) : '–', 'เวลาเฉลี่ย')}${cell(pro != null ? fmt(pro,0)+' ก.' : '–', 'โปรตีนเฉลี่ย')}${cell(kc != null ? fmt(kc,0) : '–', 'kcal เฉลี่ย')}</div>`;
 }
+// ---------- ข้อเสนอปรับโปรแกรม (แชทตรวจเขียน → ผู้ใช้อนุมัติที่นี่ → แชทตรวจ/แชทพัฒนาระบบลงมือ) ----------
+const PKIND = {setting:'ปรับการตั้งค่า', dev:'แก้เว็บ/โปรแกรม', coach:'ถึงโค้ช'};
+const PSTAT = {pending:'รออนุมัติ', approved:'อนุมัติแล้ว · รอดำเนินการ', rejected:'ไม่อนุมัติ', applied:'ทำแล้ว'};
+function propCard(p, act){
+  const when = p.date ? thDate(p.date) : (p.createdAt ? thDate(String(p.createdAt).slice(0,10)) : '');
+  const line = (l, v) => v ? `<div class="pp-line"><span>${l}</span><p>${esc(Array.isArray(v) ? v.join('\n') : v)}</p></div>` : '';
+  const chg = (p.from != null || p.to != null) ? `<div class="pp-chg"><span>${esc(p.field || 'ค่า')}</span><b>${esc(String(p.from ?? '–'))}</b><i>→</i><b>${esc(String(p.to ?? '–'))}</b></div>` : '';
+  return `<article class="pp ${esc(p.status||'')}">
+    <div class="pp-top"><span class="pp-kind k-${esc(p.kind||'')}">${PKIND[p.kind] || 'ข้อเสนอ'}</span><span class="pp-when">${when}</span></div>
+    <h3>${esc(p.title || 'ข้อเสนอ')}</h3>${chg}${line('รายละเอียด', p.detail)}${line('เหตุผล', p.reason)}${line('ผลการดำเนินการ', p.result)}
+    ${act ? `<div class="pp-act"><button type="button" class="primary" data-pa="approved" data-id="${esc(p.id)}">อนุมัติ</button><button type="button" data-pa="rejected" data-id="${esc(p.id)}">ไม่อนุมัติ</button></div>` : `<div class="pp-st">${p.kind === 'coach' && p.status === 'pending' ? 'รอโค้ชแก้' : (PSTAT[p.status] || '')}</div>`}
+  </article>`;
+}
+function propsHTML(){
+  const need = props.filter(p => p.kind !== 'coach' && p.status === 'pending'), wait = props.filter(p => p.kind !== 'coach' && p.status === 'approved');
+  const notes = props.filter(p => p.kind === 'coach' && p.status === 'pending'), done = props.filter(p => p.status === 'applied' || p.status === 'rejected');
+  let h = '';
+  h += need.length ? need.map(p => propCard(p, true)).join('') : `<div class="card cd-empty"><p class="muted" style="margin:0">ไม่มีข้อเสนอที่รออนุมัติ — เมื่อแชทตรวจเสนอปรับโปรแกรม จะขึ้นที่นี่ให้กดอนุมัติ</p></div>`;
+  if (wait.length) h += `<div class="sec-title">อนุมัติแล้ว รอดำเนินการ</div>` + wait.map(p => propCard(p, false)).join('');
+  if (notes.length) h += `<div class="sec-title">ข้อทักท้วงที่ส่งให้โค้ชแก้</div>` + notes.map(p => propCard(p, false)).join('');
+  if (done.length) h += `<details class="fold"><summary>ประวัติ (${done.length})</summary><div class="inner">${done.slice(0,30).map(p => propCard(p, false)).join('')}</div></details>`;
+  return h;
+}
+async function propDecide(id, status, btn){
+  if (!db || !id) return;
+  const row = btn.closest('.pp-act'); row.querySelectorAll('button').forEach(b => b.disabled = true);
+  try { await db.doc('proposals/'+id).update({status, decidedAt: new Date().toISOString()}); const p = props.find(x => x.id === id); if (p) p.status = status; renderCoach(); }
+  catch(e){ row.querySelectorAll('button').forEach(b => b.disabled = false); btn.textContent = 'บันทึกไม่ได้ ลองใหม่'; }
+}
 function renderCoach(){
   const box = $('#coachList'); if (!box) return;
   const today = isoLocal(new Date()), daily = coach.filter(c => coachType(c) === 'daily' && c.date), weekly = coach.filter(c => coachType(c) === 'weekly');
   if (!coachWeek) coachWeek = mondayOf(daily[0]?.date || today);
   const mon = coachWeek, sun = addDays(mon, 6), thisMon = mondayOf(today);
-  const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}</button>`).join('')}</div>`;
+  const nPend = props.filter(p => p.kind !== 'coach' && p.status === 'pending').length;
+  const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์'],['props','รออนุมัติ']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}${k==='props'&&nPend?` <em class="ct-badge">${nPend}</em>`:''}</button>`).join('')}</div>`;
+  if (coachTab === 'props'){
+    box.innerHTML = tabs + propsHTML();
+    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; renderCoach(); });
+    box.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => propDecide(b.dataset.id, b.dataset.pa, b));
+    return;
+  }
   const nav = `<div class="cw-nav"><button type="button" data-cw="-7" aria-label="สัปดาห์ก่อน">‹</button><span>${mon === thisMon ? 'สัปดาห์นี้ · ' : ''}${dm(mon)} – ${dm(sun)}</span><button type="button" data-cw="7" aria-label="สัปดาห์ถัดไป"${mon >= thisMon ? ' disabled' : ''}>›</button></div>`;
   let body = '';
   if (coachTab === 'daily'){
@@ -1287,6 +1323,11 @@ ${days}${hasMain ? `
     exercises:[{name, verdict, next, note}] (เฉพาะท่าใหญ่ + ท่าที่มีเรื่องต้องบอก ไม่ต้องครบทุกท่า),
     nutrition:'อาหารเฉลี่ยเทียบเป้า', training:'ปริมาณ/ความหนัก/เวลาเล่น', recovery:'การพัก/คาร์ดิโอ', wins:['ทำได้ดี'], changes:['ข้อเสนอปรับแผน (ต้องถามผมก่อนแก้จริง)'], createdAt:new Date().toISOString()});
 เขียนสั้น เป็นภาษาไทยธรรมดา มีตัวเลขประกอบ ใส่เฉพาะฟิลด์ที่มีเรื่องจะบอกจริง
+
+== กระดานกลางระหว่างแชท ==
+มีแชทตรวจคอยตรวจผลประเมินของคุณ ก่อนประเมินทุกครั้งให้อ่านเอกสารโปรเจกต์ claude/trainer-board.md แล้วอ่านข้อทักท้วงที่ส่งถึงโค้ช:
+  (await base.collection('proposals').where('kind','==','coach').get()).docs.map(d => ({id:d.id, ...d.data()})).filter(p => p.status === 'pending')
+ถ้ามี: แก้ผลประเมินวันนั้นตามที่ทักท้วง (ถ้าเห็นต่างให้เขียนเหตุผลใน result) แล้ว update เอกสารนั้นเป็น {status:'applied', result:'แก้อะไรไป', appliedAt:new Date().toISOString()}
 
 == ตั้งเวลา (ทำเมื่อผมสั่งในแชทนี้) ==
 ถ้าผมบอกให้ตั้งเวลา ให้สร้างงานตั้งเวลา 2 งานจากแชทนี้ โดยใช้คอมที่ล็อกอินเว็บไว้: รายวันหลังผมฝึกเสร็จ (ประมาณ 22:00 เวลาไทย) และรายสัปดาห์ทุกคืนวันอาทิตย์ — แต่ละงานทำตามขั้นตอนประเมินข้างบนและเขียนผลลงเว็บ ถามเวลาที่ผมต้องการก่อนสร้าง
@@ -1769,6 +1810,7 @@ route(); renderAll(); renderCoach(); renderSummary();
     renderSummary(); renderFood();
   }, onErr);
   db.collection('coach').orderBy('date','desc').limit(60).onSnapshot(s => { coach = s.docs.map(d => d.data()); renderCoach(); }, onErr);
+  db.collection('proposals').orderBy('createdAt','desc').limit(60).onSnapshot(s => { props = s.docs.map(d => ({...d.data(), id: d.id || d.data().id})); renderCoach(); }, e => console.warn('proposals', e));
   db.doc('program/swaps').onSnapshot(s => {
     const m = (s.exists && s.data()?.map) || {};
     if (JSON.stringify(m) !== JSON.stringify(swaps)){ swaps = m; renderWorkout(); renderDayPlan(); renderSwapList(); renderSummary(); }
