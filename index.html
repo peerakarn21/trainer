@@ -239,6 +239,28 @@ details.evold>summary::-webkit-details-marker{display:none}
 .ws{border:1px solid var(--line);border-radius:14px;background:var(--surface-1);padding:12px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .ws b{font-size:19px;font-weight:700;line-height:1.25} .ws span{font-size:12.5px;color:var(--text-muted)}
 .cd-empty{margin-bottom:16px}
+.cbk-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px}
+.cbk-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:14px 13px 13px;border-radius:16px;min-height:104px;min-width:0;font:inherit;color:var(--text-primary)}
+.cbk-tile .cbk-ic{font-size:22px;line-height:1;margin-bottom:6px}
+.cbk-tile b{font-size:15px;font-weight:700;line-height:1.3}
+.cbk-tile small{font-size:12.5px;color:var(--text-muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.cbk-grid>.cbk-tile:last-child:nth-child(odd){grid-column:1/-1;min-height:84px}
+.cbk-tile i{position:absolute;top:12px;right:12px;font-style:normal;color:var(--text-muted);font-size:18px;line-height:1}
+.cbk-tile.act{border-color:var(--accent)!important} .cbk-tile.act b{color:var(--accent)}
+.cbk-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+.cbk-back{padding:8px 12px;font-size:14px;font-weight:700;border-radius:11px}
+.cbk-when{font-size:12.5px;color:var(--text-muted);text-align:right}
+.cbk-title{display:flex;align-items:center;gap:10px;margin:0 0 12px} .cbk-title h3{margin:0;font-size:18px;font-weight:700}
+.cbk-ic{font-size:22px;line-height:1}
+.cbk-one{padding-bottom:16px}
+.cbk-one .cg:first-of-type{margin-top:10px}
+.cb-ul{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.cb-ul li{position:relative;padding-left:20px;font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.cb-ul li::before{content:"";position:absolute;left:3px;top:.66em;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.cbk-one.act .cb-ul li{font-weight:600} .cbk-one.win .cb-ul li::before{background:var(--good)} .cbk-one.chg .cb-ul li::before{background:var(--warning)}
+.cb-p{margin:0;white-space:pre-line;font-size:15px;line-height:1.7;overflow-wrap:anywhere}
+.cbk-more{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
+.cbk-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;font-size:13.5px;font-weight:600;border-radius:999px}
 .cst-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 12px}
 .cst{background:var(--surface-2);border-radius:12px;padding:9px 4px;text-align:center;min-width:0}
 .cst b{display:block;font-size:18px;font-weight:700;line-height:1.2} .cst span{font-size:11.5px;color:var(--text-muted)}
@@ -1127,6 +1149,6 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 </script>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795191921";</script><script src="config.js"></script><script src="boot.js?v=1795191921"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795202519";</script><script src="config.js"></script><script src="boot.js?v=1795202519"></script>
 </body>
 </html>

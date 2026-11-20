@@ -1096,7 +1096,7 @@ function renderProgress(){
 
 // ---------- coach ----------
 const ST = {good:['✓','ตามแผน'], warn:['!','ต้องปรับเล็กน้อย'], alert:['!!','ต้องแก้ด่วน']};
-let coachTab = 'daily', coachWeek = null, coachDay = null, props = [];
+let coachTab = 'daily', coachWeek = null, coachDay = null, coachBlock = null, props = [];
 const coachType = c => c.type === 'weekly' ? 'weekly' : 'daily';
 const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเดิม','hold'], down:['ลดน้ำหนัก','down'], form:['แก้ฟอร์ม','form'], swap:['เปลี่ยนท่า','form']};
 const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
@@ -1136,13 +1136,34 @@ function coachDetail(c, when, daily){
   const insight = c.insight || parsed?.insight || '';
   const train = parsed ? (parsed.rest.length && !exs.length ? c.training : '') : c.training;
   const st = ST[c.status];
-  return `<article class="cd ${esc(c.status||'')}">
-    <div class="cd-head"><div class="cd-when">${when}</div><h3>${esc(c.title||'ประเมินผล')}</h3>${st ? `<span class="cd-st">${st[1]}</span>` : ''}</div>
-    ${stats}${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}
-    ${daily
-      ? list('act','ทำครั้งหน้า', c.actions) + exBlock + text('train','เทคนิคและความหนัก', train) + text('tip','ข้อสังเกตหลัก', insight)
-      : list('act','แผนสัปดาห์หน้า', c.actions) + exBlock + text('food','อาหาร', c.nutrition) + text('train','การฝึกรายวัน', c.training) + text('rec','การพักฟื้น', c.recovery) + list('win','ทำได้ดี', c.wins) + list('chg','ข้อเสนอปรับแผน', c.changes) + text('tip','ข้อสังเกตหลัก', c.insight)}
-  </article>`;
+  // แต่ละหัวข้อเป็นบล็อกให้กดเข้าไปดู
+  const has = v => Array.isArray(v) ? v.length > 0 : !!v;
+  const ul = arr => `<ul class="cb-ul">${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+  const para = s => `<p class="cb-p">${esc(Array.isArray(s) ? s.join('\n') : s)}</p>`;
+  const first = s => { const x = String(Array.isArray(s) ? s[0] : s || '').split('\n')[0]; return x.length > 46 ? x.slice(0, 44) + '…' : x; };
+  const nUp = exs.filter(x => x.verdict === 'up').length;
+  const blocks = (daily ? [
+    ['act','🎯','ทำครั้งหน้า', c.actions, () => ul(c.actions), () => `${c.actions.length} ข้อ`],
+    ['ex','🏋️','ท่าเล่น', exs, () => legend + groups, () => `${exs.length} ท่า${nUp ? ` · ขึ้นน้ำหนัก ${nUp}` : ''}`],
+    ['tip','💡','ข้อสังเกตหลัก', insight, () => para(insight), () => first(insight)],
+    ['train','🛠️','เทคนิคและความหนัก', train, () => para(train), () => first(train)],
+  ] : [
+    ['act','🎯','แผนสัปดาห์หน้า', c.actions, () => ul(c.actions), () => `${c.actions.length} ข้อ`],
+    ['ex','🏋️','ท่าเล่น', exs, () => groups, () => `${exs.length} ท่า${nUp ? ` · ขึ้นน้ำหนัก ${nUp}` : ''}`],
+    ['food','🍽️','อาหาร', c.nutrition, () => para(c.nutrition), () => first(c.nutrition)],
+    ['train','📅','การฝึกรายวัน', c.training, () => para(c.training), () => first(c.training)],
+    ['rec','😴','การพักฟื้น', c.recovery, () => para(c.recovery), () => first(c.recovery)],
+    ['win','⭐','ทำได้ดี', c.wins, () => ul(c.wins), () => `${(c.wins||[]).length} ข้อ`],
+    ['chg','📝','ข้อเสนอปรับแผน', c.changes, () => ul(c.changes), () => `${(c.changes||[]).length} ข้อ`],
+    ['tip','💡','ข้อสังเกตหลัก', c.insight, () => para(c.insight), () => first(c.insight)],
+  ]).filter(b => has(b[3]));
+  const open = blocks.find(b => b[0] === coachBlock);
+  const head = `<div class="cd-head"><div class="cd-when">${when}</div><h3>${esc(c.title||'ประเมินผล')}</h3>${st ? `<span class="cd-st">${st[1]}</span>` : ''}</div>`;
+  if (open) return `<div class="cbk-bar"><button type="button" class="cbk-back" data-cb="">‹ หัวข้อทั้งหมด</button><span class="cbk-when">${when}</span></div>
+    <article class="cd cbk-one ${esc(open[0])}"><div class="cbk-title"><span class="cbk-ic">${open[1]}</span><h3>${open[2]}</h3></div>${open[4]()}</article>
+    ${blocks.length > 1 ? `<div class="cbk-more">${blocks.filter(b => b !== open).map(b => `<button type="button" class="cbk-chip" data-cb="${b[0]}"><span>${b[1]}</span>${b[2]}</button>`).join('')}</div>` : ''}`;
+  return `<article class="cd ${esc(c.status||'')}">${head}${stats}${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}</article>
+    ${blocks.length ? `<div class="cbk-grid">${blocks.map(b => `<button type="button" class="cbk-tile ${b[0]}" data-cb="${b[0]}"><span class="cbk-ic">${b[1]}</span><b>${b[2]}</b><small>${esc(b[5]())}</small><i>›</i></button>`).join('')}</div>` : ''}`;
 }
 function weekStats(mon){
   const days = Array.from({length:7}, (_,i) => addDays(mon, i)), ls = days.map(d => logs.get(d)).filter(Boolean);
@@ -1191,7 +1212,7 @@ function renderCoach(){
   const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์'],['props','รออนุมัติ']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}${k==='props'&&nPend?` <em class="ct-badge">${nPend}</em>`:''}</button>`).join('')}</div>`;
   if (coachTab === 'props'){
     box.innerHTML = tabs + propsHTML();
-    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; renderCoach(); });
+    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; renderCoach(); });
     box.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => propDecide(b.dataset.id, b.dataset.pa, b));
     return;
   }
@@ -1212,9 +1233,11 @@ function renderCoach(){
       : `<div class="card cd-empty"><p class="muted" style="margin:0">ยังไม่มีสรุปของสัปดาห์นี้ — โค้ชจะเขียนให้ตอนจบสัปดาห์</p></div>`);
   }
   box.innerHTML = tabs + nav + body;
-  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; renderCoach(); });
-  box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; renderCoach(); });
-  box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; renderCoach(); });
+  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; renderCoach(); });
+  box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; coachBlock = null; renderCoach(); });
+  box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; coachBlock = null; renderCoach(); });
+  box.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => { coachBlock = b.dataset.cb || null; renderCoach();
+    const top = box.getBoundingClientRect().top + scrollY - 8; if (scrollY > top) scrollTo({top, behavior:'smooth'}); });
 }
 
 // ---------- data summary for the coach chat ----------
