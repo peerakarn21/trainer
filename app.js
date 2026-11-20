@@ -1096,36 +1096,60 @@ function renderProgress(){
 
 // ---------- coach ----------
 const ST = {good:['✓','ตามแผน'], warn:['!','ต้องปรับเล็กน้อย'], alert:['!!','ต้องแก้ด่วน']};
-let coachTab = 'daily';
+let coachTab = 'daily', coachWeek = null, coachDay = null;
 const coachType = c => c.type === 'weekly' ? 'weekly' : 'daily';
 const VERD = {up:['เพิ่มน้ำหนัก','up'], hold:['คงเดิม','hold'], down:['ลดน้ำหนัก','down'], form:['แก้ฟอร์ม','form'], swap:['เปลี่ยนท่า','form']};
-function coachWhen(c){
-  if (coachType(c) === 'weekly' && c.weekStart) return `${thDate(c.weekStart)} – ${thDate(c.weekEnd || c.date)}`;
-  return c.date ? thDate(c.date) : '';
-}
-function coachBody(c){
-  const list = (cls, t, arr) => Array.isArray(arr) && arr.length ? `<section class="cb ${cls}"><h4>${t}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>` : '';
-  const text = (cls, t, s) => s ? `<section class="cb ${cls}"><h4>${t}</h4><p>${esc(Array.isArray(s) ? s.join('\n') : s)}</p></section>` : '';
+const addDays = (iso, n) => { const [y,m,d] = iso.split('-').map(Number); return isoLocal(new Date(y, m-1, d+n)); };
+const dm = iso => { const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
+const CWD = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+function coachDetail(c, when){
+  const list = (cls, t, arr) => Array.isArray(arr) && arr.length ? `<section class="cs ${cls}"><h4>${t}</h4><ul>${arr.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></section>` : '';
+  const text = (cls, t, s) => s ? `<section class="cs ${cls}"><h4>${t}</h4><p>${esc(Array.isArray(s) ? s.join('\n') : s)}</p></section>` : '';
   const exs = Array.isArray(c.exercises) ? c.exercises.filter(x => x && x.name) : [];
-  const exBlock = exs.length ? `<section class="cb ex"><h4>ท่าเล่น</h4><div class="cx-list">${exs.map(x => { const v = VERD[x.verdict];
-    return `<div class="cx"><div class="cx-top"><b>${esc(x.name)}</b>${v ? `<span class="cx-chip ${v[1]}">${v[0]}</span>` : ''}</div>${x.next ? `<div class="cx-next">ครั้งหน้า: ${esc(x.next)}</div>` : ''}${x.note ? `<div class="cx-note">${esc(x.note)}</div>` : ''}</div>`; }).join('')}</div></section>` : '';
-  return text('sum','สรุป', c.summary) + list('act','สิ่งที่ต้องทำครั้งหน้า', c.actions) + exBlock + text('food','อาหาร', c.nutrition) + text('train','การฝึกและเทคนิค', c.training) + text('rec','การพักฟื้น', c.recovery) + list('win','ทำได้ดี', c.wins) + list('chg','ปรับแผน', c.changes);
+  const exBlock = exs.length ? `<section class="cs ex"><h4>ท่าเล่น</h4><div class="cx-list">${exs.map(x => { const v = VERD[x.verdict];
+    return `<div class="cx"><div class="cx-top"><b>${esc(x.name)}</b>${v ? `<span class="cx-chip ${v[1]}">${v[0]}</span>` : ''}</div>${x.next ? `<div class="cx-next">ครั้งหน้า ${esc(x.next)}</div>` : ''}${x.note ? `<div class="cx-note">${esc(x.note)}</div>` : ''}</div>`; }).join('')}</div></section>` : '';
+  const st = ST[c.status];
+  return `<article class="cd ${esc(c.status||'')}">
+    <div class="cd-head"><div class="cd-when">${when}</div><h3>${esc(c.title||'ประเมินผล')}</h3>${st ? `<span class="cd-st">${st[1]}</span>` : ''}</div>
+    ${c.summary ? `<p class="cd-sum">${esc(c.summary)}</p>` : ''}
+    ${list('act','ทำครั้งหน้า', c.actions)}${exBlock}${text('food','อาหาร', c.nutrition)}${text('train','การฝึกและเทคนิค', c.training)}${text('rec','การพักฟื้น', c.recovery)}${list('win','ทำได้ดี', c.wins)}${list('chg','ข้อเสนอปรับแผน', c.changes)}
+  </article>`;
 }
-function coachCard(c, latest){
-  const head = `<span class="ev-dot"></span><span class="ev-title">${esc(c.title||'ประเมินผล')}</span><span class="ev-date">${coachWhen(c)}</span>`;
-  if (latest) return `<div class="ev ${esc(c.status||'')}"><div class="ev-head">${head}</div><div class="cb-wrap">${coachBody(c)}</div></div>`;
-  return `<details class="evold ev ${esc(c.status||'')}"><summary>${head}</summary><div class="cb-wrap">${coachBody(c)}</div></details>`;
+function weekStats(mon){
+  const days = Array.from({length:7}, (_,i) => addDays(mon, i)), ls = days.map(d => logs.get(d)).filter(Boolean);
+  const done = days.filter(d => trained(d)).length, plan = Object.entries(DAYS).filter(([k,d]) => k !== 'rest' && d).length;
+  const avg = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : null;
+  const dur = avg(ls.map(l => l.workout?.durationMin).filter(x => x != null && x > 0));
+  const pro = avg(ls.map(l => l.protein).filter(x => x != null)), kc = avg(ls.map(l => l.kcal).filter(x => x != null));
+  const cell = (v, l) => `<div class="ws"><b>${v}</b><span>${l}</span></div>`;
+  return `<div class="ws-row">${cell(`${done}/${plan}`, 'วันที่ฝึก')}${cell(dur != null ? durTxt(Math.round(dur)) : '–', 'เวลาเฉลี่ย')}${cell(pro != null ? fmt(pro,0)+' ก.' : '–', 'โปรตีนเฉลี่ย')}${cell(kc != null ? fmt(kc,0) : '–', 'kcal เฉลี่ย')}</div>`;
 }
 function renderCoach(){
   const box = $('#coachList'); if (!box) return;
-  const n = {daily:0, weekly:0}; coach.forEach(c => n[coachType(c)]++);
-  const items = coach.filter(c => coachType(c) === coachTab);
-  const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}${n[k]?` <small>${n[k]}</small>`:''}</button>`).join('')}</div>`;
-  const empty = coachTab === 'weekly' ? 'ยังไม่มีสรุปรายสัปดาห์ — โค้ชจะเขียนให้ทุกคืนวันอาทิตย์' : 'ยังไม่มีผลประเมินรายวัน — โค้ชจะเขียนให้หลังวันที่ฝึก';
-  box.innerHTML = tabs + (items.length
-    ? coachCard(items[0], true) + (items.length > 1 ? `<div class="sec-title">ย้อนหลัง</div>` + items.slice(1).map(c => coachCard(c, false)).join('') : '')
-    : `<div class="card"><p class="muted" style="margin:0">${empty}</p></div>`);
+  const today = isoLocal(new Date()), daily = coach.filter(c => coachType(c) === 'daily' && c.date), weekly = coach.filter(c => coachType(c) === 'weekly');
+  if (!coachWeek) coachWeek = mondayOf(daily[0]?.date || today);
+  const mon = coachWeek, sun = addDays(mon, 6), thisMon = mondayOf(today);
+  const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}</button>`).join('')}</div>`;
+  const nav = `<div class="cw-nav"><button type="button" data-cw="-7" aria-label="สัปดาห์ก่อน">‹</button><span>${mon === thisMon ? 'สัปดาห์นี้ · ' : ''}${dm(mon)} – ${dm(sun)}</span><button type="button" data-cw="7" aria-label="สัปดาห์ถัดไป"${mon >= thisMon ? ' disabled' : ''}>›</button></div>`;
+  let body = '';
+  if (coachTab === 'daily'){
+    const byDate = new Map(daily.map(c => [c.date, c]));
+    const days = Array.from({length:7}, (_,i) => addDays(mon, i)).filter((d,i) => i < 5 || byDate.has(d) || trained(d));
+    if (!coachDay || coachDay < mon || coachDay > sun) coachDay = [...days].reverse().find(d => byDate.has(d)) || (today >= mon && today <= sun && days.includes(today) ? today : days[0]);
+    const strip = `<div class="cday-row">${days.map(d => { const c = byDate.get(d), i = Math.round(dayNum(d) - dayNum(mon));
+      return `<button type="button" data-cd="${d}" class="cday${d===coachDay?' on':''}${c?' has '+esc(c.status||''):''}${d===today?' today':''}"><span class="cday-w">${CWD[i]}</span><span class="cday-d">${+d.slice(8)}</span><i></i></button>`; }).join('')}</div>`;
+    const c = byDate.get(coachDay);
+    body = strip + (c ? coachDetail(c, thDate(coachDay))
+      : `<div class="card cd-empty"><p class="muted" style="margin:0">${thDate(coachDay)} — ${coachDay > today ? 'ยังไม่ถึงวันนี้' : trained(coachDay) ? 'ฝึกแล้ว แต่โค้ชยังไม่ได้เขียนผลประเมิน' : 'ยังไม่มีผลประเมิน'}</p></div>`);
+  } else {
+    const c = weekly.find(w => { const d = w.weekEnd || w.date; return d && d >= mon && d <= sun; });
+    body = weekStats(mon) + (c ? coachDetail(c, `${dm(c.weekStart || mon)} – ${dm(c.weekEnd || sun)}`)
+      : `<div class="card cd-empty"><p class="muted" style="margin:0">ยังไม่มีสรุปของสัปดาห์นี้ — โค้ชจะเขียนให้ตอนจบสัปดาห์</p></div>`);
+  }
+  box.innerHTML = tabs + nav + body;
   box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; renderCoach(); });
+  box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; renderCoach(); });
+  box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; renderCoach(); });
 }
 
 // ---------- data summary for the coach chat ----------
