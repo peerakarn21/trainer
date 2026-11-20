@@ -174,6 +174,7 @@ details.fold>summary::after{content:'›';color:var(--text-muted);transition:tra
 details.fold[open]>summary::after{transform:rotate(90deg)}
 details.fold>summary::-webkit-details-marker{display:none}
 details.fold>.inner{padding:0 16px 16px}
+.howlist{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px;line-height:1.5}
 /* coach blocks */
 .ev{border:1px solid var(--line);border-radius:12px;background:var(--surface-1);margin-bottom:12px;overflow:hidden}
 .ev-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
@@ -190,6 +191,29 @@ details.fold>.inner{padding:0 16px 16px}
 details.evold{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--surface-1)}
 details.evold>summary{padding:10px 14px;cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
 details.evold>summary::-webkit-details-marker{display:none}
+/* หน้าโค้ช: แยกบล็อก */
+.coachtabs{display:flex;gap:8px;margin:0 0 12px}
+.coachtabs button{flex:1;padding:10px 8px;font-weight:700;font-size:14.5px;border-radius:12px}
+.coachtabs button small{font-weight:600;opacity:.65;font-size:12px}
+.coachtabs button.on{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.cb-wrap{display:grid;gap:10px;padding:12px}
+.cb{border-radius:12px;padding:11px 13px;background:var(--surface-2);border-left:4px solid var(--line);min-width:0}
+.cb h4{margin:0 0 6px;font-size:12.5px;letter-spacing:.2px;color:var(--text-secondary);font-weight:700}
+.cb p{margin:0;white-space:pre-line;font-size:14.5px;line-height:1.55;overflow-wrap:anywhere}
+.cb ul{margin:0;padding-left:18px;font-size:14.5px;line-height:1.55;display:grid;gap:4px}
+.cb.sum{border-left-color:var(--text-muted)} .cb.act{border-left-color:var(--accent)} .cb.ex{border-left-color:#5b8def}
+.cb.food{border-left-color:#e0a030} .cb.train{border-left-color:#8f63f5} .cb.rec{border-left-color:#3aa7a0}
+.cb.win{border-left-color:var(--good)} .cb.chg{border-left-color:var(--warning)}
+.cb.act ul{font-weight:600}
+.cx-list{display:grid;gap:8px}
+.cx{padding:9px 10px;border-radius:10px;background:var(--surface-1);border:1px solid var(--line);min-width:0}
+.cx-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;font-size:14.5px}
+.cx-top b{min-width:0;overflow-wrap:anywhere}
+.cx-chip{flex:0 0 auto;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;background:var(--surface-2)}
+.cx-chip.up{background:#2e7d3226;color:var(--good)} .cx-chip.down{background:#c6282826;color:var(--critical)} .cx-chip.form{background:#e0a03026;color:var(--warning)} .cx-chip.hold{color:var(--text-secondary)}
+.cx-next{margin-top:4px;font-size:14px;font-weight:600}
+.cx-note{margin-top:2px;font-size:13.5px;color:var(--text-secondary);line-height:1.5;overflow-wrap:anywhere}
+details.evold>.cb-wrap{padding-top:0}
 .chipst{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);white-space:nowrap}
 .chipst.ready{color:var(--good)} .chipst.drop{color:var(--critical)} .chipst.hold{color:var(--text-secondary)}
 /* food */
@@ -894,9 +918,18 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 
   <!-- COACH -->
   <section class="view" id="v-coach">
-    <div class="sec-title">ผลประเมินล่าสุด</div>
     <div id="coachList"></div>
-    <details class="fold"><summary>ข้อความตั้งต้นสำหรับแชทโค้ช</summary><div class="inner">
+    <div class="sec-title">แชทโค้ช</div>
+    <details class="fold coachhow"><summary>วิธีใช้แชทโค้ช (ตั้งค่าครั้งแรก)</summary><div class="inner">
+      <ol class="howlist">
+        <li>สร้างแชทใหม่กับ Claude (ถ้าใช้โปรเจกต์ Trainer ให้สร้างในโปรเจกต์นั้น)</li>
+        <li>กด <b>คัดลอกข้อความตั้งต้น</b> แล้ววางในแชท — ทำครั้งเดียว</li>
+        <li>อยากให้ประเมินเมื่อไหร่ พิมพ์ว่า <b>ประเมิน</b> (รายวัน) หรือ <b>ประเมินสัปดาห์</b> — ผลจะมาขึ้นในหน้านี้</li>
+      </ol>
+      <p class="tiny" style="margin:8px 0 10px">ถ้าแชทเปิดเว็บเองไม่ได้ (เช่น ใช้จากมือถือ) ให้กด <b>คัดลอกข้อมูลการฝึก</b> แล้ววางในแชทแทน — ได้ผลประเมินในแชท แต่จะไม่ขึ้นในหน้านี้</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button id="copyPrompt2" class="primary" style="flex:1 1 100%">คัดลอกข้อความตั้งต้น</button><button id="copySummary2" style="flex:1 1 100%">คัดลอกข้อมูลการฝึก</button></div>
+    </div></details>
+    <details class="fold"><summary>ดูข้อความตั้งต้นทั้งหมด</summary><div class="inner">
       <div class="row"><button id="copyPrompt" style="flex:0 0 auto">คัดลอกข้อความตั้งต้น</button><span id="copyMsg" class="tiny" style="flex:1"></span></div>
       <pre class="sumtext" id="promptText"></pre>
     </div></details>
@@ -1035,6 +1068,6 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 </script>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795148137";</script><script src="config.js"></script><script src="boot.js?v=1795148137"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795182594";</script><script src="config.js"></script><script src="boot.js?v=1795182594"></script>
 </body>
 </html>
