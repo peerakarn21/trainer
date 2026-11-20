@@ -1190,15 +1190,26 @@ function propCard(p, act){
     ${act ? `<div class="pp-act"><button type="button" class="primary" data-pa="approved" data-id="${esc(p.id)}">อนุมัติ</button><button type="button" data-pa="rejected" data-id="${esc(p.id)}">ไม่อนุมัติ</button></div>` : `<div class="pp-st">${p.kind === 'coach' && p.status === 'pending' ? 'รอโค้ชแก้' : (PSTAT[p.status] || '')}</div>`}
   </article>`;
 }
+let propCat = null, propDate = null;
+const pDate = p => p.date || String(p.createdAt || '').slice(0,10);
 function propsHTML(){
-  const need = props.filter(p => p.kind !== 'coach' && p.status === 'pending'), wait = props.filter(p => p.kind !== 'coach' && p.status === 'approved');
-  const notes = props.filter(p => p.kind === 'coach' && p.status === 'pending'), done = props.filter(p => p.status === 'applied' || p.status === 'rejected');
-  let h = '';
-  h += need.length ? need.map(p => propCard(p, true)).join('') : `<div class="card cd-empty"><p class="muted" style="margin:0">ไม่มีข้อเสนอที่รออนุมัติ — เมื่อแชทตรวจเสนอปรับโปรแกรม จะขึ้นที่นี่ให้กดอนุมัติ</p></div>`;
-  if (wait.length) h += `<div class="sec-title">อนุมัติแล้ว รอดำเนินการ</div>` + wait.map(p => propCard(p, false)).join('');
-  if (notes.length) h += `<div class="sec-title">ข้อทักท้วงที่ส่งให้โค้ชแก้</div>` + notes.map(p => propCard(p, false)).join('');
-  if (done.length) h += `<details class="fold"><summary>ประวัติ (${done.length})</summary><div class="inner">${done.slice(0,30).map(p => propCard(p, false)).join('')}</div></details>`;
-  return h;
+  const cats = [
+    ['set','⚙️','ปรับการตั้งค่า','รวมใบสั่งแก้เว็บ/โปรแกรม', props.filter(p => p.kind !== 'coach'), p => p.status === 'pending', 'รออนุมัติ'],
+    ['coach','📣','ข้อทักท้วงที่ส่งให้โค้ชแก้','แชทตรวจส่ง โค้ชแก้เอง ไม่ต้องอนุมัติ', props.filter(p => p.kind === 'coach'), p => p.status === 'pending', 'รอโค้ชแก้'],
+  ];
+  const cat = cats.find(c => c[0] === propCat);
+  if (!cat) return `<div class="cbk-grid pc-grid">${cats.map(([k, ic, l, sub, L, wait, wl]) => { const n = L.filter(wait).length;
+    return `<button type="button" class="cbk-tile pc-tile ${k}" data-pc="${k}"><span class="cbk-ic">${ic}</span><b>${l}</b><small>${L.length ? `${n ? `${wl} ${n} · ` : ''}ทั้งหมด ${L.length} รายการ` : sub}</small>${n ? `<em class="ct-badge pc-badge">${n}</em>` : '<i>›</i>'}</button>`; }).join('')}</div>`;
+  const [k, ic, l, , L, wait, wl] = cat;
+  const dates = [...new Set(L.map(pDate))].sort().reverse();
+  const back = (to, txt) => `<div class="cbk-bar"><button type="button" class="cbk-back" data-pc="${to}">‹ ${txt}</button></div>`;
+  if (propDate && dates.includes(propDate)){
+    const items = L.filter(p => pDate(p) === propDate).sort((a,b) => (wait(b) - wait(a)) || String(b.createdAt).localeCompare(String(a.createdAt)));
+    return back(k, l) + `<div class="cbk-title pd-title"><span class="cbk-ic">${ic}</span><h3>${thDate(propDate)}</h3></div>` + items.map(p => propCard(p, p.kind !== 'coach' && p.status === 'pending')).join('');
+  }
+  if (!dates.length) return back('', 'รออนุมัติ') + `<div class="card cd-empty"><p class="muted" style="margin:0">ยังไม่มีรายการ — เมื่อแชทตรวจส่งรายการมา จะขึ้นที่นี่แยกตามวัน</p></div>`;
+  return back('', 'รออนุมัติ') + `<div class="cbk-title"><span class="cbk-ic">${ic}</span><h3>${l}</h3></div><div class="pd-list">${dates.map(d => { const D = L.filter(p => pDate(p) === d), n = D.filter(wait).length;
+    return `<button type="button" class="pd-b${n ? ' wait' : ''}" data-pd="${d}"><span class="pd-d">${thDate(d)}</span><span class="pd-s">${n ? `<em class="pd-n">${wl} ${n}</em>` : ''}${D.length - n ? `<span>${k === 'coach' ? 'แก้แล้ว' : 'ตัดสินแล้ว'} ${D.length - n}</span>` : ''}</span><i>›</i></button>`; }).join('')}</div>`;
 }
 async function propDecide(id, status, btn){
   if (!db || !id) return;
@@ -1215,7 +1226,9 @@ function renderCoach(){
   const tabs = `<div class="coachtabs" role="tablist">${[['daily','รายวัน'],['weekly','รายสัปดาห์'],['props','รออนุมัติ']].map(([k,l]) => `<button type="button" role="tab" data-ct="${k}" class="${coachTab===k?'on':''}" aria-selected="${coachTab===k}">${l}${k==='props'&&nPend?` <em class="ct-badge">${nPend}</em>`:''}</button>`).join('')}</div>`;
   if (coachTab === 'props'){
     box.innerHTML = tabs + propsHTML();
-    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; renderCoach(); });
+    box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; propCat = null; propDate = null; renderCoach(); });
+    box.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { propCat = b.dataset.pc || null; propDate = null; renderCoach(); });
+    box.querySelectorAll('[data-pd]').forEach(b => b.onclick = () => { propDate = b.dataset.pd; renderCoach(); const top = box.getBoundingClientRect().top + scrollY - 8; if (scrollY > top) scrollTo({top, behavior:'smooth'}); });
     box.querySelectorAll('[data-pa]').forEach(b => b.onclick = () => propDecide(b.dataset.id, b.dataset.pa, b));
     return;
   }
@@ -1236,7 +1249,7 @@ function renderCoach(){
       : `<div class="card cd-empty"><p class="muted" style="margin:0">ยังไม่มีสรุปของสัปดาห์นี้ — โค้ชจะเขียนให้ตอนจบสัปดาห์</p></div>`);
   }
   box.innerHTML = tabs + nav + body;
-  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; renderCoach(); });
+  box.querySelectorAll('[data-ct]').forEach(b => b.onclick = () => { coachTab = b.dataset.ct; coachBlock = null; coachExGroup = null; propCat = null; propDate = null; renderCoach(); });
   box.querySelectorAll('[data-cw]').forEach(b => b.onclick = () => { coachWeek = addDays(coachWeek, +b.dataset.cw); coachDay = null; coachBlock = null; coachExGroup = null; renderCoach(); });
   box.querySelectorAll('[data-cd]').forEach(b => b.onclick = () => { coachDay = b.dataset.cd; coachBlock = null; coachExGroup = null; renderCoach(); });
   box.querySelectorAll('[data-cg]').forEach(b => b.onclick = () => { coachExGroup = b.dataset.cg && b.dataset.cg !== coachExGroup ? b.dataset.cg : null; renderCoach(); });
