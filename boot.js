@@ -236,10 +236,37 @@ function accountUI(user, isAdmin){
       const rows = await Promise.all(q.docs.map(async d => {
         const m = d.data(), mine = d.id === acc.uid;
         let cur = '—'; try { const pd = await fs.doc(`users/${d.id}/program/days`).get(); cur = pd.exists ? (pd.data().name || 'โปรแกรมกำหนดเอง') : 'โปรแกรมเริ่มต้น'; } catch(e){}
-        const set = mine ? '' : `<div class="row" style="margin-top:6px;align-items:center;gap:6px"><select data-mtpl="${esc(d.id)}" style="flex:1;min-width:0"><option value="">— เลือกโปรแกรม —</option>${tplOpts()}</select><button data-mset="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:0 0 auto">ใช้โปรแกรมนี้</button></div>`;
+        const set = mine ? '' : `<div class="row" style="margin-top:6px;align-items:center;gap:6px"><select data-mtpl="${esc(d.id)}" style="flex:1;min-width:0"><option value="">— เลือกโปรแกรม —</option>${tplOpts()}</select><button data-mset="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:0 0 auto">ใช้โปรแกรมนี้</button></div>
+          <div class="row" style="margin-top:6px;gap:6px"><button data-mcyc="${esc(d.id)}" style="flex:1">รีเซ็ตรอบ 5/3/1</button><button data-mwipe="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:1;color:var(--bad,#e5484d)">ล้างเป็นบัญชีใหม่</button></div>
+          <div class="tiny" data-mres="${esc(d.id)}" style="margin-top:4px"></div>`;
         return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(m.username)}</b>${m.admin||mine?' (แอดมิน)':''} <span style="opacity:.6">สร้าง ${esc((m.createdAt||'').slice(0,10))}</span><br><span style="opacity:.8">โปรแกรมตอนนี้: ${esc(cur)}</span>${set}</div>`;
       }));
       $('#adList').innerHTML = rows.join('') || 'ยังไม่มี';
+      // แตะครั้งแรก = เตรียม · แตะซ้ำภายใน 4 วิ = ทำจริง
+      const twoTap = (b, label, run) => { let armed = false, tm = null; b.onclick = async () => {
+        if (!armed){ armed = true; b.textContent = 'แตะอีกครั้งเพื่อยืนยัน'; tm = setTimeout(() => { armed = false; b.textContent = label; }, 4000); return; }
+        clearTimeout(tm); armed = false; b.disabled = true; b.textContent = 'กำลังทำ…';
+        const out = $(`[data-mres="${b.dataset.mcyc || b.dataset.mwipe}"]`);
+        try { await run(); b.textContent = 'เสร็จแล้ว ✓'; if (out) out.textContent = ''; }
+        catch(e){ b.disabled = false; b.textContent = label; if (out) out.textContent = 'ไม่สำเร็จ: ' + errTxt(e); }
+      }; };
+      const FV = firebase.firestore.FieldValue;
+      // รีเซ็ตเฉพาะรอบ 5/3/1 → ยังไม่เริ่มโปรแกรม (เก็บ TM/1RM และประวัติที่กรอกไว้)
+      $('#adList').querySelectorAll('[data-mcyc]').forEach(b => twoTap(b, 'รีเซ็ตรอบ 5/3/1', async () => {
+        await fs.doc(`users/${b.dataset.mcyc}/settings/main`).set({cycle:1, cycleStart:null, rampExtra:[0,1,2,0], lag:{}, tmPending:{}, prevTm:FV.delete(), history:[], cycleResetAt:new Date().toISOString(), updatedAt:new Date().toISOString()}, {merge:true});
+      }));
+      // ล้างข้อมูลทั้งหมดของบัญชี (ชื่อผู้ใช้/รหัสผ่านเหมือนเดิม) → บัญชีใหม่ ยังไม่เริ่มโปรแกรม
+      $('#adList').querySelectorAll('[data-mwipe]').forEach(b => twoTap(b, 'ล้างเป็นบัญชีใหม่', async () => {
+        const base = `users/${b.dataset.mwipe}`;
+        for (const c of ['logs','coach','proposals','templates']){
+          const q = await fs.collection(`${base}/${c}`).get();
+          for (let i = 0; i < q.docs.length; i += 400){ const bt = fs.batch(); q.docs.slice(i, i+400).forEach(d => bt.delete(d.ref)); await bt.commit(); }
+        }
+        const bt = fs.batch();
+        ['foodlib/recent','program/swaps','program/days','summary/current'].forEach(x => bt.delete(fs.doc(`${base}/${x}`)));
+        bt.set(fs.doc(`${base}/settings/main`), {oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null, wipedAt:new Date().toISOString()});
+        await bt.commit(); setTimeout(loadList, 1200);
+      }));
       $('#adList').querySelectorAll('[data-mset]').forEach(b => b.onclick = async () => {
         const uid = b.dataset.mset, k = $(`[data-mtpl="${uid}"]`).value, tp = tpls[k];
         if (!tp){ b.textContent = 'เลือกโปรแกรมก่อน'; setTimeout(() => b.textContent = 'ใช้โปรแกรมนี้', 1500); return; }

@@ -1541,7 +1541,7 @@ document.addEventListener('change', async e => {
 // ---------- new cycle page ----------
 let cycArm = false;
 function liftProposal(l, cyc, tm){
-    const byWk = {}; sortedLogs().forEach(x => { const w = x.workout; if (w?.lift===l && (w.cycle||1)===cyc && w.week>=1 && w.week<=3 && w.amrapReps!=null) byWk[w.week] = w.amrapReps; });
+    const byWk = {}; sortedLogs().forEach(x => { const w = x.workout; if (settings?.cycleStart && x.date < settings.cycleStart) return; if (w?.lift===l && (w.cycle||1)===cyc && w.week>=1 && w.week<=3 && w.amrapReps!=null) byWk[w.week] = w.amrapReps; });
     const fail = [1,2,3].find(k => byWk[k]!=null && byWk[k] < AMRAP_MIN[k]);
     const sug = tm==null ? null : fail ? floor25(tm*.9) : tm + LIFTS[l].inc;
     return {sug, fail, byWk};
@@ -1552,7 +1552,7 @@ function cycleProposal(){
     const tm = tmOf(l);
     // กฎ Wendler: เซ็ต + ต้องได้อย่างน้อย 5 / 3 / 1 ครั้ง (ส.1/2/3) → ได้ครบ TM ขึ้น +2.5 (บน) / +5 (ล่าง)
     // ไม่ถึงขั้นต่ำ → รีเซ็ต TM เหลือ 90% ของ TM เดิม
-    const byWk = {}; sortedLogs().forEach(x => { const w = x.workout; if (w?.lift===l && (w.cycle||1)===cyc && w.week>=1 && w.week<=3 && w.amrapReps!=null) byWk[w.week] = w.amrapReps; });
+    const byWk = {}; sortedLogs().forEach(x => { const w = x.workout; if (settings?.cycleStart && x.date < settings.cycleStart) return; if (w?.lift===l && (w.cycle||1)===cyc && w.week>=1 && w.week<=3 && w.amrapReps!=null) byWk[w.week] = w.amrapReps; });
     const fail = [1,2,3].find(k => byWk[k]!=null && byWk[k] < AMRAP_MIN[k]);
     const r = byWk[3] ?? null;
     const sug = tm==null ? null : fail ? floor25(tm*.9) : tm + LIFTS[l].inc;
