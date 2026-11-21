@@ -177,9 +177,8 @@ async function startInner(user){
   // ธีม/ค่าตั้งต้น: ทำตามหลัง ไม่ให้หน้าโหลดต้องรอ
   (async () => { try { const sref = fs.doc(`users/${uid}/settings/main`);
     const sdoc = await sref.get(); applyTheme(sdoc.exists ? sdoc.data().theme : '');
-    if (!sdoc.exists){ const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
-      const iso = `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
-      await sref.set({oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:iso, rampExtra:[0,1,2,0], targets:null}); } } catch(e){} })();
+    if (!sdoc.exists) await sref.set({oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null});   // บัญชีใหม่: ยังไม่เริ่มโปรแกรม จนกว่าจะกด "เริ่มโปรแกรม" เอง
+  } catch(e){} })();
   window.__bootProg = fromCache ? [program] : [];
   started = true; gate.hidden = true; gate.innerHTML = '';
   window.__PROGRAM = program;
@@ -269,11 +268,10 @@ function accountUI(user, isAdmin){
       const cred = await tmp.auth().createUserWithEmailAndPassword(toEmail(u), p); const nu = cred.user.uid; await tmp.auth().signOut();
       const now = new Date().toISOString(), rm = {bench:+$('#adRb').value||null, squat:+$('#adRs').value||null, deadlift:+$('#adRd').value||null};
       const tm = {}; Object.entries(rm).forEach(([k,v]) => { if (v) tm[k] = Math.floor(v*.9/2.5)*2.5; });
-      const d = new Date(), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay()+6)%7));
       const iso = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
       await fs.doc('members/'+nu).set({username:u, createdAt:now});
       await fs.doc(`users/${nu}/program/days`).set(prog);
-      await fs.doc(`users/${nu}/settings/main`).set({oneRM:rm, tm, tmPct:.9, cycle:1, cycleStart:iso(mon), rampExtra:[0,1,2,0], targets:null});
+      await fs.doc(`users/${nu}/settings/main`).set({oneRM:rm, tm, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null});   // เริ่มนับสัปดาห์เมื่อเจ้าของบัญชีกด "เริ่มโปรแกรม"
       $('#adMsg').textContent = `สร้างบัญชี ${u} แล้ว ✓`; $('#adU').value=''; $('#adP').value=''; loadList();
     } catch(e){ $('#adMsg').textContent = errTxt(e); }
     finally { $('#adGo').disabled = false; }

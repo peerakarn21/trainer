@@ -239,6 +239,19 @@ details.evold>summary::-webkit-details-marker{display:none}
 .ws{border:1px solid var(--line);border-radius:14px;background:var(--surface-1);padding:12px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .ws b{font-size:19px;font-weight:700;line-height:1.25} .ws span{font-size:12.5px;color:var(--text-muted)}
 .cd-empty{margin-bottom:16px}
+.exn-img,.exn-img:hover,.exn-img:active{all:unset;cursor:pointer;display:inline;font:inherit;color:inherit;background:none!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important;min-height:0!important;width:auto!important;transform:none!important;text-align:left;-webkit-tap-highlight-color:transparent}
+.exn-img{text-decoration:underline dotted!important;text-decoration-thickness:2px!important;text-underline-offset:5px;text-decoration-color:var(--text-muted)!important}
+.exn-img:active{opacity:.6}
+/* iOS: ช่องวันที่มีความกว้างขั้นต่ำของตัวเอง ทำให้ล้นทับช่องข้างๆ */
+.row>*{min-width:0}
+input[type=date]{display:block;width:100%;max-width:100%;min-width:0;-webkit-appearance:none;appearance:none}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+#imgPop{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);opacity:0;pointer-events:none;transition:opacity .18s}
+#imgPop.on{opacity:1;pointer-events:auto}
+#imgPop .ip-box{position:relative;max-width:min(92vw,520px);width:100%;background:#fff;border-radius:18px;padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.5);transform:scale(.94);transition:transform .18s}
+#imgPop.on .ip-box{transform:none}
+#imgPop img{display:block;width:100%;height:auto;max-height:75vh;object-fit:contain;border-radius:10px}
+#imgPop .ip-x{position:absolute;top:-12px;right:-12px;width:36px;height:36px;padding:0;border-radius:50%;font-size:16px;line-height:1;background:var(--surface-1)!important;color:var(--text-primary)!important;border:1px solid var(--line)!important}
 .cbk-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 16px}
 .cbk-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:14px 13px 13px;border-radius:16px;min-height:104px;min-width:0;font:inherit;color:var(--text-primary)}
 .cbk-tile .cbk-ic{font-size:22px;line-height:1;margin-bottom:6px}
@@ -341,6 +354,10 @@ details.evold>summary::-webkit-details-marker{display:none}
 .sugline{margin:4px 0 2px;color:var(--text-muted)}
 .sugline.up{color:var(--good,#2e9e6a)}
 .sugline.down{color:var(--warn,#c98a2b)}
+.failtag{color:var(--accent,#8b7cf6);font-weight:700;white-space:nowrap}
+.wpick{margin:-2px 0 6px;color:var(--text-muted)}
+.upnext{margin:6px 0 2px;padding:7px 10px;border-radius:10px;font-size:.86em;font-weight:600;background:rgba(201,138,43,.14);color:var(--warn,#c98a2b)}
+.upnext.ok{background:rgba(46,158,106,.16);color:var(--good,#2e9e6a)}
 .fsug{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .fsug h3{margin:0 0 4px;font-size:15px}
 .fsug .gap{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
@@ -1175,6 +1192,6 @@ html[data-theme=sky] #splash{--sp-sl1:#86b5e4;--sp-sl2:#5999da;--sp-sl3:#3b88d4;
 </script>
 <div id="authGate"><div class="gatecard">กำลังโหลด…</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795203512";</script><script src="config.js"></script><script src="boot.js?v=1795203512"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script>window.APP_VER="1795266243";</script><script src="config.js"></script><script src="boot.js?v=1795266243"></script>
 </body>
 </html>

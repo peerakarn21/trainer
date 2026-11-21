@@ -243,6 +243,20 @@ const HOW = {
 const SETUP = {"bench": ["แร็กตั้งตะขอให้บาร์อยู่ระดับเอื้อมถึงตอนนอน (แขนเกือบเหยียด) · ตั้ง safety ต่ำกว่าอกเล็กน้อย", "นอนให้ตาอยู่ใต้บาร์ · เท้าวางพื้นเต็มเท้า กว้างกว่าสะโพก", "จับกว้างกว่าไหล่ ~1.5 ช่วง (นิ้วชี้อยู่แถวขีดวงแหวน) · บีบสะบักลงล่างแล้วยกบาร์ออก"], "squat": ["ตั้งตะขอแร็กระดับกลางอก · safety ต่ำกว่าระดับลงสุดเล็กน้อย", "บาร์วางบนบ่าบน (ไม่ใช่บนคอ) · มือจับกว้างพอให้บีบสะบักได้", "ถอยออก 2–3 ก้าว · เท้ากว้างประมาณไหล่ ปลายเท้าชี้ออก 15–30°"], "deadlift": ["บาร์บนพื้น ใส่แผ่นขนาด 20 กก. ให้บาร์สูงมาตรฐาน", "ยืนให้บาร์อยู่กลางเท้า เท้ากว้างระดับสะโพก", "ก้มจับบาร์ด้านนอกขา · หน้าแข้งแตะบาร์ · อกยก หลังตรง ก่อนดึง"], "Incline DB Press 30°": ["ปรับพนักม้านั่ง 30° (ขีดที่ 2 ของม้านั่งส่วนใหญ่)", "นั่งวางดัมเบลบนต้นขา แล้วนอนพร้อมยกดัมเบลขึ้นด้วยเข่า", "ดัมเบลเริ่มเหนืออกบน ฝ่ามือหันไปทางเท้า"], "Pec Deck / Cable Fly": ["ปรับเบาะให้ด้ามจับอยู่ระดับอกกลาง (ไหล่ไม่ยกขึ้น)", "ปรับจุดเริ่มให้แขนกางไปด้านหลังพอให้อกยืดสุด แต่ไหล่ไม่เจ็บ", "นั่งหลังชิดพนัก อกยก"], "Overhead Cable Triceps Ext.": ["ตั้งรอกระดับต่ำหรือระดับเอว ใส่เชือก", "จับเชือก หันหลังให้เครื่อง ก้าวออกมา 1 ก้าว ยืนเท้าหน้า-หลัง", "ยกเชือกขึ้นเหนือศีรษะ ศอกชี้ขึ้นข้างหน้า"], "Cable Pushdown": ["ตั้งรอกสูงสุด ใส่บาร์ตรงหรือ V-bar", "ยืนชิดเครื่อง เท้ากว้างระดับไหล่", "จับบาร์ ดึงลงมาให้ศอกแนบลำตัวที่ข้างซี่โครง"], "Cable Lateral Raise (สายหลังตัว)": ["ตั้งรอกต่ำสุด ใส่ด้ามจับมือเดียว", "ยืนหันข้างให้เครื่อง จับด้ามด้วยมือข้างที่อยู่ไกลเครื่อง", "สายผ่านด้านหลังลำตัว · มือเริ่มอยู่หน้าสะโพกฝั่งตรงข้าม"], "Standing Calf Raise": ["ตั้งแผ่นรองบ่าให้พอดีความสูง (ยืนตรงแล้วบ่าแนบแผ่น)", "ยืนบนขอบแท่นด้วยปลายเท้า (โคนนิ้วโป้ง) ส้นเท้าลอย", "เข่าตรงแต่ไม่ล็อก"], "Cable Crunch": ["ตั้งรอกสูงสุด ใส่เชือก", "คุกเข่าห่างเครื่อง ~1 ช่วงแขน", "จับเชือกไว้ข้างศีรษะ สะโพกตั้งตรงเหนือเข่า"], "Cable Pullover (แขนตรง)": ["ตั้งรอกสูงสุด ใส่เชือกหรือบาร์ตรง", "ถอยห่างเครื่อง 1–2 ก้าว ก้มตัวไปหน้า ~30° เข่างอเล็กน้อย", "แขนเกือบตรง เริ่มจากแขนชูเหนือศีรษะจนรู้สึกปีกยืด"], "Lat Pulldown": ["ปรับแผ่นรองเข่าให้ต้นขาล็อกแน่น (ตัวไม่ลอยตอนดึงหนัก)", "ยืนจับบาร์กว้างกว่าไหล่เล็กน้อยแล้วนั่งลง", "เอนตัวไปหลังเล็กน้อย ~10–15° อกยก แขนเหยียดสุด"], "Single-arm Machine Low Row (ศอกชิด เข้าสะโพก)": ["ปรับเบาะให้ด้ามจับอยู่ระดับท้องน้อย/ใต้ซี่โครง (ไม่ใช่ระดับอก)", "ปรับแผ่นรองอกให้เอื้อมถึงด้ามตอนแขนเหยียดสุด และไหล่ยืดไปหน้าได้", "อกแนบแผ่นรอง เท้ายันที่วางเท้า จับด้ามแนวตั้ง (neutral)"], "Single-arm Cable Lat Row (ดึงเข้าสะโพก)": ["ตั้งรอกต่ำ-กลาง ใส่ด้ามมือเดียว", "นั่งหรือคุกเข่าข้างเดียวหันหน้าเข้าเครื่อง ห่างพอให้แขนเหยียดตึง", "เอื้อมไปหน้าจนปีกยืด ลำตัวนิ่ง"], "Chest-Supported Row (กางศอก ~45°)": ["ปรับเบาะอกให้ตอนจับด้ามแล้วแขนเหยียดสุด แผ่นน้ำหนักยังไม่แตะพื้น", "ยืนบนแท่นเท้า อกบนชิดขอบเบาะ (ใต้ไหปลาร้าเล็กน้อย) คางพ้นเบาะ", "ใส่แผ่นน้ำหนักสองข้างเท่ากัน", "ตั้งด้ามจับแนวตั้ง (ฝ่ามือหันเข้าหากัน) กว้างประมาณไหล่"], "Incline Y-raise": ["ปรับม้านั่ง 30–45° นอนคว่ำ อกแนบเบาะ", "ถือดัมเบลเบา 2–5 กก. แขนห้อยลงข้างหน้า", "นิ้วโป้งชี้ขึ้นข้างบน (ท่าเริ่มเป็นรูปตัว Y)"], "Incline DB Curl": ["ปรับม้านั่ง 45–60°", "นั่งหลังชิดพนัก แขนห้อยตรงหลังแนวลำตัว", "ฝ่ามือหันไปหน้า"], "Preacher Curl": ["ปรับเบาะนั่งให้รักแร้พาดขอบบนของแผ่นรองพอดี", "ต้นแขนแนบแผ่นรองทั้งแขน", "จับ EZ-bar ด้ามด้านในหรือด้านนอก แขนเกือบเหยียด"], "Reverse Pec Deck": ["ปรับเบาะให้ด้ามอยู่ระดับไหล่", "ตั้งด้ามมาไว้ด้านหน้าสุด (โหมด reverse)", "นั่งหันหน้าเข้าเครื่อง อกแนบพนัก จับด้ามแนวนอน แขนตรงไปข้างหน้า"], "DB Lateral Raise": ["ถือดัมเบลข้างลำตัว ยืนเท้ากว้างระดับสะโพก", "เอนตัวไปหน้าเล็กน้อย ~10°", "ศอกงอนิดๆ ดัมเบลอยู่ข้างต้นขา"], "Leg Extension": ["ปรับพนักให้หัวเข่าตรงกับแกนหมุนของเครื่อง (จุดหมุนสีแดง)", "ปรับแผ่นรองหน้าแข้งให้อยู่เหนือข้อเท้าเล็กน้อย", "จับด้ามข้างเบาะ สะโพกชิดพนัก"], "Seated Leg Curl": ["ปรับพนักให้หัวเข่าตรงกับแกนหมุน", "ปรับแผ่นรองขาให้อยู่ใต้น่องเหนือข้อเท้า", "ลดแผ่นล็อกต้นขาให้กดแน่น · เอนตัวไปหน้าเล็กน้อย"], "Seated Calf Raise": ["ปรับแผ่นรองเข่าให้กดบนต้นขาเหนือเข่าพอดี", "ปลายเท้าบนขอบแท่น ส้นลอย", "ปลดล็อกคันโยกก่อนเริ่ม"], "Hanging Leg Raise": ["จับบาร์โหนกว้างระดับไหล่ (ใช้สายรัดข้อมือได้ถ้ามือหลุด)", "ห้อยตัวนิ่ง ไม่แกว่ง", "ขาตรงหรืองอเข่าก็ได้ (งอเข่าง่ายกว่า)"], "Machine Lateral Raise": ["ปรับความสูงด้ามจับ/แผ่นรองให้แกนหมุนของเครื่องตรงกับหัวไหล่", "ยืนหันหน้าเข้าเครื่อง อกชิดแผ่นรอง เท้ากว้างระดับสะโพก", "จับด้ามเบาๆ แขนอยู่ข้างลำตัว ศอกงอเล็กน้อย"], "Incline Barbell / Smith Press": ["ม้านั่ง 30° วางในแร็กหรือ Smith ให้บาร์ตกตรงอกบน (ใต้ไหปลาร้า)", "ตั้ง safety ต่ำกว่าอกเล็กน้อย", "จับกว้างกว่าไหล่เล็กน้อย บีบสะบัก เท้าเต็มพื้น"], "Decline Machine Chest Press": ["ปรับเบาะให้ด้ามจับอยู่ระดับอกล่าง (แนวหัวนม-ใต้หัวนม)", "นั่งหลังชิดพนัก บีบสะบักลง", "ถ้าเครื่องมีที่เหยียบดันด้ามออกมา ให้ใช้เท้าดันก่อนแล้วค่อยรับน้ำหนัก"], "Weighted Dips (โน้มตัวไปหน้า)": ["ใช้บาร์ dips ระยะกว้างกว่าไหล่เล็กน้อย", "ถ้าทำได้เกิน 12 ครั้งใส่เข็มขัดถ่วงน้ำหนัก", "ดันตัวขึ้นแขนเหยียด แล้วโน้มลำตัวไปหน้า 20–30°"], "Low-to-High Cable Fly": ["ตั้งรอกต่ำสุดทั้งสองข้าง ใส่ด้ามมือเดียว", "ยืนกลางเครื่อง ก้าวไปหน้า 1 ก้าว", "แขนเริ่มต่ำข้างสะโพก ศอกงอเล็กน้อย ฝ่ามือหันไปหน้า"], "Cable Lateral Raise": ["ตั้งรอกต่ำสุด ใส่ด้ามมือเดียว", "ยืนหันข้างให้เครื่อง จับด้วยมือข้างที่ไกลเครื่อง", "สายผ่านหน้าหรือหลังลำตัว"], "Lean-away DB Lateral Raise": ["ยืนข้างเสาหรือแร็ก มือหนึ่งจับไว้", "เอนตัวออกจากเสา ~15–20°", "มืออีกข้างถือดัมเบลห้อยข้างลำตัว"], "EZ Skull Crusher (ลงหลังศีรษะ)": ["ม้านั่งราบ ถือ EZ-bar จับช่วงโค้งด้านใน", "นอนลง ยกบาร์ขึ้นเหนืออกแขนเหยียด", "เอียงแขนไปทางศีรษะเล็กน้อย (ศอกชี้ขึ้นเฉียงหลัง)"], "Pull-up / Assisted Pull-up": ["ถ้าใช้เครื่องช่วย: ตั้งน้ำหนักช่วยให้ทำได้ 6–10 ครั้ง (ยิ่งตั้งหนักยิ่งช่วยมาก)", "จับบาร์กว้างกว่าไหล่เล็กน้อย คว่ำมือ", "ห้อยตัวแขนเหยียดสุดก่อนเริ่มทุกครั้ง"], "Bayesian Cable Curl": ["ตั้งรอกต่ำสุด ใส่ด้ามมือเดียว", "หันหลังให้เครื่อง ก้าวออกไปจนสายตึง", "แขนอยู่หลังลำตัว ต้นแขนนิ่ง"], "Hammer Curl": ["ถือดัมเบลข้างลำตัว ฝ่ามือหันเข้าหากัน", "ยืนตรง ศอกแนบลำตัว"], "Reverse Cable Fly": ["ตั้งรอกทั้งสองข้างระดับไหล่ ถอดด้ามจับออก (จับสายตรงลูกบอล)", "ยืนกลางเครื่อง จับสายไขว้กัน (มือซ้ายจับสายขวา)", "แขนตรงไปข้างหน้าระดับไหล่"], "Cable External Rotation (แขนแนบตัว)": ["ตั้งรอกระดับศอก ใส่ด้ามมือเดียว", "ยืนหันข้างให้เครื่อง จับด้วยมือข้างที่ไกลเครื่อง", "ศอกแนบลำตัว งอ 90° (หนีบผ้าขนหนูม้วนไว้ใต้รักแร้ได้)"], "Lying Leg Curl": ["ปรับแผ่นรองให้อยู่เหนือข้อเท้า", "หัวเข่าเลยขอบเบาะเล็กน้อย ตรงกับแกนหมุน", "นอนคว่ำ สะโพกแนบเบาะ จับด้าม"], "Leg Press Calf Press": ["นั่งเครื่อง leg press ปลายเท้าวางบนขอบล่างของแผ่นเหยียบ", "ดันแผ่นขึ้นให้เข่าเหยียดตรง (แต่ไม่ล็อก) · ไม่ปลดล็อกความปลอดภัย", "ส้นเท้าลอยพ้นแผ่น"], "Ab Wheel Rollout": ["ใช้แผ่นรองเข่า คุกเข่า", "จับล้อใต้ไหล่", "เกร็งท้อง หลังกลมเล็กน้อยก่อนกลิ้งออก"], "Hack Squat": ["ปรับแผ่นรองบ่าให้บ่าแนบพอดีตอนยืนตรง", "วางเท้ากลางแผ่น กว้างระดับไหล่ ปลายเท้าชี้ออกเล็กน้อย (วางเท้าต่ำ = เน้นต้นขาหน้า)", "หลังและสะโพกแนบพนัก ปลดล็อกคันโยกข้างตัวก่อนเริ่ม"], "Hip Adduction Machine": ["ตั้งช่วงกางขาเริ่มต้นให้กว้างพอรู้สึกต้นขาด้านในยืด แต่ไม่เจ็บ", "นั่งหลังพิงพนัก แผ่นรองอยู่ด้านในเข่า", "จับด้ามข้างเบาะ"], "Low-to-High Cable Fly (อกบน)": ["ตั้งรอกต่ำสุดทั้งสองข้าง ใส่ด้ามมือเดียว", "ยืนกลางเครื่อง ก้าวไปหน้า 1 ก้าว", "แขนเริ่มต่ำข้างสะโพก ศอกงอเล็กน้อย ฝ่ามือหันไปหน้า"], "Rope Pushdown": ["ตั้งรอกสูงสุด ใส่เชือก", "ยืนชิดเครื่อง เท้ากว้างระดับไหล่", "จับเชือก ดึงลงให้ศอกแนบลำตัวข้างซี่โครง ข้อมือตรง"], "Back Extension (หลังกลม)": ["ปรับแผ่นรองให้ขอบบนอยู่ใต้กระดูกสะโพก (ต่ำกว่าเข็มขัด) เพื่อให้หลังงอได้เต็มที่", "ล็อกส้นเท้าใต้แผ่นรองขา", "ไขว้แขนแนบอก (ถือแผ่นน้ำหนักแนบอกเมื่อทำได้เกิน 15 ครั้ง)"], "DB Wrist Curl (ฝ่ามือขึ้น)": ["นั่งปลายม้านั่ง ถือดัมเบลฝ่ามือหงายขึ้น", "วางปลายแขนบนต้นขา ให้ข้อมือพ้นเข่าออกไป", "ข้อมือห้อยลงเริ่มจากจุดยืดสุด"], "DB Reverse Wrist Curl (ฝ่ามือลง)": ["นั่งปลายม้านั่ง ถือดัมเบลเบา ฝ่ามือคว่ำลง", "วางปลายแขนบนต้นขา ข้อมือพ้นเข่า", "ข้อมือห้อยลงเริ่ม"], "DB Skull Crusher (ฝ่ามือหันเข้า)": ["นอนม้านั่งราบ ถือดัมเบลสองข้าง ฝ่ามือหันเข้าหากัน", "ยกดัมเบลขึ้นเหนืออก แขนเหยียด", "เอียงแขนไปทางศีรษะเล็กน้อย"], "Face Pull (ไหล่หลัง)": ["ตั้งรอกระดับหน้าผากหรือสูงกว่า ใส่เชือก", "จับเชือกคว่ำมือ (หรือหงายมือ) ถอยหลัง 2 ก้าวจนสายตึง", "ยืนตรง แขนเหยียดไปข้างหน้า"], "Reverse Cable Curl (คว่ำมือ)": ["ตั้งรอกต่ำสุด ใส่บาร์ตรงหรือ EZ bar", "ยืนชิดเครื่อง จับบาร์แบบคว่ำมือ กว้างระดับไหล่", "แขนเหยียด ศอกแนบลำตัว"], "Cable Lateral Raise แขนเดียว (แบบ Jeff Nippard)": ["ยืน (ไม่ได้นั่ง) หันข้างให้เครื่อง ใช้แขนข้างที่อยู่ไกลเครื่อง", "ตั้งรอกให้สูงกว่าพื้นขึ้นมา ประมาณระดับเข่าถึงกลางต้นขา (ไม่ต่ำสุดที่พื้น) — ตามคลิป รอกสูงขึ้น = ไหล่ข้างรับแรงหนักตอนยืด", "ใส่ cuff รัดที่ข้อมือแทนด้ามจับ (ไม่มี cuff ใช้ด้ามมือเดียวได้) · สายไขว้ผ่านหน้าลำตัว มือเริ่มหน้าสะโพกฝั่งตรงข้าม"], "Cable Rear Delt Row (ศอกกางระดับไหล่)": ["ตั้งรอกระดับไหล่ ใส่เชือก", "จับเชือกคว่ำมือ ถอยหลังจนแขนเหยียดตึง", "ยืนตรง เท้ากว้างระดับไหล่ เข่างอเล็กน้อย"], "Cable Y-raise (บ่าล่าง)": ["ตั้งรอกต่ำสุดทั้งสองข้าง ใส่ด้ามมือเดียว (หรือ cuff)", "ยืนกลางเครื่อง จับสายไขว้กัน (มือซ้ายจับสายขวา) ถอยหลัง 1 ก้าว", "เอนตัวไปหน้าเล็กน้อย แขนเริ่มต่ำหน้าขา"], "Kelso Shrug (บ่ากลาง + บ่าล่าง)": ["ทำต่อบนเครื่อง Chest-Supported Row หลังท่าก่อนหน้า ลดน้ำหนักลงประมาณครึ่งหนึ่ง", "อกแนบเบาะ จับกว้าง คว่ำมือ แขนเหยียดตรง", "ปล่อยสะบักกางออกไปข้างหน้าก่อนเริ่มทุกครั้ง"], "V-bar Pushdown (หนัก)": ["ตั้งรอกสูงสุด ใส่บาร์ V", "ยืนชิดเครื่อง เท้ากว้างระดับไหล่ เอนตัวไปหน้าเล็กน้อย", "จับบาร์ ดึงลงมาให้ศอกแนบข้างลำตัว ข้อมือตรง"], "Machine Low Row (จับแนวนอน กางศอก)": ["ใช้เครื่องเดียวกับวันอังคาร (Machine Low Row)", "ปรับเบาะให้ด้ามอยู่ระดับอกล่าง/ใต้หน้าอก (สูงกว่าวันอังคารเล็กน้อย)", "อกแนบแผ่นรอง จับด้ามแนวนอนแบบคว่ำมือ"], "Single-leg Seated Leg Curl": ["ปรับพนักให้หัวเข่าตรงกับแกนหมุน", "ปรับแผ่นรองขาให้อยู่ใต้น่องเหนือข้อเท้า", "ลดแผ่นล็อกต้นขาให้กดแน่น · เอนตัวไปหน้าเล็กน้อย"], "EZ-bar Curl จับกว้าง (หัวสั้น)": ["ยืนตรง เท้ากว้างระดับสะโพก ถือ EZ-bar", "จับช่วงโค้งด้านนอก (กว้างกว่าไหล่เล็กน้อย) ฝ่ามือหงาย", "แขนเหยียด ศอกแนบข้างลำตัว"], "Spider Curl": ["ปรับม้านั่ง 30–45° นอนคว่ำ อกบนพ้นขอบเบาะเล็กน้อย", "ถือ EZ-bar หรือดัมเบล 2 ข้าง ฝ่ามือหงาย", "แขนห้อยตรงลงพื้น ตั้งฉากกับพื้น"], "Incline Machine Fly": ["ปรับเบาะให้ด้ามจับอยู่ระดับอกบน (ประมาณไหปลาร้าถึงหัวนม)", "ปรับจุดเริ่มให้แขนกางไปด้านหลังพอให้อกยืดสุด แต่ไหล่ไม่เจ็บ", "นั่งหลังชิดพนัก บีบสะบักลง อกยก"], "DB Romanian Deadlift": ["หยิบดัมเบล 2 ข้าง ยืนตรง เท้ากว้างระดับสะโพก", "ดัมเบลอยู่หน้าต้นขา ฝ่ามือหันเข้าหาตัว", "บีบสะบักลง เกร็งท้อง เข่างอเล็กน้อย — ใช้สายรัดข้อมือได้ถ้ามือหลุด"], "Behind-the-back Cable Wrist Curl (ปลายแขนด้านใน)": ["ตั้งรอกต่ำสุด ใส่บาร์ตรง", "จับบาร์แล้วหันหลังให้เครื่อง ก้าวออกไป 1 ก้าวจนสายตึง เท้ากว้างระดับไหล่", "บาร์อยู่หลังก้น จับหงายมือ (ฝ่ามือหันไปข้างหลัง) กว้างระดับไหล่ แขนเหยียดตรง"], "Cable Reverse Wrist Curl (ปลายแขนด้านนอก)": ["ตั้งรอกต่ำสุด ใส่บาร์ตรงสั้น (หรือ EZ bar)", "ยืนหันหน้าเข้าเครื่อง ห่างพอให้สายตึง เท้ากว้างระดับสะโพก", "จับบาร์คว่ำมือ ศอกแนบข้างลำตัว งอ 90° ปลายแขนขนานพื้น"], "Chest-Supported Row (จับกว้าง กางศอก)": ["เครื่องเดียวกับวันอังคาร ปรับเบาะอกให้แขนเหยียดสุดตอนจับ", "ยืนบนแท่นเท้า อกบนชิดขอบเบาะ", "ใส่แผ่นน้ำหนักสองข้างเท่ากัน", "ตั้งด้าม/จับบาร์กว้างกว่าไหล่ คว่ำมือ"]};
 const CORA = {"bench": "barbell-bench-press", "squat": "barbell-high-bar-squat", "deadlift": "barbell-deadlift", "Incline DB Press 30°": "dumbbell-incline-bench-press", "Pec Deck / Cable Fly": "lever-seated-fly", "Overhead Cable Triceps Ext.": "cable-overhead-triceps-extension-rope-attachment", "Cable Pushdown": "cable-pushdown", "Cable Lateral Raise (สายหลังตัว)": "cable-one-arm-lateral-raise", "Standing Calf Raise": "lever-standing-calf-raise", "Cable Crunch": "cable-kneeling-crunch", "Cable Pullover (แขนตรง)": "cable-straight-arm-pulldown-with-rope", "Lat Pulldown": "cable-pulldown", "Single-arm Machine Low Row (ศอกชิด เข้าสะโพก)": "lever-unilateral-row", "Single-arm Cable Lat Row (ดึงเข้าสะโพก)": "cable-seated-one-arm-alternate-row", "Incline Y-raise": "dumbbell-incline-y-raise", "Incline DB Curl": "dumbbell-incline-curl", "Preacher Curl": "barbell-preacher-curl", "Reverse Pec Deck": "lever-seated-reverse-fly", "DB Lateral Raise": "dumbbell-lateral-raise", "Leg Extension": "lever-leg-extension", "Seated Leg Curl": "lever-seated-leg-curl", "Seated Calf Raise": "lever-seated-calf-raise", "Hanging Leg Raise": "hanging-leg-raise", "Machine Lateral Raise": "lever-lateral-raise", "Incline Barbell / Smith Press": "barbell-incline-bench-press", "Decline Machine Chest Press": "lever-decline-chest-press", "Weighted Dips (โน้มตัวไปหน้า)": "chest-dip", "Low-to-High Cable Fly": "cable-low-fly", "Cable Lateral Raise": "cable-lateral-raise", "Lean-away DB Lateral Raise": "dumbbell-one-arm-lateral-raise", "EZ Skull Crusher (ลงหลังศีรษะ)": "ez-bar-lying-close-grip-triceps-extension-behind-head", "Pull-up / Assisted Pull-up": "pull-up", "Hammer Curl": "dumbbell-hammer-curl", "Reverse Cable Fly": "cable-cross-over-revers-fly", "Cable External Rotation (แขนแนบตัว)": "cable-standing-shoulder-external-rotation", "Lying Leg Curl": "lever-lying-leg-curl", "Leg Press Calf Press": "sled-calf-press-on-leg-press", "Ab Wheel Rollout": "wheel-rollerout", "Single-arm DB Row (ดึงเข้าสะโพก)": "dumbbell-one-arm-bent-over-row", "Seated Cable Row (V-handle)": "cable-seated-row", "Face Pull": "cable-rear-delt-row-with-rope", "Decline Bench Press": "barbell-decline-bench-press", "Decline Smith Press": "smith-decline-bench-press", "Straight-arm Pulldown (บาร์ตรง)": "cable-straight-arm-pulldown", "Hack Squat": "sled-hack-squat", "DB Romanian Deadlift": "dumbbell-romanian-deadlift", "Hip Adduction Machine": "lever-seated-hip-adduction", "Cable Hip Adduction": "cable-hip-adduction", "Low-to-High Cable Fly (อกบน)": "cable-low-fly", "Rope Pushdown": "cable-pushdown-with-rope-attachment", "Back Extension (หลังกลม)": "hyperextension", "DB Wrist Curl (ฝ่ามือขึ้น)": "dumbbell-over-bench-wrist-curl", "DB Reverse Wrist Curl (ฝ่ามือลง)": "dumbbell-reverse-wrist-curl", "DB Skull Crusher (ฝ่ามือหันเข้า)": "dumbbell-lying-triceps-extension", "Face Pull (ไหล่หลัง)": "cable-rear-delt-row-with-rope", "Reverse Cable Curl (คว่ำมือ)": "cable-reverse-curl", "Barbell Wrist Curl": "barbell-wrist-curl", "Barbell Reverse Wrist Curl": "barbell-reverse-wrist-curl", "Machine Back Extension": "lever-back-extension", "Cable Lateral Raise แขนเดียว (แบบ Jeff Nippard)": "cable-one-arm-lateral-raise", "Cable Rear Delt Row (ศอกกางระดับไหล่)": "cable-rear-delt-row-stirrups", "Cable Y-raise (บ่าล่าง)": "band-y-raise", "V-bar Pushdown (หนัก)": "cable-triceps-pushdown-v-bar", "Machine Low Row (จับแนวนอน กางศอก)": "lever-seated-row", "Single-leg Seated Leg Curl": "lever-seated-leg-curl", "EZ-bar Curl จับกว้าง (หัวสั้น)": "ez-barbell-standing-wide-grip-biceps-curl", "Spider Curl": "ez-barbell-spider-curl", "Behind-the-back Cable Wrist Curl (ปลายแขนด้านใน)": "cable-standing-back-wrist-curl", "Cable Reverse Wrist Curl (ปลายแขนด้านนอก)": "cable-reverse-wrist-curl"};
 const GIF = {"bench": "Barbell_Bench_Press_-_Medium_Grip", "squat": "Barbell_Full_Squat", "deadlift": "Barbell_Deadlift", "Incline DB Press 30°": "Incline_Dumbbell_Press", "Pec Deck / Cable Fly": "Butterfly", "Overhead Cable Triceps Ext.": "Cable_Rope_Overhead_Triceps_Extension", "Cable Pushdown": "Triceps_Pushdown", "Cable Lateral Raise (สายหลังตัว)": "Cable_Seated_Lateral_Raise", "Standing Calf Raise": "Standing_Calf_Raises", "Cable Crunch": "Cable_Crunch", "Cable Pullover (แขนตรง)": "Rope_Straight-Arm_Pulldown", "Lat Pulldown": "Wide-Grip_Lat_Pulldown", "Single-arm Machine Low Row (ศอกชิด เข้าสะโพก)": "Single-arm_Machine_Low_Row_user", "Single-arm Cable Lat Row (ดึงเข้าสะโพก)": "Seated_One-arm_Cable_Pulley_Rows", "Chest-Supported Row (กางศอก ~45°)": "Chest_Supported_Row_Machine_user", "Incline DB Curl": "Incline_Dumbbell_Curl", "Preacher Curl": "Preacher_Curl", "Reverse Pec Deck": "Reverse_Machine_Flyes", "DB Lateral Raise": "Side_Lateral_Raise", "Leg Extension": "Leg_Extensions", "Seated Leg Curl": "Seated_Leg_Curl", "Seated Calf Raise": "Seated_Calf_Raise", "Hanging Leg Raise": "Hanging_Leg_Raise", "Incline Barbell / Smith Press": "Barbell_Incline_Bench_Press_-_Medium_Grip", "Weighted Dips (โน้มตัวไปหน้า)": "Dips_-_Chest_Version", "Low-to-High Cable Fly": "Low_Cable_Crossover", "Cable Lateral Raise": "Cable_Seated_Lateral_Raise", "EZ Skull Crusher (ลงหลังศีรษะ)": "EZ-Bar_Skullcrusher", "Pull-up / Assisted Pull-up": "Pullups", "Hammer Curl": "Hammer_Curls", "Reverse Cable Fly": "Cable_Rear_Delt_Fly", "Cable External Rotation (แขนแนบตัว)": "External_Rotation_with_Cable", "Lying Leg Curl": "Lying_Leg_Curls", "Leg Press Calf Press": "Calf_Press_On_The_Leg_Press_Machine", "Ab Wheel Rollout": "Ab_Roller", "Seated Cable Row (V-handle)": "Seated_Cable_Rows", "DB Row": "One-Arm_Dumbbell_Row", "Single-arm DB Row (ดึงเข้าสะโพก)": "One-Arm_Dumbbell_Row", "Straight-arm Pulldown (บาร์ตรง)": "Straight-Arm_Pulldown", "Close-grip Front Lat Pulldown": "Close-Grip_Front_Lat_Pulldown", "Face Pull": "Face_Pull", "Hack Squat": "Hack_Squat", "Leg Press (ลงลึก)": "Leg_Press", "DB Romanian Deadlift": "Romanian_Deadlift", "Incline Barbell Press": "Barbell_Incline_Bench_Press_-_Medium_Grip", "Incline DB Press 30° ": "Incline_Dumbbell_Press", "DB Fly": "Dumbbell_Flyes", "Cable Crossover": "Cable_Crossover", "Rope Pushdown": "Triceps_Pushdown_-_Rope_Attachment", "Close-grip Bench Press": "Close-Grip_Barbell_Bench_Press", "Machine Preacher Curl": "Machine_Preacher_Curls", "EZ-bar Curl": "Preacher_Curl", "DB Curl": "Dumbbell_Bicep_Curl", "Cable Reverse Fly": "Cable_Rear_Delt_Fly", "Bent-over DB Reverse Fly": "Seated_Bent-Over_Rear_Delt_Raise", "Smith Machine Calf Raise": "Smith_Machine_Calf_Raise", "Lying Incline Lateral Raise": "One-Arm_Incline_Lateral_Raise", "Incline DB Fly": "Incline_Dumbbell_Flyes", "Machine Lat Row": "Leverage_Iso_Row", "Seal Row": "Lying_T-Bar_Row", "Bent-over Barbell Row": "Bent_Over_Barbell_Row", "Chin-up": "Chin-Up", "Assisted Dips": "Dip_Machine", "Decline Bench Press": "Decline_Barbell_Bench_Press", "Side-lying DB External Rotation": "External_Rotation", "Band External Rotation": "External_Rotation_with_Band", "Machine Crunch": "Ab_Crunch_Machine", "Reverse Crunch": "Cable_Reverse_Crunch", "Nordic Curl": "Natural_Glute_Ham_Raise", "Decline Machine Chest Press": "Leverage_Decline_Chest_Press", "Hip Adduction Machine": "Thigh_Adductor", "Low-to-High Cable Fly (อกบน)": "Low_Cable_Crossover", "Back Extension (หลังกลม)": "Hyperextensions_Back_Extensions", "DB Wrist Curl (ฝ่ามือขึ้น)": "Seated_Dumbbell_Palms-Up_Wrist_Curl", "DB Reverse Wrist Curl (ฝ่ามือลง)": "Seated_Dumbbell_Palms-Down_Wrist_Curl", "DB Skull Crusher (ฝ่ามือหันเข้า)": "Lying_Dumbbell_Tricep_Extension", "Face Pull (ไหล่หลัง)": "Face_Pull", "Reverse Cable Curl (คว่ำมือ)": "Reverse_Cable_Curl", "Cable Lateral Raise แขนเดียว (แบบ Jeff Nippard)": "Standing_Low-Pulley_Deltoid_Raise", "Cable Rear Delt Row (ศอกกางระดับไหล่)": "Cable_Rope_Rear-Delt_Rows", "Kelso Shrug (บ่ากลาง + บ่าล่าง)": "Chest_Supported_Row_Machine_user", "V-bar Pushdown (หนัก)": "Triceps_Pushdown", "Machine Low Row (จับแนวนอน กางศอก)": "Leverage_Iso_Row", "Single-leg Seated Leg Curl": "Seated_Leg_Curl", "EZ-bar Curl จับกว้าง (หัวสั้น)": "EZ-Bar_Curl", "Behind-the-back Cable Wrist Curl (ปลายแขนด้านใน)": "Behind-the-back_Cable_Wrist_Curl_user", "Cable Reverse Wrist Curl (ปลายแขนด้านนอก)": "Cable_Reverse_Wrist_Curl_user", "Incline Machine Fly": "Incline_Machine_Fly_user", "Spider Curl": "Spider_Curl_user", "Machine Lateral Raise": "Machine_Lateral_Raise_user", "Chest-Supported Row (จับกว้าง กางศอก)": "Chest_Supported_Row_Machine_user"};
+// แตะชื่อท่าในหน้าวันนี้ → เด้งรูปท่าขึ้นมาอย่างเดียว
+const gifSrc = name => { const g = GIF[name]; return g ? `img/${encodeURIComponent(g)}.gif` : ''; };
+const imgName = (name, label) => { const s = gifSrc(name); return s ? `<button type="button" class="exn-img" data-img="${esc(s)}" data-sq="${GIF[name].endsWith('_user')?1:''}" aria-label="ดูรูปท่า ${esc(name)}">${label}</button>` : label; };
+function showImgPop(src, sq){
+  let p = document.getElementById('imgPop');
+  if (!p){ p = document.createElement('div'); p.id = 'imgPop'; p.setAttribute('role','dialog'); p.setAttribute('aria-modal','true');
+    p.innerHTML = '<div class="ip-box"><img alt=""><button type="button" class="ip-x" aria-label="ปิด">✕</button></div>';
+    p.addEventListener('click', () => { p.classList.remove('on'); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') p.classList.remove('on'); });
+    document.body.appendChild(p); }
+  const img = p.querySelector('img'); img.className = sq ? 'sq' : ''; img.src = src;
+  requestAnimationFrame(() => p.classList.add('on'));
+}
+document.addEventListener('click', e => { const b = e.target.closest?.('[data-img]'); if (!b) return; e.preventDefault(); e.stopPropagation(); showImgPop(b.dataset.img, b.dataset.sq); }, true);
 function demoBlock(name){
   const g = GIF[name], st = SETUP[name];
   const cu = CORA[name], vd = VIDEO[name];
@@ -392,7 +406,7 @@ let wChart = null, eChart = null;
 
 function tmOf(lift){ return settings?.tm?.[lift] ?? (settings?.oneRM?.[lift] ? floor25(settings.oneRM[lift]*(settings.tmPct||.9)) : null); }
 function weekInfo(date){
-  if (!settings?.cycleStart) return {idx:0, over:false};
+  if (!settings?.cycleStart) return {idx:0, over:false, notStarted:true};
   const diff = dayNum(date) - dayNum(settings.cycleStart);
   const w = Math.floor(diff/7);
   return {idx: Math.max(0, Math.min(3, w)), over: w > 3, before: diff < 0};
@@ -469,8 +483,9 @@ window.addEventListener('hashchange', route);
 // ---------- header ----------
 function renderPill(){
   if (!settings){ $('#cyclePill').textContent = 'ยังไม่ได้ตั้งค่า'; return; }
+  if (!settings.cycleStart){ $('#cyclePill').textContent = 'ยังไม่เริ่มโปรแกรม'; return; }
   const wi = weekInfo(curDate);
-  $('#cyclePill').textContent = wi.before ? `เริ่มรอบที่ ${settings.cycle||1}: ${thDate(settings.cycleStart)}`
+  $('#cyclePill').textContent = wi.before ? `สัปดาห์ก่อนเริ่ม · รอบ ${settings.cycle||1} เริ่ม ${thDate(settings.cycleStart)}`
     : wi.over ? `รอบที่ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบที่ ${settings.cycle||1} · ${WAVES[wi.idx].name}`;
 }
 
@@ -521,7 +536,7 @@ function renderWorkout(){
     if (settings.tmPending?.[day.main] && !ls.prevCycle) finalizePendingTm(day.main);
     if (ls.lag) h += `<p class="tiny shiftnote">⏩ ${esc(shiftText(day.main, ls))}</p>`;
     const rows = mainSetRows(day.main, ls.idx, tm).filter(r => r.cls!=='warm');
-    h += `<div class="exlog main"><div class="exh"><span class="exname">1. ${LIFTS[day.main].th}</span><span class="tiny">วอร์ม ${fmt(rnd(tm*.4))}·${fmt(rnd(tm*.5))}·${fmt(rnd(tm*.6))}</span></div>`;
+    h += `<div class="exlog main"><div class="exh"><span class="exname">${imgName(day.main, `1. ${LIFTS[day.main].th}`)}</span><span class="tiny">วอร์ม ${fmt(rnd(tm*.4))}·${fmt(rnd(tm*.5))}·${fmt(rnd(tm*.6))}</span></div>`;
     rows.forEach((r, j) => {
       const sv = saved[j] || {};
       const isTop = r.cls==='topset';
@@ -534,9 +549,10 @@ function renderWorkout(){
     const a = accLog.find(x => x.name===ex.n) || {};
     const n = setsFor(ex, wi.idx), sug = suggestion(ex, wi.idx, curDate);
     const saved = a.log || (a.w!=null ? [{w:a.w, reps:a.reps}] : []);
-    h += `<div class="exlog"><div class="exh"><span class="exname">${i+1+(day.main?1:0)}. ${esc(ex.n)} <button class="swapbtn" data-swapbtn>⇄</button></span><span class="tiny">${n}×${esc(ex.r)}${deload?'':' · '+EFF[ex.e][0]}</span></div>${swapBox(ex)}`;
+    h += `<div class="exlog"><div class="exh"><span class="exname">${imgName(ex.n, `${i+1+(day.main?1:0)}. ${esc(ex.n)}`)} <button class="swapbtn" data-swapbtn>⇄</button></span><span class="tiny">${deload ? `${n}×${esc(ex.r)} · เหลือแรง 2–3` : isFail(ex) ? `${n} เซ็ต · <b class="failtag">เล่นจนหมดแรง</b>` : `${n}×${esc(ex.r)} · เหลือแรง 1 ครั้ง`}</span></div>${!deload && isFail(ex) ? `<div class="tiny wpick">เลือกน้ำหนักที่หมดแรงราว ${esc(ex.r)} ครั้ง</div>` : ''}${swapBox(ex)}`;
     for (let j=0;j<n;j++){ const sv = saved[j] || {}; h += row('a', i, j, `เซ็ต ${j+1}`, sv.w ?? (sv.done || sug.w==null ? null : sug.w), sug.w!=null?fmt(sug.w):'กก.', sv.reps, ex.r, sv.done); }
     if (sug.w!=null && wi.idx<3) h += `<div class="tiny sugline${sug.up?' up':''}${sug.down?' down':''}">${sug.up?'⬆ ':sug.down?'⬇ ':''}${esc(sug.text)}</div>`;
+    if (!deload) h += `<div class="upnext" data-up="${i}" hidden></div>`;
     h += `</div>`;
   });
   h += `<p class="tiny" style="margin:6px 0 0">+ คาร์ดิโอ ${esc(day.cardio.replace(/^Zone 2 /,'Zone 2 '))}</p>`;
@@ -555,6 +571,11 @@ function renderWorkout(){
     formDirty = true;
   }));
   card.querySelectorAll('.restbtn').forEach(b => b.addEventListener('click', () => onRest(b, day, list)));
+  if (!deload){
+    const paintUp = i => { const b = card.querySelector(`[data-up="${i}"]`); if (b) { const r = upNextState(list[+i], card, i); b.hidden = !r; b.className = 'upnext' + (r?.ok ? ' ok' : ''); b.textContent = r?.text || ''; } };
+    card.querySelectorAll('input[data-k="a"]').forEach(inp => inp.addEventListener('input', () => paintUp(inp.dataset.i)));
+    list.forEach((_, i) => paintUp(i));
+  }
   bindSwaps(card);
   paintClock();
 }
@@ -565,6 +586,20 @@ function renderOverPanel(){
   const today = isoLocal(new Date());
   const over = settings?.cycleStart && dayNum(today) > cycleEndN();
   const atDeload = settings?.cycleStart && !over && dayNum(curDate) > cycleEndN() - 7;
+  if (settings && !settings.cycleStart && !guest){
+    el.hidden = false;
+    el.innerHTML = `<h2 style="margin-bottom:4px">ยังไม่เริ่มโปรแกรม</h2>
+      <div class="tiny" style="margin-bottom:10px">ตอนนี้แสดงโปรแกรมจันทร์–ศุกร์ตามปกติ ยังไม่นับสัปดาห์ · กดเริ่มเมื่อพร้อม แล้วสัปดาห์นี้ (${thDate(mondayOf(today))} – ${thDate(fromNum(dayNum(mondayOf(today))+6))}) จะเป็นสัปดาห์ที่ 1</div>
+      <button class="primary" id="startProg" style="width:100%">เริ่มโปรแกรม</button><div class="tiny" id="startMsg" style="margin-top:6px"></div>`;
+    armButton($('#startProg'), 'เริ่มโปรแกรม', async () => {
+      try {
+        const st = mondayOf(isoLocal(new Date())), n = {cycle: settings.cycle || 1, cycleStart: st, rampExtra: [0,1,2,0], updatedAt: new Date().toISOString(), history: [...(settings.history||[]), {cycle: settings.cycle || 1, start: st, tm: {...(settings.tm||{})}, by:'start'}]};
+        if (!db) throw {code:'no_db'};
+        await db.doc('settings/main').set(n, {merge:true}); settings = {...settings, ...n}; renderAll();
+      } catch(e){ const m = $('#startMsg'); if (m) m.innerHTML = `<span class="err">เริ่มไม่ได้: ${esc(typeof errTxt === 'function' ? errTxt(e) : (e?.message || e?.code || String(e)))}</span>`; }
+    });
+    return;
+  }
   if (!over && !atDeload){ el.hidden = true; el.innerHTML = ''; return; }
   const prop = cycleProposal(), cyc = settings.cycle || 1;
   el.hidden = false;
@@ -767,7 +802,7 @@ $('#pushTest')?.addEventListener('click', async () => {
 renderPushCard();
 
 // ---------- daily form ----------
-const cycleEndN = () => settings?.cycleStart ? dayNum(settings.cycleStart) + 27 : Infinity;
+const cycleEndN = () => settings?.cycleStart ? dayNum(settings.cycleStart) + 27 : (settings ? todayMonN() + 6 : Infinity);   // ยังไม่เริ่มโปรแกรม = ดูได้แค่สัปดาห์นี้
 const todayMonN = () => { const t = isoLocal(new Date()); return dayNum(t) - ((weekdayOf(t)+6)%7); };
 const minDayN = () => Math.min(todayMonN(), cycleEndN() - 6);
 function clampDate(d){ let n = dayNum(d); const end = cycleEndN(); while (n > end) n -= 7; if (n < minDayN()) n = Math.min(dayNum(isoLocal(new Date())), end); return fromNum(n); }
@@ -802,7 +837,7 @@ function renderWeekNav(){
   const today = isoLocal(new Date()), mon = dayNum(curDate) - ((weekdayOf(curDate)+6)%7);
   const monS = fromNum(mon), sunS = fromNum(mon+6), wi = weekInfo(monS);
   const fmtD = d => { const [y,m,dd] = d.split('-').map(Number); return new Date(y,m-1,dd).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
-  const lab = settings ? (wi.before ? 'ก่อนเริ่มรอบ' : wi.over ? `รอบ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบ ${settings.cycle||1} · ${WAVES[wi.idx].name}`) : '';
+  const lab = settings ? (wi.notStarted ? 'ยังไม่เริ่มโปรแกรม' : wi.before ? 'สัปดาห์ก่อนเริ่ม' : wi.over ? `รอบ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบ ${settings.cycle||1} · ${WAVES[wi.idx].name}`) : '';
   const canNext = mon + 7 <= cycleEndN();
   const canPrev = mon - 7 >= minDayN();
   let h = `<div class="wk-head"><button class="navbtn" data-wk="-7" aria-label="สัปดาห์ก่อน"${canPrev?'':' disabled'}>‹</button><div class="wk-lab"><b>${esc(lab)}</b><span>${fmtD(monS)} – ${fmtD(sunS)}</span></div><button class="navbtn" data-wk="7" aria-label="สัปดาห์ถัดไป"${canNext?'':' disabled title="ถึงสัปดาห์สุดท้ายของรอบแล้ว"'}>›</button></div><div class="daystrip">`;
@@ -835,7 +870,7 @@ function collectWorkout(){
     const ls = liftState(day.main, curDate), tm = ls.tm, mw = WAVES[ls.idx], ms = read('m',0);
     const labels = mainSetRows(day.main, ls.idx, tm).filter(r=>r.cls!=='warm');
     w.mainSets = ms.map((s,j) => ({...s, label:labels[j]?.no, target:labels[j]?.reps, planW:labels[j]?.w}));
-    Object.assign(w, {lift:day.main, tm, topW: ms[2]?.w ?? rnd(tm*mw.sets[2][0]), target: mw.sets[2][1], cycle: ls.cycle, week: ls.idx+1, calWeek: wi.idx+1, lag: ls.lag||0});
+    Object.assign(w, {lift:day.main, tm, topW: ms[2]?.w ?? rnd(tm*mw.sets[2][0]), target: mw.sets[2][1], cycle: ls.cycle, week: wi.notStarted ? 0 : ls.idx+1, calWeek: wi.notStarted ? 0 : wi.idx+1, lag: ls.lag||0, ...(wi.notStarted ? {prestart:true} : {})});
     w.mainDone = ms.slice(0,3).every(s => s.done);
     if (ls.idx<3){ w.amrapReps = ms[2]?.reps ?? null; w.fslDone = ms.slice(3).length>0 && ms.slice(3).every(s => s.done); }
   }
@@ -898,6 +933,32 @@ function lastMain(lift, beforeDate){
   for (const l of arr){ const w = l.workout; if (w?.lift===lift && w.amrapReps!=null && w.topW) return {date:l.date, topW:w.topW, reps:w.amrapReps}; }
   return null;
 }
+const isFail = ex => ex?.e==='0' || ex?.e==='0p';
+function needFor(ex, w){                                        // จำนวนครั้งขั้นต่ำทุกเซ็ตก่อนเพิ่มน้ำหนัก (ใช้ภายใน ไม่โชว์เลขให้ผู้ใช้)
+  const {hi} = repRange(ex.r); if (hi==null) return null;
+  const st = stepOf(ex), big = w > 0 && st/w > 0.10;            // ขั้นเครื่องห่างเกิน 10% → ต้องเกินช่วงอีก 2 ครั้ง
+  return big ? hi + 2 : hi;
+}
+// ป้ายสด: กรอกครบทุกเซ็ตแล้วถึงเกณฑ์หรือยัง
+function upNextState(ex, card, i){
+  if (!ex) return null;
+  const n = card.querySelectorAll(`input[data-k="a"][data-i="${i}"][data-f="reps"]`).length;
+  const sets = [];
+  for (let j=0;j<n;j++){
+    const w = parseFloat(card.querySelector(`input[data-k="a"][data-i="${i}"][data-j="${j}"][data-f="w"]`)?.value);
+    const r = parseInt(card.querySelector(`input[data-k="a"][data-i="${i}"][data-j="${j}"][data-f="reps"]`)?.value);
+    if (!(w>0) || !(r>0)) return null;
+    sets.push({w, r});
+  }
+  if (!sets.length) return null;
+  const w = Math.max(...sets.map(s=>s.w)), need = needFor(ex, w);
+  if (need==null || sets.some(s => s.w!==w) || Math.min(...sets.map(s=>s.r)) < need) return null;
+  if (progMode()==='confirm'){
+    const prev = perfHistory(ex.n, curDate, dayTypeFor(curDate))[0];
+    if (!(prev && prev.w===w && prev.reps >= need)) return {ok:false, text:'✓ ถึงเกณฑ์แล้ว 1 ครั้ง · ครั้งหน้าทำได้อีกจะเพิ่มน้ำหนัก'};
+  }
+  return {ok:true, text:'✓ ครั้งหน้าเพิ่มน้ำหนัก'};
+}
 function suggestion(ex, widx, forDate){
   const {lo, hi} = repRange(ex.r), dayKey = forDate ? dayTypeFor(forDate) : null;
   const hist = perfHistory(ex.n, forDate, dayKey), last = hist[0];
@@ -913,8 +974,8 @@ function suggestion(ex, widx, forDate){
   const pct = w => Math.round(inc/w*100);
   if (topOK(last)){
     const confirmed = progMode()==='fast' || (hist[1] && hist[1].w===last.w && topOK(hist[1]));
-    if (confirmed) return {w:last.w+inc, up:true, text:`${was} ครบ${big?` ${need} ครั้ง (เกินช่วง +2 เพราะเครื่องขึ้นทีละ ${fmt(st)} กก.)`:'ช่วงบน'}${progMode()==='confirm'?' 2 ครั้งติด':''} → เพิ่มเป็น ${fmt(last.w+inc)} กก. (+${pct(last.w)}%) จำนวนครั้งจะลดลงมาอยู่ต้นช่วง เป็นเรื่องปกติ`};
-    return {w:last.w, text:`${was} ครบ${big?` ${need} ครั้ง`:'ช่วงบน'}แล้ว 1 ครั้ง → ใช้น้ำหนักเดิม ถ้าครั้งนี้ทำได้อีก ครั้งหน้าเพิ่มเป็น ${fmt(last.w+inc)} กก.`};
+    if (confirmed) return {w:last.w+inc, up:true, text:`${was} ถึงเกณฑ์${progMode()==='confirm'?' 2 ครั้งติด':''} → เพิ่มเป็น ${fmt(last.w+inc)} กก. (+${pct(last.w)}%) จำนวนครั้งจะลดลงมาอยู่ต้นช่วง เป็นเรื่องปกติ`};
+    return {w:last.w, text:`${was} ถึงเกณฑ์แล้ว 1 ครั้ง → ใช้น้ำหนักเดิม ถ้าครั้งนี้ทำได้อีก ครั้งหน้าเพิ่มเป็น ${fmt(last.w+inc)} กก.`};
   }
   if (last.first!=null && last.first < lo && last.firstW===last.w){
     const prev = hist[1], twice = prev && prev.w===last.w && prev.first!=null && prev.first < lo;
@@ -925,7 +986,7 @@ function suggestion(ex, widx, forDate){
     }
     return {w:last.w, text:`${was} เซ็ตแรกต่ำกว่า ${lo} ครั้ง → ใช้น้ำหนักเดิมอีกครั้ง ถ้ายังไม่ถึง ${lo} ครั้งหน้าจะลดให้`};
   }
-  return {w:last.w, text:`${was} → ใช้น้ำหนักเดิม พยายามเพิ่มจำนวนครั้งให้ถึง ${need}${big?` (เครื่องขึ้นทีละ ${fmt(st)} กก. เลยต้องเกินช่วง +2 ก่อนเพิ่ม)`:''}`};
+  return {w:last.w, text: isFail(ex) ? `${was} → ใช้น้ำหนักเดิม เล่นจนหมดแรงต่อไป ทำได้มากขึ้นอีกนิดจะเพิ่มให้` : `${was} → ใช้น้ำหนักเดิม พยายามเพิ่มจำนวนครั้งทุกเซ็ต (ยังเหลือแรง 1 ครั้ง)`};
 }
 function effLabel(e, isLast, deload){
   if (deload) return 'เหลือแรง 2–3';
@@ -976,7 +1037,7 @@ function renderDayPlan(){
   $('#dayChips').innerHTML = ['CH','LAT','LEG','SH','THK'].map(k=>`<button class="chip${k===progDay?' on':''}" data-day="${k}">${esc(DAYS[k].name.split(' — ')[0])} <small>${esc(DAYS[k].focus)}</small></button>`).join('');
   $('#wkChips').querySelectorAll('[data-wk]').forEach(b => b.onclick = () => { progWeek = +b.dataset.wk; renderDayPlan(); });
   $('#dayChips').querySelectorAll('[data-day]').forEach(b => b.onclick = () => { progDay = b.dataset.day; renderDayPlan(); });
-  const day = DAYS[progDay], w = progWeek, forDate = fromNum(dayNum(settings.cycleStart) + w*7 + (day.wd-1));
+  const day = DAYS[progDay], w = progWeek, forDate = fromNum((settings.cycleStart ? dayNum(settings.cycleStart) : todayMonN()) + w*7 + (day.wd-1));
   const plist = accOf(progDay);
   let total = day.main ? mainSets(w) : 0; plist.forEach(ex => total += setsFor(ex,w));
   let h = `<div class="card"><h2>${esc(day.name)} <span class="tag">${esc(WAVES[w].name)}</span></h2><p class="tiny" style="margin-top:-4px">${thDate(forDate)} · รวม ${total} เซ็ต · กดที่ท่าเพื่อดูรายละเอียดทีละเซ็ต</p>`;
@@ -1525,7 +1586,8 @@ function armButton(btn, label, onGo){
 function renderCycle(){
   const el = $('#cycleBox'); if (!el) return;
   if (!['CH','LAT','LEG','SH','THK'].some(k => DAYS[k]?.main)){ el.innerHTML = '<div class="card"><h2>แผนน้ำหนัก</h2><p class="muted" style="margin:0">โปรแกรมนี้ไม่มีท่าหลักแบบ 5/3/1 — ความก้าวหน้าดูได้ที่แท็บ "ก้าวหน้า" (เพิ่มน้ำหนักเมื่อทำได้ครบทุกเซต)</p></div>'; return; }
-  if (!settings?.cycleStart){ el.innerHTML = '<div class="card"><p class="muted">กำลังโหลด…</p></div>'; return; }
+  if (!settings){ el.innerHTML = '<div class="card"><p class="muted">กำลังโหลด…</p></div>'; return; }
+  if (!settings.cycleStart){ el.innerHTML = '<div class="card"><h2>แผนน้ำหนัก</h2><p class="muted" style="margin:0">ยังไม่เริ่มโปรแกรม — กด "เริ่มโปรแกรม" ที่หน้าวันนี้ แล้วแผนรอบต่างๆ จะขึ้นที่นี่</p></div>'; return; }
   const cyc0 = settings.cycle || 1, start0 = dayNum(settings.cycleStart), today = dayNum(isoLocal(new Date()));
   const fmtD = n => { const d = fromNum(n), [y,m,dd] = d.split('-').map(Number); return new Date(y,m-1,dd).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
   const N = 6, cycles = [];
