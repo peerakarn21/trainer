@@ -219,89 +219,151 @@ function accountUI(user, isAdmin){
     catch(e){ $('#aMsg').textContent = e?.code==='auth/requires-recent-login' ? 'ออกจากระบบแล้วเข้าใหม่ก่อน แล้วค่อยเปลี่ยน' : errTxt(e); }
   };
   if (!isAdmin) return;
-  const ad = document.createElement('div'); ad.className = 'card';
-  const defProg = JSON.stringify({days: window.__PROGRAM?.days || window.__DEFAULT_DAYS}, null, 1);
-  ad.innerHTML = `<h2>ผู้ดูแล: บัญชีผู้ใช้</h2><p class="tiny" style="margin:0 0 4px;opacity:.8">เปลี่ยนโปรแกรมให้สมาชิกได้ที่นี่ — เครื่องของสมาชิกจะขึ้นแถบให้กดโหลดโปรแกรมใหม่</p><div id="adList" class="tiny">กำลังโหลด…</div>
-    <h3>สร้างบัญชีใหม่</h3>
-    <div class="row"><div><label>ชื่อผู้ใช้</label><input id="adU" autocapitalize="none"></div><div><label>รหัสผ่านเริ่มต้น</label><input id="adP" type="text"></div></div>
-    <div class="grid3" style="margin-top:8px"><div><label>เบนช์ 1RM</label><input id="adRb" type="number" step="2.5"></div><div><label>สควอท 1RM</label><input id="adRs" type="number" step="2.5"></div><div><label>เดดลิฟต์ 1RM</label><input id="adRd" type="number" step="2.5"></div></div>
-    <label style="margin-top:8px">โปรแกรม</label><select id="adTpl"><option value="">โปรแกรมของฉัน (ค่าเริ่มต้น)</option></select>
-    <label style="margin-top:8px">โปรแกรม (JSON)</label><textarea id="adProg" rows="6" style="width:100%;font-family:monospace;font-size:12px">${esc(defProg)}</textarea>
-    <div class="row" style="margin-top:8px;align-items:center"><button class="primary" id="adGo" style="flex:0 0 auto">สร้างบัญชี</button><span id="adMsg" class="tiny" style="flex:1"></span></div>`;
-  card.after(ad);
-  const tpls = {};
-  const tplOpts = () => Object.entries(tpls).map(([k,v]) => `<option value="${esc(k)}">${esc(v.name || k)}</option>`).join('');
-  const loadList = async () => {
-    try { const q = await fs.collection('members').get();
-      const rows = await Promise.all(q.docs.map(async d => {
-        const m = d.data(), mine = d.id === acc.uid;
-        let cur = '—'; try { const pd = await fs.doc(`users/${d.id}/program/days`).get(); cur = pd.exists ? (pd.data().name || 'โปรแกรมกำหนดเอง') : 'โปรแกรมเริ่มต้น'; } catch(e){}
-        const set = mine ? '' : `<div class="row" style="margin-top:6px;align-items:center;gap:6px"><select data-mtpl="${esc(d.id)}" style="flex:1;min-width:0"><option value="">— เลือกโปรแกรม —</option>${tplOpts()}</select><button data-mset="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:0 0 auto">ใช้โปรแกรมนี้</button></div>
-          <div class="row" style="margin-top:6px;gap:6px"><button data-mcyc="${esc(d.id)}" style="flex:1">รีเซ็ตรอบ 5/3/1</button><button data-mwipe="${esc(d.id)}" data-mname="${esc(m.username)}" style="flex:1;color:var(--bad,#e5484d)">ล้างเป็นบัญชีใหม่</button></div>
-          <div class="tiny" data-mres="${esc(d.id)}" style="margin-top:4px"></div>`;
-        return `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(m.username)}</b>${m.admin||mine?' (แอดมิน)':''} <span style="opacity:.6">สร้าง ${esc((m.createdAt||'').slice(0,10))}</span><br><span style="opacity:.8">โปรแกรมตอนนี้: ${esc(cur)}</span>${set}</div>`;
-      }));
-      $('#adList').innerHTML = rows.join('') || 'ยังไม่มี';
-      // แตะครั้งแรก = เตรียม · แตะซ้ำภายใน 4 วิ = ทำจริง
-      const twoTap = (b, label, run) => { let armed = false, tm = null; b.onclick = async () => {
-        if (!armed){ armed = true; b.textContent = 'แตะอีกครั้งเพื่อยืนยัน'; tm = setTimeout(() => { armed = false; b.textContent = label; }, 4000); return; }
-        clearTimeout(tm); armed = false; b.disabled = true; b.textContent = 'กำลังทำ…';
-        const out = $(`[data-mres="${b.dataset.mcyc || b.dataset.mwipe}"]`);
-        try { await run(); b.textContent = 'เสร็จแล้ว ✓'; if (out) out.textContent = ''; }
-        catch(e){ b.disabled = false; b.textContent = label; if (out) out.textContent = 'ไม่สำเร็จ: ' + errTxt(e); }
-      }; };
-      const FV = firebase.firestore.FieldValue;
-      // รีเซ็ตเฉพาะรอบ 5/3/1 → ยังไม่เริ่มโปรแกรม (เก็บ TM/1RM และประวัติที่กรอกไว้)
-      $('#adList').querySelectorAll('[data-mcyc]').forEach(b => twoTap(b, 'รีเซ็ตรอบ 5/3/1', async () => {
-        await fs.doc(`users/${b.dataset.mcyc}/settings/main`).set({cycle:1, cycleStart:null, rampExtra:[0,1,2,0], lag:{}, tmPending:{}, prevTm:FV.delete(), history:[], cycleResetAt:new Date().toISOString(), updatedAt:new Date().toISOString()}, {merge:true});
-      }));
-      // ล้างข้อมูลทั้งหมดของบัญชี (ชื่อผู้ใช้/รหัสผ่านเหมือนเดิม) → บัญชีใหม่ ยังไม่เริ่มโปรแกรม
-      $('#adList').querySelectorAll('[data-mwipe]').forEach(b => twoTap(b, 'ล้างเป็นบัญชีใหม่', async () => {
-        const base = `users/${b.dataset.mwipe}`;
-        for (const c of ['logs','coach','proposals','templates']){
-          const q = await fs.collection(`${base}/${c}`).get();
-          for (let i = 0; i < q.docs.length; i += 400){ const bt = fs.batch(); q.docs.slice(i, i+400).forEach(d => bt.delete(d.ref)); await bt.commit(); }
-        }
-        const bt = fs.batch();
-        ['foodlib/recent','program/swaps','program/days','summary/current'].forEach(x => bt.delete(fs.doc(`${base}/${x}`)));
-        bt.set(fs.doc(`${base}/settings/main`), {oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null, wipedAt:new Date().toISOString()});
-        await bt.commit(); setTimeout(loadList, 1200);
-      }));
-      $('#adList').querySelectorAll('[data-mset]').forEach(b => b.onclick = async () => {
-        const uid = b.dataset.mset, k = $(`[data-mtpl="${uid}"]`).value, tp = tpls[k];
-        if (!tp){ b.textContent = 'เลือกโปรแกรมก่อน'; setTimeout(() => b.textContent = 'ใช้โปรแกรมนี้', 1500); return; }
-        b.disabled = true; b.textContent = 'กำลังบันทึก…';
-        try { await fs.doc(`users/${uid}/program/days`).set({name: tp.name || k, days: tp.days, extra: tp.extra || {}}); b.textContent = 'บันทึกแล้ว ✓'; setTimeout(loadList, 900); }
-        catch(e){ b.disabled = false; b.textContent = 'ไม่สำเร็จ: ' + errTxt(e); }
-      });
-    } catch(e){ $('#adList').textContent = 'โหลดรายชื่อไม่ได้: ' + errTxt(e); }
-  };
-  fs.collection(`users/${acc.uid}/templates`).get().then(q => {
-    q.docs.forEach(d => { tpls[d.id] = d.data(); const o = document.createElement('option'); o.value = d.id; o.textContent = d.data().name || d.id; $('#adTpl').appendChild(o); });
-  }).catch(() => {}).finally(loadList);
-  $('#adTpl').onchange = () => {
-    const t = tpls[$('#adTpl').value];
-    $('#adProg').value = t ? JSON.stringify({days: t.days, extra: t.extra || undefined}, null, 1) : defProg;
-    if (t?.username && !$('#adU').value) $('#adU').value = t.username;
-  };
-  $('#adGo').onclick = async () => {
-    const u = $('#adU').value.trim().toLowerCase(), p = $('#adP').value;
-    if (!validUser(u)){ $('#adMsg').textContent = 'ชื่อผู้ใช้ใช้ได้เฉพาะ a–z 0–9 . _ - ยาว 3–30 ตัว'; return; }
-    if (p.length < 6){ $('#adMsg').textContent = 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัว'; return; }
-    let prog; try { prog = JSON.parse($('#adProg').value); if (!prog.days) throw 0; } catch(e){ $('#adMsg').textContent = 'JSON โปรแกรมไม่ถูกต้อง (ต้องมี "days")'; return; }
-    $('#adGo').disabled = true; $('#adMsg').textContent = 'กำลังสร้าง…';
-    const tmp = firebase.apps.find(a => a.name==='adm') || firebase.initializeApp(window.FB_CONFIG, 'adm');
-    try {
-      const cred = await tmp.auth().createUserWithEmailAndPassword(toEmail(u), p); const nu = cred.user.uid; await tmp.auth().signOut();
-      const now = new Date().toISOString(), rm = {bench:+$('#adRb').value||null, squat:+$('#adRs').value||null, deadlift:+$('#adRd').value||null};
-      const tm = {}; Object.entries(rm).forEach(([k,v]) => { if (v) tm[k] = Math.floor(v*.9/2.5)*2.5; });
-      const iso = x => `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
-      await fs.doc('members/'+nu).set({username:u, createdAt:now});
-      await fs.doc(`users/${nu}/program/days`).set(prog);
-      await fs.doc(`users/${nu}/settings/main`).set({oneRM:rm, tm, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null});   // เริ่มนับสัปดาห์เมื่อเจ้าของบัญชีกด "เริ่มโปรแกรม"
-      $('#adMsg').textContent = `สร้างบัญชี ${u} แล้ว ✓`; $('#adU').value=''; $('#adP').value=''; loadList();
-    } catch(e){ $('#adMsg').textContent = errTxt(e); }
-    finally { $('#adGo').disabled = false; }
-  };
+  adminUI(acc, card);
+}
+
+// ---------- หน้าแอดมิน: เมนูหลักเป็นแถบยาว แตะเข้าไปค่อยเห็นรายละเอียด ----------
+function adminUI(acc, card){
+  const entry = document.createElement('button'); entry.className = 'adm-bar adm-entry';
+  entry.innerHTML = '<span class="ab-ic">🛠️</span><span class="ab-t"><b>หน้าแอดมิน</b><span>บัญชีผู้ใช้ · สร้างบัญชีใหม่</span></span><span class="ab-chev">›</span>';
+  card.after(entry);
+  const ov = document.createElement('div'); ov.id = 'admOv'; ov.hidden = true;
+  ov.innerHTML = '<div class="adm-head"><button class="adm-back" id="admBack">‹ กลับ</button><b id="admTitle"></b><span style="width:64px"></span></div><div class="adm-body" id="admBody"></div>';
+  document.body.appendChild(ov);
+  const FV = firebase.firestore.FieldValue, now = () => new Date().toISOString();
+  const tpls = {}; const tplReady = fs.collection(`users/${acc.uid}/templates`).get().then(q => q.docs.forEach(d => tpls[d.id] = d.data())).catch(() => {});
+  const myProg = () => window.__PROGRAM?.days || window.__DEFAULT_DAYS;
+  const stack = [];
+  const bar = (ic, title, sub, attr) => `<button class="adm-bar" ${attr}><span class="ab-ic">${ic}</span><span class="ab-t"><b>${title}</b>${sub ? `<span>${sub}</span>` : ''}</span><span class="ab-chev">›</span></button>`;
+  const go = scr => { stack.push(scr); paint(); };
+  const back = () => { stack.pop(); if (!stack.length){ ov.hidden = true; document.documentElement.classList.remove('adm-open'); return; } paint(); };
+  async function paint(){
+    const scr = stack[stack.length-1]; $('#admTitle').textContent = scr.title; $('#admBack').textContent = stack.length > 1 ? '‹ กลับ' : '‹ ปิด';
+    const body = $('#admBody'); body.innerHTML = '<p class="tiny" style="text-align:center;padding:30px 0">กำลังโหลด…</p>'; body.scrollTop = 0;
+    try { await scr.render(body); } catch(e){ body.innerHTML = `<p class="err">โหลดไม่ได้: ${esc(errTxt(e))}</p>`; }
+  }
+  $('#admBack').onclick = back;
+  entry.onclick = () => { stack.length = 0; ov.hidden = false; document.documentElement.classList.add('adm-open'); go(rootScr); };
+  // แตะครั้งแรก = เตรียม · แตะซ้ำภายใน 4 วิ = ทำจริง
+  const twoTap = (b, run, out) => { const label = b.innerHTML; let armed = false, tm = null; b.onclick = async () => {
+    if (!armed){ armed = true; b.innerHTML = '<b>แตะอีกครั้งเพื่อยืนยัน</b>'; tm = setTimeout(() => { armed = false; b.innerHTML = label; }, 4000); return; }
+    clearTimeout(tm); armed = false; b.disabled = true; b.innerHTML = 'กำลังทำ…'; if (out) out.textContent = '';
+    try { await run(); b.innerHTML = 'เสร็จแล้ว ✓'; setTimeout(() => { b.disabled = false; b.innerHTML = label; }, 1800); }
+    catch(e){ b.disabled = false; b.innerHTML = label; if (out) out.innerHTML = `<span class="err">ไม่สำเร็จ: ${esc(errTxt(e))}</span>`; }
+  }; };
+  const u531Txt = v => v === true ? 'เล่น 5/3/1' : v === false ? 'ท่าใหญ่แบบธรรมดา' : 'ยังไม่เลือก (ให้ผู้ใช้เลือกเอง)';
+  async function loadMembers(){
+    const q = await fs.collection('members').get();
+    return Promise.all(q.docs.map(async d => {
+      const m = d.data(), out = {id:d.id, ...m, mine: d.id === acc.uid, prog:'—', set:{}};
+      try { const pd = await fs.doc(`users/${d.id}/program/days`).get(); out.prog = pd.exists ? (pd.data().name || 'โปรแกรมกำหนดเอง') : 'โปรแกรมเริ่มต้น'; } catch(e){}
+      try { const sd = await fs.doc(`users/${d.id}/settings/main`).get(); out.set = sd.exists ? sd.data() : {}; } catch(e){}
+      return out;
+    }));
+  }
+  const rootScr = {title:'แอดมิน', render: async body => {
+    let n = ''; try { n = (await fs.collection('members').get()).docs.length + ' บัญชี'; } catch(e){}
+    body.innerHTML = bar('👥', 'บัญชีผู้ใช้', n, 'data-go="members"') + bar('➕', 'สร้างบัญชีใหม่', 'ชื่อผู้ใช้ · รหัสผ่าน · โปรแกรม · 5/3/1', 'data-go="create"');
+    body.querySelector('[data-go=members]').onclick = () => go(membersScr);
+    body.querySelector('[data-go=create]').onclick = () => go(createScr);
+  }};
+  const membersScr = {title:'บัญชีผู้ใช้', render: async body => {
+    const ms = (await loadMembers()).sort((a,b) => (b.mine - a.mine) || String(a.username).localeCompare(b.username));
+    body.innerHTML = ms.map(m => bar(m.mine ? '⭐' : '👤', esc(m.username) + (m.mine ? ' (แอดมิน)' : ''),
+      `${esc(m.prog)} · ${u531Txt(m.set.use531)} · ${m.set.cycleStart ? `รอบ ${m.set.cycle||1} เริ่ม ${esc(m.set.cycleStart)}` : 'ยังไม่เริ่มโปรแกรม'}`, `data-mid="${esc(m.id)}"`)).join('') || '<p class="tiny">ยังไม่มีบัญชี</p>';
+    body.querySelectorAll('[data-mid]').forEach(b => b.onclick = () => { const m = ms.find(x => x.id === b.dataset.mid); go(memberScr(m)); });
+  }};
+  const memberScr = m0 => ({title: m0.username, render: async body => {
+    await tplReady;
+    const uid = m0.id, mine = m0.mine;
+    let m = m0; try { m = (await loadMembers()).find(x => x.id === uid) || m0; } catch(e){}
+    const s = m.set || {}, opt = (v, cur, label) => `<button class="seg${cur ? ' on' : ''}" data-u5="${v}">${label}</button>`;
+    body.innerHTML = `<div class="card">
+        <h2 style="margin-bottom:6px">${esc(m.username)}${mine ? ' · แอดมิน' : ''}</h2>
+        <div class="adm-kv"><span>สร้างเมื่อ</span><b>${esc((m.createdAt||'').slice(0,10) || '—')}</b></div>
+        <div class="adm-kv"><span>สถานะ</span><b>${s.cycleStart ? `รอบที่ ${s.cycle||1} · เริ่ม ${esc(s.cycleStart)}` : 'ยังไม่เริ่มโปรแกรม'}</b></div>
+        <div class="adm-kv"><span>โปรแกรม</span><b>${esc(m.prog)}</b></div></div>
+      <div class="card"><h3 style="margin-top:0">ท่าใหญ่ 5/3/1</h3>
+        <div class="segrow">${opt('1', s.use531 === true, 'เล่น 5/3/1')}${opt('0', s.use531 === false, 'ท่าธรรมดา')}${opt('', s.use531 === undefined, 'ให้ผู้ใช้เลือก')}</div>
+        <div class="tiny" id="u5Msg" style="margin-top:6px">ตอนนี้: ${u531Txt(s.use531)}</div></div>
+      <div class="card"><h3 style="margin-top:0">เปลี่ยนโปรแกรม</h3>
+        <select id="mTpl" style="width:100%"><option value="">— เลือกโปรแกรม —</option><option value="__default">โปรแกรมเริ่มต้น (ชุดเดียวกับแอดมิน)</option>${Object.entries(tpls).map(([k,v]) => `<option value="${esc(k)}">${esc(v.name || k)}</option>`).join('')}</select>
+        <button id="mTplGo" style="width:100%;margin-top:8px">ใช้โปรแกรมนี้</button><div class="tiny" id="mTplMsg" style="margin-top:6px"></div></div>
+      ${mine ? '' : `<div class="card"><h3 style="margin-top:0">รีเซ็ต</h3>
+        <button class="adm-act" id="mCyc"><b>รีเซ็ตรอบ 5/3/1</b><span class="tiny">กลับเป็นรอบ 1 ยังไม่เริ่มโปรแกรม · เก็บ TM/1RM และประวัติที่กรอกไว้</span></button>
+        <button class="adm-act danger" id="mWipe"><b>ล้างเป็นบัญชีใหม่</b><span class="tiny">ลบประวัติฝึก อาหาร TM/1RM ผลโค้ช และโปรแกรมที่ตั้งไว้ — กู้คืนไม่ได้ · ชื่อผู้ใช้/รหัสผ่านเหมือนเดิม</span></button>
+        <div class="tiny" id="mRes" style="margin-top:6px"></div></div>`}`;
+    body.querySelectorAll('[data-u5]').forEach(b => b.onclick = async () => {
+      const v = b.dataset.u5; body.querySelectorAll('[data-u5]').forEach(x => x.disabled = true);
+      try { await fs.doc(`users/${uid}/settings/main`).set({use531: v === '' ? FV.delete() : v === '1', updatedAt: now()}, {merge:true}); paint(); }
+      catch(e){ body.querySelectorAll('[data-u5]').forEach(x => x.disabled = false); $('#u5Msg').innerHTML = `<span class="err">ไม่สำเร็จ: ${esc(errTxt(e))}</span>`; }
+    });
+    $('#mTplGo').onclick = async () => {
+      const k = $('#mTpl').value, b = $('#mTplGo'), out = $('#mTplMsg');
+      if (!k){ out.textContent = 'เลือกโปรแกรมก่อน'; return; }
+      b.disabled = true; out.textContent = 'กำลังบันทึก…';
+      try {
+        if (k === '__default') await fs.doc(`users/${uid}/program/days`).delete();
+        else { const tp = tpls[k]; await fs.doc(`users/${uid}/program/days`).set({name: tp.name || k, days: tp.days, extra: tp.extra || {}}); }
+        out.textContent = 'บันทึกแล้ว ✓'; setTimeout(paint, 700);
+      } catch(e){ out.innerHTML = `<span class="err">ไม่สำเร็จ: ${esc(errTxt(e))}</span>`; }
+      finally { b.disabled = false; }
+    };
+    if (mine) return;
+    const out = $('#mRes');
+    // รีเซ็ตเฉพาะรอบ 5/3/1 → ยังไม่เริ่มโปรแกรม (เก็บ TM/1RM และประวัติที่กรอกไว้)
+    twoTap($('#mCyc'), async () => {
+      await fs.doc(`users/${uid}/settings/main`).set({cycle:1, cycleStart:null, rampExtra:[0,1,2,0], lag:{}, tmPending:{}, prevTm:FV.delete(), history:[], cycleResetAt:now(), updatedAt:now()}, {merge:true});
+      setTimeout(paint, 900);
+    }, out);
+    // ล้างข้อมูลทั้งหมด (ชื่อผู้ใช้/รหัสผ่านเหมือนเดิม) → บัญชีใหม่ ยังไม่เริ่มโปรแกรม · ใช้โปรแกรมเริ่มต้น · คงค่า 5/3/1 ที่แอดมินเลือกไว้
+    twoTap($('#mWipe'), async () => {
+      const base = `users/${uid}`;
+      for (const c of ['logs','coach','proposals','templates']){
+        const q = await fs.collection(`${base}/${c}`).get();
+        for (let i = 0; i < q.docs.length; i += 400){ const bt = fs.batch(); q.docs.slice(i, i+400).forEach(d => bt.delete(d.ref)); await bt.commit(); }
+      }
+      const bt = fs.batch();
+      ['foodlib/recent','program/swaps','program/days','summary/current'].forEach(x => bt.delete(fs.doc(`${base}/${x}`)));
+      const keep = s.use531 === undefined ? {} : {use531: s.use531};
+      bt.set(fs.doc(`${base}/settings/main`), {oneRM:{}, tm:{}, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null, ...keep, wipedAt:now()});
+      await bt.commit(); setTimeout(paint, 900);
+    }, out);
+  }});
+  const createScr = {title:'สร้างบัญชีใหม่', render: async body => {
+    await tplReady;
+    const defProg = JSON.stringify({days: myProg()}, null, 1);
+    body.innerHTML = `<div class="card">
+      <div class="row"><div><label>ชื่อผู้ใช้</label><input id="adU" autocapitalize="none"></div><div><label>รหัสผ่านเริ่มต้น</label><input id="adP" type="text"></div></div>
+      <label style="margin-top:8px">ท่าใหญ่ 5/3/1</label><select id="adU5"><option value="">ให้ผู้ใช้เลือกเองตอนเข้าครั้งแรก</option><option value="1">เล่น 5/3/1</option><option value="0">ไม่เล่น (ท่าใหญ่เป็นท่าธรรมดา)</option></select>
+      <div class="grid3" style="margin-top:8px"><div><label>เบนช์ 1RM</label><input id="adRb" type="number" step="2.5"></div><div><label>สควอท 1RM</label><input id="adRs" type="number" step="2.5"></div><div><label>เดดลิฟต์ 1RM</label><input id="adRd" type="number" step="2.5"></div></div>
+      <p class="tiny" style="margin:4px 0 0">1RM ใช้เฉพาะคนที่เล่น 5/3/1 — เว้นว่างได้ ให้ผู้ใช้กรอกเองทีหลัง</p>
+      <label style="margin-top:8px">โปรแกรม</label><select id="adTpl"><option value="">โปรแกรมเริ่มต้น (ชุดเดียวกับแอดมิน)</option>${Object.entries(tpls).map(([k,v]) => `<option value="${esc(k)}">${esc(v.name || k)}</option>`).join('')}</select>
+      <details style="margin-top:8px"><summary class="tiny" style="cursor:pointer">แก้โปรแกรมเอง (JSON)</summary><textarea id="adProg" rows="8" style="width:100%;margin-top:6px;font-family:monospace;font-size:12px">${esc(defProg)}</textarea></details>
+      <button class="primary" id="adGo" style="width:100%;margin-top:12px">สร้างบัญชี</button><div id="adMsg" class="tiny" style="margin-top:6px"></div></div>`;
+    $('#adTpl').onchange = () => { const t = tpls[$('#adTpl').value]; $('#adProg').value = t ? JSON.stringify({days: t.days, extra: t.extra || undefined}, null, 1) : defProg; if (t?.username && !$('#adU').value) $('#adU').value = t.username; };
+    $('#adGo').onclick = async () => {
+      const u = $('#adU').value.trim().toLowerCase(), p = $('#adP').value;
+      if (!validUser(u)){ $('#adMsg').textContent = 'ชื่อผู้ใช้ใช้ได้เฉพาะ a–z 0–9 . _ - ยาว 3–30 ตัว'; return; }
+      if (p.length < 6){ $('#adMsg').textContent = 'รหัสผ่านต้องยาวอย่างน้อย 6 ตัว'; return; }
+      const raw = $('#adProg').value, k = $('#adTpl').value;
+      let prog = null;
+      if (k){ const tp = tpls[k]; prog = {name: tp.name || k, days: tp.days, extra: tp.extra || {}}; }
+      else if (raw.trim() !== defProg.trim()){ try { prog = JSON.parse(raw); if (!prog.days) throw 0; prog.name = prog.name || 'โปรแกรมกำหนดเอง'; } catch(e){ $('#adMsg').textContent = 'JSON โปรแกรมไม่ถูกต้อง (ต้องมี "days")'; return; } }
+      $('#adGo').disabled = true; $('#adMsg').textContent = 'กำลังสร้าง…';
+      const tmp = firebase.apps.find(a => a.name==='adm') || firebase.initializeApp(window.FB_CONFIG, 'adm');
+      try {
+        const cred = await tmp.auth().createUserWithEmailAndPassword(toEmail(u), p); const nu = cred.user.uid; await tmp.auth().signOut();
+        const rm = {bench:+$('#adRb').value||null, squat:+$('#adRs').value||null, deadlift:+$('#adRd').value||null};
+        const tm = {}; Object.entries(rm).forEach(([k,v]) => { if (v) tm[k] = Math.floor(v*.9/2.5)*2.5; });
+        const u5 = $('#adU5').value;
+        await fs.doc('members/'+nu).set({username:u, createdAt:now()});
+        if (prog) await fs.doc(`users/${nu}/program/days`).set(prog);       // ไม่เลือก = ใช้โปรแกรมเริ่มต้น (อัปเดตตามแอดมิน)
+        await fs.doc(`users/${nu}/settings/main`).set({oneRM:rm, tm, tmPct:.9, cycle:1, cycleStart:null, rampExtra:[0,1,2,0], targets:null, ...(u5 ? {use531: u5 === '1'} : {})});
+        $('#adMsg').textContent = `สร้างบัญชี ${u} แล้ว ✓`; $('#adU').value = ''; $('#adP').value = '';
+      } catch(e){ $('#adMsg').textContent = errTxt(e); }
+      finally { $('#adGo').disabled = false; }
+    };
+  }};
 }
 })();

@@ -486,7 +486,7 @@ function renderPill(){
   if (!settings.cycleStart){ $('#cyclePill').textContent = 'ยังไม่เริ่มโปรแกรม'; return; }
   const wi = weekInfo(curDate);
   $('#cyclePill').textContent = wi.before ? `สัปดาห์ก่อนเริ่ม · รอบ ${settings.cycle||1} เริ่ม ${thDate(settings.cycleStart)}`
-    : wi.over ? `รอบที่ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบที่ ${settings.cycle||1} · ${WAVES[wi.idx].name}`;
+    : wi.over ? `รอบที่ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบที่ ${settings.cycle||1} · ${waveName(wi.idx)}`;
 }
 
 // ---------- workout ----------
@@ -586,6 +586,20 @@ function renderOverPanel(){
   const today = isoLocal(new Date());
   const over = settings?.cycleStart && dayNum(today) > cycleEndN();
   const atDeload = settings?.cycleStart && !over && dayNum(curDate) > cycleEndN() - 7;
+  if (settings && !guest && settings.use531 === undefined && hasMainLifts()){
+    el.hidden = false;
+    el.innerHTML = `<h2 style="margin-bottom:4px">เลือกรูปแบบท่าใหญ่</h2>
+      <div class="tiny" style="margin-bottom:10px">ท่าใหญ่ของโปรแกรมนี้คือ เบนช์ สควอท เดดลิฟต์ — จะเล่นแบบไหน? (เปลี่ยนทีหลังได้ที่หน้าตั้งค่า)</div>
+      <button class="primary" data-u531="1" style="width:100%;text-align:left;padding:12px 14px"><b>เล่น 5/3/1 (พาวเวอร์ลิฟติ้ง)</b><span class="tiny" style="display:block;opacity:.85;font-weight:400">น้ำหนักคิดจาก 1RM/TM เปลี่ยนตามสัปดาห์ เซ็ตสุดท้ายเล่นให้ได้มากที่สุด — เน้นแรง</span></button>
+      <button data-u531="0" style="width:100%;margin-top:8px;text-align:left;padding:12px 14px"><b>ไม่เล่น — เป็นท่าธรรมดา</b><span class="tiny" style="display:block;opacity:.85;font-weight:400">3 เซ็ต × 6–10 ครั้ง เพิ่มน้ำหนักเมื่อทำได้ครบ เหมือนท่าอื่น ไม่ต้องกรอก 1RM</span></button>
+      <div class="tiny" id="u531Msg" style="margin-top:6px"></div>`;
+    el.querySelectorAll('[data-u531]').forEach(b => b.onclick = async () => {
+      const v = b.dataset.u531 === '1'; el.querySelectorAll('[data-u531]').forEach(x => x.disabled = true);
+      try { await db.doc('settings/main').set({use531: v, updatedAt: new Date().toISOString()}, {merge:true}); settings = {...settings, use531: v}; renderAll(); }
+      catch(e){ el.querySelectorAll('[data-u531]').forEach(x => x.disabled = false); $('#u531Msg').innerHTML = `<span class="err">บันทึกไม่ได้: ${esc(typeof errTxt === 'function' ? errTxt(e) : (e?.message || e?.code || String(e)))}</span>`; }
+    });
+    return;
+  }
   if (settings && !settings.cycleStart && !guest){
     el.hidden = false;
     el.innerHTML = `<h2 style="margin-bottom:4px">ยังไม่เริ่มโปรแกรม</h2>
@@ -601,11 +615,11 @@ function renderOverPanel(){
     return;
   }
   if (!over && !atDeload){ el.hidden = true; el.innerHTML = ''; return; }
-  const prop = cycleProposal(), cyc = settings.cycle || 1;
+  const prop = use531() ? cycleProposal() : [], cyc = settings.cycle || 1;
   el.hidden = false;
   el.innerHTML = `<h2 style="margin-bottom:4px">${over ? `ครบ 4 สัปดาห์ของรอบที่ ${cyc} แล้ว 🎉` : `สัปดาห์สุดท้ายของรอบที่ ${cyc} (Deload)`}</h2>
     ${over ? '' : '<div class="tiny" style="margin-bottom:6px">เลื่อนต่อไม่ได้แล้ว — กดเริ่มรอบใหม่ได้เลย</div>'}
-    <div class="tiny" style="margin-bottom:10px">TM รอบใหม่: ${prop.map(p => { const s = liftState(p.l, mondayOf(today)); const late = !s.prevCycle && !s.beyond && s.lag > 0; return late ? `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>รอเล่นอีก ${4 - s.idx} สัปดาห์ของรอบเดิมก่อน</b>` : `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>${fmt(p.sug)}</b>`; }).join(' · ')}${prop.filter(p=>p.fail).map(p=>`<br>⚠ ${LIFTS[p.l].th}: ${p.note}`).join('')}</div>
+    ${prop.length ? '' : '<div style="margin-bottom:10px"></div>'}<div class="tiny" style="margin-bottom:10px${prop.length ? '' : ';display:none'}">TM รอบใหม่: ${prop.map(p => { const s = liftState(p.l, mondayOf(today)); const late = !s.prevCycle && !s.beyond && s.lag > 0; return late ? `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>รอเล่นอีก ${4 - s.idx} สัปดาห์ของรอบเดิมก่อน</b>` : `${LIFTS[p.l].th} ${fmt(p.tm)} → <b>${fmt(p.sug)}</b>`; }).join(' · ')}${prop.filter(p=>p.fail).map(p=>`<br>⚠ ${LIFTS[p.l].th}: ${p.note}`).join('')}</div>
     <button class="primary bigbtn" id="overGo">เริ่มรอบที่ ${cyc+1} วันนี้ (${thDate(today)})</button>
     <div class="tiny" id="overMsg" style="margin-top:6px;text-align:center">เริ่มตามวันจริง — วันนี้${WEEKDAY_DAY[weekdayOf(today)]==='rest'?'เป็นวันพัก':`จะเปิดตารางวัน${DAYS[WEEKDAY_DAY[weekdayOf(today)]].name.split(' — ')[0]}`}</div>`;
   $('#overGo').onclick = async () => {
@@ -837,7 +851,7 @@ function renderWeekNav(){
   const today = isoLocal(new Date()), mon = dayNum(curDate) - ((weekdayOf(curDate)+6)%7);
   const monS = fromNum(mon), sunS = fromNum(mon+6), wi = weekInfo(monS);
   const fmtD = d => { const [y,m,dd] = d.split('-').map(Number); return new Date(y,m-1,dd).toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
-  const lab = settings ? (wi.notStarted ? 'ยังไม่เริ่มโปรแกรม' : wi.before ? 'สัปดาห์ก่อนเริ่ม' : wi.over ? `รอบ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบ ${settings.cycle||1} · ${WAVES[wi.idx].name}`) : '';
+  const lab = settings ? (wi.notStarted ? 'ยังไม่เริ่มโปรแกรม' : wi.before ? 'สัปดาห์ก่อนเริ่ม' : wi.over ? `รอบ ${settings.cycle||1} · ครบรอบแล้ว` : `รอบ ${settings.cycle||1} · ${waveName(wi.idx)}`) : '';
   const canNext = mon + 7 <= cycleEndN();
   const canPrev = mon - 7 >= minDayN();
   let h = `<div class="wk-head"><button class="navbtn" data-wk="-7" aria-label="สัปดาห์ก่อน"${canPrev?'':' disabled'}>‹</button><div class="wk-lab"><b>${esc(lab)}</b><span>${fmtD(monS)} – ${fmtD(sunS)}</span></div><button class="navbtn" data-wk="7" aria-label="สัปดาห์ถัดไป"${canNext?'':' disabled title="ถึงสัปดาห์สุดท้ายของรอบแล้ว"'}>›</button></div><div class="daystrip">`;
@@ -1040,7 +1054,7 @@ function renderDayPlan(){
   const day = DAYS[progDay], w = progWeek, forDate = fromNum((settings.cycleStart ? dayNum(settings.cycleStart) : todayMonN()) + w*7 + (day.wd-1));
   const plist = accOf(progDay);
   let total = day.main ? mainSets(w) : 0; plist.forEach(ex => total += setsFor(ex,w));
-  let h = `<div class="card"><h2>${esc(day.name)} <span class="tag">${esc(WAVES[w].name)}</span></h2><p class="tiny" style="margin-top:-4px">${thDate(forDate)} · รวม ${total} เซ็ต · กดที่ท่าเพื่อดูรายละเอียดทีละเซ็ต</p>`;
+  let h = `<div class="card"><h2>${esc(day.name)} <span class="tag">${esc(waveName(w))}</span></h2><p class="tiny" style="margin-top:-4px">${thDate(forDate)} · รวม ${total} เซ็ต · กดที่ท่าเพื่อดูรายละเอียดทีละเซ็ต</p>`;
   if (day.warm) h += `<p class="tiny" style="margin:0 0 8px"><b>วอร์มอัพ:</b> ${esc(day.warm)}</p>`;
   let no = 1;
   if (day.main){
@@ -1369,7 +1383,7 @@ function buildSummary(){
   // plain text
   const L = [];
   L.push(`สรุปข้อมูลการฝึก — สร้างเมื่อ ${new Date().toLocaleString('th-TH')}`);
-  L.push(`โปรแกรม: รอบ ${settings?.cycle||1} · ${WAVES[wi.idx].name} · TM เบนช์ ${fmt(tmOf('bench'))} / สควอท ${fmt(tmOf('squat'))} / เดดลิฟต์ ${fmt(tmOf('deadlift'))}`);
+  L.push(`โปรแกรม: รอบ ${settings?.cycle||1} · ${waveName(wi.idx)}${use531() && hasMainLifts() ? ` · TM เบนช์ ${fmt(tmOf('bench'))} / สควอท ${fmt(tmOf('squat'))} / เดดลิฟต์ ${fmt(tmOf('deadlift'))}` : ' · ท่าใหญ่เล่นแบบท่าธรรมดา (ไม่ใช้ 5/3/1)'}`);
   if ((window.__ACCOUNT||{}).username === 'pond21' && !(window.__PROGRAM && window.__PROGRAM.days)) L.push(`เน้น: หลัง (ปีก+หนา) อก ไหล่ข้าง · รอง: หน้าท้อง น่อง · ไม่เน้นก้น`);
   if (Object.keys(swaps).length) L.push(`ท่าที่เปลี่ยน: ${Object.entries(swaps).map(([o,n])=>`${o} → ${n}`).join(' · ')}`);
   if (data.body.kcalAvg7!=null) L.push(`อาหาร 7 วันล่าสุด (จากแท็บอาหาร): kcal ${fmt(data.body.kcalAvg7,0)} · โปรตีน ${fmt(data.body.proteinAvg7,0)} ก.`);
@@ -1496,6 +1510,13 @@ function renderSettings(){
   $('#rmInputs').querySelectorAll('[data-rm]').forEach(i => i.addEventListener('input', () => {
     const l = i.dataset.rm, v = num(i.value); if (v) $(`[data-tm="${l}"]`).value = floor25(v*(settings.tmPct||.9));
   }));
+  const on = use531(), hm = hasMainLifts();
+  $('#rmInputs').hidden = !(on && hm); const rh = $('#rmHead'); if (rh) rh.textContent = on && hm ? '1RM และ Training Max' : 'รอบการฝึก';
+  const ub = $('#use531Box');
+  if (ub){ ub.hidden = !hm; $('#use531Head').hidden = !hm;
+    const cur = settings.use531 === undefined ? '' : settings.use531 ? '1' : '0';
+    ub.innerHTML = [['1','เล่น 5/3/1 (พาวเวอร์ลิฟติ้ง)','น้ำหนักคิดจาก 1RM/TM เปลี่ยนตามสัปดาห์ — เน้นแรง'],['0','ไม่เล่น — เป็นท่าธรรมดา','3×6–10 เพิ่มน้ำหนักเมื่อทำได้ครบ เหมือนท่าอื่น']].map(([k,n,d]) => `<label class="pmopt"><input type="radio" name="use531" value="${k}"${k===cur?' checked':''}><span><b>${n}</b><span class="tiny" style="display:block">${d}</span></span></label>`).join(''); }
+  const ec = $('#eChart')?.closest('.card'); if (ec) ec.hidden = !(on && hm);
   $('#sCycleStart').value = settings.cycleStart || '';
   $('#sCycle').value = settings.cycle || 1;
   const t = settings.targets || {};
@@ -1521,6 +1542,7 @@ function settingsFromForm(){
   const tg = pf => { const p = g(`#t${pf}p`), c = g(`#t${pf}c`), f = g(`#t${pf}f`); return {kcal: macroKcal(p,c,f), p, c, f}; };
   n.targets = {train: tg('T'), rest: tg('R')};
   const pm = document.querySelector('input[name=progMode]:checked'); if (pm) n.progMode = pm.value;
+  const u5 = document.querySelector('input[name=use531]:checked'); if (u5) n.use531 = u5.value === '1';
   n.updatedAt = new Date().toISOString();
   return n;
 }
@@ -1920,7 +1942,29 @@ $('#fDay').addEventListener('change', () => { formDirty = true; renderWorkout();
 document.querySelectorAll('#v-today .card input, #v-today .card select, #v-today textarea').forEach(i => i.addEventListener('input', () => formDirty = true));
 $('#saveBtn').addEventListener('click', () => save(false));
 
-function renderAll(){ renderOverPanel(); renderPill(); renderProgram(); renderTargets(); renderSettings(); renderSwapList(); renderFood(); if (!formDirty) fillForm(); else { renderWorkout(); renderWeekNav(); } if (location.hash==='#progress') renderProgress(); if (location.hash==='#cycle') renderCycle(); }
+// ---------- 5/3/1 หรือท่าธรรมดา (ตั้งต่อบัญชี: settings.use531) ----------
+const DAYS_BASE = JSON.parse(JSON.stringify(DAYS));
+function hasMainLifts(){ return Object.values(DAYS_BASE).some(d => d && d.main); }
+function use531(){ return settings?.use531 !== false; }            // ยังไม่เลือก = แบบเดิม (5/3/1)
+const MAIN_AS_ACC = {bench:{n:'Barbell Bench Press', r:'6–10'}, squat:{n:'Barbell Back Squat', r:'6–10'}, deadlift:{n:'Barbell Deadlift', r:'5–8'}};
+for (const [l, m] of Object.entries(MAIN_AS_ACC)) for (const M of [HOW, SETUP, CORA, GIF, VIDEO]) if (M && M[l] != null && M[m.n] == null) M[m.n] = M[l];
+function waveName(i){ return use531() || !hasMainLifts() ? WAVES[i].name : (i === 3 ? 'สัปดาห์ 4 (Deload)' : `สัปดาห์ ${i+1}`); }
+let applied531 = null;
+function apply531(){
+  const on = use531(); if (on === applied531) return; applied531 = on;
+  for (const k of Object.keys(DAYS_BASE)){
+    const b = DAYS_BASE[k]; if (!b || typeof b !== 'object' || !DAYS[k]) continue;
+    const d = JSON.parse(JSON.stringify(b));
+    if (!on && d.main && MAIN_AS_ACC[d.main]){
+      const m = MAIN_AS_ACC[d.main];
+      d.acc = [{n:m.n, s:3, r:m.r, t:LIFTS[d.main].th, m:d.mainMuscle || 'chest', e:'1', why:'ท่าหลักของวัน — เล่นแบบท่าธรรมดา (ไม่ได้เลือก 5/3/1): น้ำหนักเดิมจนทำได้ครบช่วงบนทุกเซ็ต แล้วค่อยเพิ่ม'}, ...(d.acc || [])];
+      delete d.main;
+    }
+    for (const key of Object.keys(DAYS[k])) delete DAYS[k][key];
+    Object.assign(DAYS[k], d);
+  }
+}
+function renderAll(){ apply531(); renderOverPanel(); renderPill(); renderProgram(); renderTargets(); renderSettings(); renderSwapList(); renderFood(); if (!formDirty) fillForm(); else { renderWorkout(); renderWeekNav(); } if (location.hash==='#progress') renderProgress(); if (location.hash==='#cycle') renderCycle(); }
 
 // ---------- data ----------
 route(); renderAll(); renderCoach(); renderSummary();
